@@ -28,4 +28,14 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	for i := 0; ; i++ {
+		test := input + strconv.Itoa(i)
+		h := md5.New()
+		h.Write([]byte(test))
+		val := fmt.Sprintf("%x", h.Sum(nil))
+		if 0 == strings.Index(val, "000000") {
+			println("The answer to part two is " + strconv.Itoa(i))
+			return
+		}
+	}
 }
