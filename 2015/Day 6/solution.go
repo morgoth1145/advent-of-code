@@ -75,4 +75,27 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	grid := [1000][1000]int{}
+	for _, cmd := range parseCommands(input) {
+		for x := cmd.left; x <= cmd.right; x++ {
+			for y := cmd.top; y <= cmd.bottom; y++ {
+				if "on" == cmd.action {
+					grid[x][y]++
+				} else if "off" == cmd.action {
+					if grid[x][y] > 0 {
+						grid[x][y]--
+					}
+				} else if "toggle" == cmd.action {
+					grid[x][y] += 2
+				}
+			}
+		}
+	}
+	total := 0
+	for x := 0; x < 1000; x++ {
+		for y := 0; y < 1000; y++ {
+			total += grid[x][y]
+		}
+	}
+	println("The answer to part two is " + strconv.Itoa(total))
 }
