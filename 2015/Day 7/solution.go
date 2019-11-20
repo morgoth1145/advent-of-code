@@ -126,4 +126,61 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	commands := topologicalSortCommands(parseCommands(input))
+	wires := make(map[string]uint16)
+	for _, cmd := range commands {
+		var value uint16
+		switch cmd.action {
+		case "STORE":
+			value = getValue(wires, cmd.in1)
+			break
+		case "NOT":
+			value = ^getValue(wires, cmd.in1)
+			break
+		case "LSHIFT":
+			value = getValue(wires, cmd.in1) << getValue(wires, cmd.in2)
+			break
+		case "RSHIFT":
+			value = getValue(wires, cmd.in1) >> getValue(wires, cmd.in2)
+			break
+		case "AND":
+			value = getValue(wires, cmd.in1) & getValue(wires, cmd.in2)
+			break
+		case "OR":
+			value = getValue(wires, cmd.in1) | getValue(wires, cmd.in2)
+			break
+		}
+		wires[cmd.output] = value
+	}
+	aValue := wires["a"]
+	wires = make(map[string]uint16)
+	wires["b"] = aValue
+	for _, cmd := range commands {
+		if cmd.output == "b" {
+			continue
+		}
+		var value uint16
+		switch cmd.action {
+		case "STORE":
+			value = getValue(wires, cmd.in1)
+			break
+		case "NOT":
+			value = ^getValue(wires, cmd.in1)
+			break
+		case "LSHIFT":
+			value = getValue(wires, cmd.in1) << getValue(wires, cmd.in2)
+			break
+		case "RSHIFT":
+			value = getValue(wires, cmd.in1) >> getValue(wires, cmd.in2)
+			break
+		case "AND":
+			value = getValue(wires, cmd.in1) & getValue(wires, cmd.in2)
+			break
+		case "OR":
+			value = getValue(wires, cmd.in1) | getValue(wires, cmd.in2)
+			break
+		}
+		wires[cmd.output] = value
+	}
+	println("The answer to part two is " + strconv.Itoa(int(wires["a"])))
 }
