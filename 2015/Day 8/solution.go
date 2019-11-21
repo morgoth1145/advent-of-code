@@ -36,6 +36,21 @@ func parseString(s string) string {
 	return string(chars)
 }
 
+func encodeString(s string) string {
+	chars := []rune{'"'}
+	for _, char := range []rune(s) {
+		switch char {
+		case '\\', '"':
+			chars = append(chars, '\\')
+			fallthrough
+		default:
+			chars = append(chars, char)
+		}
+	}
+	chars = append(chars, '"')
+	return string(chars)
+}
+
 func part1(input string) {
 	difference := 0
 	for _, s := range strings.Split(input, "\n") {
@@ -45,4 +60,9 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	difference := 0
+	for _, s := range strings.Split(input, "\n") {
+		difference += utf8.RuneCountInString(encodeString(s)) - utf8.RuneCountInString(s)
+	}
+	println("The answer to part one is " + strconv.Itoa(difference))
 }
