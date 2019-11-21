@@ -19,9 +19,10 @@ type command struct {
 	in2    string
 }
 
-func parseCommands(input string) []command {
+func parseCommands(input string) ([]command, map[string]uint16) {
 	lines := strings.Split(input, "\n")
-	out := []command{}
+	commands := []command{}
+	initialValues := map[string]uint16{}
 	for _, s := range lines {
 		cmd := command{}
 		parts := strings.Split(s, " -> ")
@@ -30,6 +31,11 @@ func parseCommands(input string) []command {
 		if 1 == len(parts) {
 			cmd.action = "STORE"
 			cmd.in1 = parts[0]
+			value, error := strconv.ParseUint(cmd.in1, 10, 16)
+			if error == nil {
+				initialValues[cmd.output] = uint16(value)
+				continue
+			}
 		} else if "NOT" == parts[0] {
 			cmd.action = "NOT"
 			cmd.in1 = parts[1]
@@ -38,9 +44,9 @@ func parseCommands(input string) []command {
 			cmd.action = parts[1]
 			cmd.in2 = parts[2]
 		}
-		out = append(out, cmd)
+		commands = append(commands, cmd)
 	}
-	return out
+	return commands, initialValues
 }
 
 func topologicalSort(dependencyMap map[string][]string) []string {
@@ -96,9 +102,8 @@ func getValue(wires map[string]uint16, input string) uint16 {
 	return wires[input]
 }
 
-func part1(input string) {
-	wires := make(map[string]uint16)
-	for _, cmd := range topologicalSortCommands(parseCommands(input)) {
+func executeCommands(wires map[string]uint16, commands []command) {
+	for _, cmd := range commands {
 		var value uint16
 		switch cmd.action {
 		case "STORE":
@@ -122,65 +127,20 @@ func part1(input string) {
 		}
 		wires[cmd.output] = value
 	}
+}
+
+func part1(input string) {
+	commands, wires := parseCommands(input)
+	commands = topologicalSortCommands(commands)
+	executeCommands(wires, commands)
 	println("The answer to part one is " + strconv.Itoa(int(wires["a"])))
 }
 
 func part2(input string) {
-	commands := topologicalSortCommands(parseCommands(input))
-	wires := make(map[string]uint16)
-	for _, cmd := range commands {
-		var value uint16
-		switch cmd.action {
-		case "STORE":
-			value = getValue(wires, cmd.in1)
-			break
-		case "NOT":
-			value = ^getValue(wires, cmd.in1)
-			break
-		case "LSHIFT":
-			value = getValue(wires, cmd.in1) << getValue(wires, cmd.in2)
-			break
-		case "RSHIFT":
-			value = getValue(wires, cmd.in1) >> getValue(wires, cmd.in2)
-			break
-		case "AND":
-			value = getValue(wires, cmd.in1) & getValue(wires, cmd.in2)
-			break
-		case "OR":
-			value = getValue(wires, cmd.in1) | getValue(wires, cmd.in2)
-			break
-		}
-		wires[cmd.output] = value
-	}
-	aValue := wires["a"]
-	wires = make(map[string]uint16)
-	wires["b"] = aValue
-	for _, cmd := range commands {
-		if cmd.output == "b" {
-			continue
-		}
-		var value uint16
-		switch cmd.action {
-		case "STORE":
-			value = getValue(wires, cmd.in1)
-			break
-		case "NOT":
-			value = ^getValue(wires, cmd.in1)
-			break
-		case "LSHIFT":
-			value = getValue(wires, cmd.in1) << getValue(wires, cmd.in2)
-			break
-		case "RSHIFT":
-			value = getValue(wires, cmd.in1) >> getValue(wires, cmd.in2)
-			break
-		case "AND":
-			value = getValue(wires, cmd.in1) & getValue(wires, cmd.in2)
-			break
-		case "OR":
-			value = getValue(wires, cmd.in1) | getValue(wires, cmd.in2)
-			break
-		}
-		wires[cmd.output] = value
-	}
+	commands, wires := parseCommands(input)
+	commands = topologicalSortCommands(commands)
+	executeCommands(wires, commands)
+	wires = map[string]uint16{"b": wires["a"]}
+	executeCommands(wires, commands)
 	println("The answer to part two is " + strconv.Itoa(int(wires["a"])))
 }
