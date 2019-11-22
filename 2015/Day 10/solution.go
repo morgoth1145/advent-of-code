@@ -49,4 +49,9 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	sequence := parseIntSequence(input)
+	for iter := 0; iter < 50; iter++ {
+		sequence = lookAndSay(sequence)
+	}
+	println("The answer to part two is " + strconv.Itoa(len(sequence)))
 }
