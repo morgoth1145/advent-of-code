@@ -87,4 +87,17 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	locations, distances := parse(input)
+	bestDistance := 0
+	generatePermutations(locations, func(permutation []string) {
+		distance := 0
+		for idx := 0; idx < len(permutation)-1; idx++ {
+			d := distances[locationPair{permutation[idx], permutation[idx+1]}]
+			distance += d
+		}
+		if distance > bestDistance {
+			bestDistance = distance
+		}
+	})
+	println("The answer to part two is " + strconv.Itoa(bestDistance))
 }
