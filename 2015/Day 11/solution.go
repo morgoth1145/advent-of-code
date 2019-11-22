@@ -70,14 +70,23 @@ func incrementPassword(password [8]int) [8]int {
 	return password
 }
 
-func part1(input string) {
-	password := inputToPassword(input)
+func getNextPassword(password [8]int) [8]int {
 	password = incrementPassword(password)
 	for !passwordRule1(password) || !passwordRule2(password) || !passwordRule3(password) {
 		password = incrementPassword(password)
 	}
+	return password
+}
+
+func part1(input string) {
+	password := inputToPassword(input)
+	password = getNextPassword(password)
 	println("The answer to part one is " + passwordToString(password))
 }
 
 func part2(input string) {
+	password := inputToPassword(input)
+	password = getNextPassword(password)
+	password = getNextPassword(password)
+	println("The answer to part two is " + passwordToString(password))
 }
