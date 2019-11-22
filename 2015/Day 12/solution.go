@@ -103,5 +103,75 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(total))
 }
 
+func sumJSONIntsList2(input []rune) (int, []rune) {
+	input = input[1:] // Skip first bracket
+	total := 0
+	for {
+		c := input[0]
+		switch c {
+		case ',':
+			input = input[1:]
+			continue
+		case ']':
+			return total, input[1:]
+		default:
+			value, rest := sumJSONInts2(input)
+			total += value
+			input = rest
+		}
+	}
+}
+
+func sumJSONIntsObject2(input []rune) (int, []rune) {
+	input = input[1:] // Skip first brace
+	total := 0
+	skip := false
+	for {
+		c := input[0]
+		switch c {
+		case '}':
+			if skip {
+				return 0, input[1:]
+			}
+			return total, input[1:]
+		case ',':
+			input = input[1:]
+		default:
+			_, rest := readJSONString(input) // Key
+			input = rest[1:]                 // Skip :
+			if input[0] == '"' {
+				strValue, rest2 := readJSONString(input)
+				if "red" == strValue {
+					skip = true
+				}
+				input = rest2
+				continue
+			}
+			value, rest2 := sumJSONInts2(input) // Value
+			total += value
+			input = rest2
+		}
+	}
+}
+
+func sumJSONInts2(input []rune) (int, []rune) {
+	c := input[0]
+	switch c {
+	case '[':
+		return sumJSONIntsList2(input)
+	case '"':
+		_, rest := readJSONString(input)
+		return 0, rest
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return readJSONInt(input)
+	case '{':
+		return sumJSONIntsObject2(input)
+	default:
+		return 0, []rune{}
+	}
+}
+
 func part2(input string) {
+	total, _ := sumJSONInts2([]rune(input))
+	println("The answer to part two is " + strconv.Itoa(total))
 }
