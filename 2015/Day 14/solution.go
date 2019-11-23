@@ -55,4 +55,29 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	reindeer := parse(input)
+	scores := map[int]int{}
+	for time := 1; time <= 2503; time++ {
+		bestDistance := 0
+		bestIndices := []int{}
+		for idx, stats := range reindeer {
+			distance := calcDistance(stats, time)
+			if distance > bestDistance {
+				bestDistance = distance
+				bestIndices = []int{idx}
+			} else if distance == bestDistance {
+				bestIndices = append(bestIndices, idx)
+			}
+		}
+		for _, bestIdx := range bestIndices {
+			scores[bestIdx]++
+		}
+	}
+	bestScore := 0
+	for _, score := range scores {
+		if score > bestScore {
+			bestScore = score
+		}
+	}
+	println("The answer to part one is " + strconv.Itoa(bestScore))
 }
