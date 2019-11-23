@@ -91,4 +91,17 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	ingredients := parse(input)
+	bestScore := 0
+	generateAmounts(len(ingredients), 100, func(amounts []int) {
+		totalStats := combine(ingredients, amounts)
+		if totalStats.calories != 500 {
+			return
+		}
+		score := scoreIngredients(totalStats)
+		if score > bestScore {
+			bestScore = score
+		}
+	})
+	println("The answer to part two is " + strconv.Itoa(bestScore))
 }
