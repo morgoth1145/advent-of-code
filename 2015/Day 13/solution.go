@@ -91,4 +91,25 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	people, scores := parse(input)
+	for _, p := range people {
+		scores[peoplePair{p, "me"}] = 0
+		scores[peoplePair{"me", p}] = 0
+	}
+	people = append(people, "me")
+	bestScore := 0
+	generatePermutations(people, func(permutation []string) {
+		score := 0
+		for idx := 0; idx < len(permutation); idx++ {
+			nextIdx := (idx + 1) % len(permutation)
+			s1 := scores[peoplePair{permutation[idx], permutation[nextIdx]}]
+			s2 := scores[peoplePair{permutation[nextIdx], permutation[idx]}]
+			score += s1
+			score += s2
+		}
+		if score > bestScore {
+			bestScore = score
+		}
+	})
+	println("The answer to part two is " + strconv.Itoa(bestScore))
 }
