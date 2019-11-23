@@ -122,4 +122,39 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	aunts := parse(input)
+	for _, aunt := range aunts {
+		if aunt.children != -1 && aunt.children != 3 {
+			continue
+		}
+		if aunt.cats != -1 && aunt.cats <= 7 {
+			continue
+		}
+		if aunt.samoyeds != -1 && aunt.samoyeds != 2 {
+			continue
+		}
+		if aunt.pomeranians != -1 && aunt.pomeranians >= 3 {
+			continue
+		}
+		if aunt.akitas != -1 && aunt.akitas != 0 {
+			continue
+		}
+		if aunt.vizslas != -1 && aunt.vizslas != 0 {
+			continue
+		}
+		if aunt.goldfish != -1 && aunt.goldfish >= 5 {
+			continue
+		}
+		if aunt.trees != -1 && aunt.trees <= 3 {
+			continue
+		}
+		if aunt.cars != -1 && aunt.cars != 2 {
+			continue
+		}
+		if aunt.perfumes != -1 && aunt.perfumes != 1 {
+			continue
+		}
+		// We have a match!
+		println("The answer to part two is " + strconv.Itoa(aunt.number))
+	}
 }
