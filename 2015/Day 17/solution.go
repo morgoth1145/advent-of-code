@@ -42,5 +42,36 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(combinations))
 }
 
+func countCombinations2(bestContainers int, currentContainers int, containers []int, remaining int) (int, int) {
+	if currentContainers > bestContainers {
+		return 0, bestContainers
+	}
+	if 0 == len(containers) {
+		if 0 == remaining {
+			return 1, currentContainers
+		}
+		return 0, bestContainers
+	}
+	count := 0
+	if remaining >= containers[0] {
+		subCount, subBestContainers := countCombinations2(bestContainers, currentContainers+1, containers[1:], remaining-containers[0])
+		if subBestContainers < bestContainers {
+			bestContainers = subBestContainers
+			count = 0
+		}
+		count += subCount
+	}
+	subCount, subBestContainers := countCombinations2(bestContainers, currentContainers, containers[1:], remaining)
+	if subBestContainers < bestContainers {
+		bestContainers = subBestContainers
+		count = 0
+	}
+	count += subCount
+	return count, bestContainers
+}
+
 func part2(input string) {
+	containers := parse(input)
+	combinations, _ := countCombinations2(len(containers), 0, containers, 150)
+	println("The answer to part two is " + strconv.Itoa(combinations))
 }
