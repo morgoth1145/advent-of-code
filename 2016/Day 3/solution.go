@@ -48,5 +48,16 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(countPossibleTriangles(parse(input))))
 }
 
+func fixTriangles(triangles []polysides) []polysides {
+	out := []polysides{}
+	for idx := 0; idx < len(triangles); idx += 3 {
+		out = append(out, polysides{triangles[idx].a, triangles[idx+1].a, triangles[idx+2].a})
+		out = append(out, polysides{triangles[idx].b, triangles[idx+1].b, triangles[idx+2].b})
+		out = append(out, polysides{triangles[idx].c, triangles[idx+1].c, triangles[idx+2].c})
+	}
+	return out
+}
+
 func part2(input string) {
+	println("The answer to part one is " + strconv.Itoa(countPossibleTriangles(fixTriangles(parse(input)))))
 }
