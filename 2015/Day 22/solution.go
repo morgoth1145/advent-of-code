@@ -184,5 +184,14 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(best))
 }
 
+func hardModeHandleEffects(boss stats, player stats, effects effectTimers) (stats, stats, effectTimers) {
+	player.hp--
+	return handleEffects(boss, player, effects)
+}
+
 func part2(input string) {
+	boss := parse(input)
+	player := stats{hp: 50, mana: 500}
+	best := playerTurn(hardModeHandleEffects, boss, player, effectTimers{}, 0, -1)
+	println("The answer to part two is " + strconv.Itoa(best))
 }
