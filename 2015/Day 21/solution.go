@@ -142,4 +142,21 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	boss := parse(input)
+	best := 0
+	for _, loadout := range generateLoadouts() {
+		cost := 0
+		player := stats{hp: 100}
+		for _, i := range loadout {
+			cost += i.cost
+			player.damage += i.damage
+			player.armor += i.armor
+			if cost > best {
+				if !doesPlayerWin(boss, player) {
+					best = cost
+				}
+			}
+		}
+	}
+	println("The answer to part two is " + strconv.Itoa(best))
 }
