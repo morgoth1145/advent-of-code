@@ -56,5 +56,36 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(code))
 }
 
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
 func part2(input string) {
+	x, y := -2, 0
+	valueLookup := map[string]string{
+		"0-2":  "1",
+		"-1-1": "2",
+		"0-1":  "3",
+		"1-1":  "4",
+		"-20":  "5",
+		"-10":  "6",
+		"00":   "7",
+		"10":   "8",
+		"20":   "9",
+		"-11":  "A",
+		"01":   "B",
+		"11":   "C",
+		"02":   "D",
+	}
+	code := ""
+	for _, line := range strings.Split(input, "\n") {
+		x, y = doSequence(line, x, y, func(x int, y int) bool {
+			return abs(x)+abs(y) < 3
+		})
+		code += valueLookup[strconv.Itoa(x)+strconv.Itoa(y)]
+	}
+	println("The answer to part one is " + code)
 }
