@@ -77,4 +77,20 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	packages := parse(input)
+	bestPackageCount := -1
+	bestQuantumEntanglement := -1
+	generateEvenFirstGroupSplit(packages, 4, func(group []int) {
+		qe := 1
+		for _, w := range group {
+			qe *= w
+		}
+		if bestPackageCount == -1 || len(group) < bestPackageCount {
+			bestPackageCount = len(group)
+			bestQuantumEntanglement = qe
+		} else if bestPackageCount == len(group) && qe < bestQuantumEntanglement {
+			bestQuantumEntanglement = qe
+		}
+	})
+	println("The answer to part two is " + strconv.Itoa(bestQuantumEntanglement))
 }
