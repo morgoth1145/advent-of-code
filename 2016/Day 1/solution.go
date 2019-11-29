@@ -36,5 +36,33 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(abs(north)+abs(east)))
 }
 
+type coord struct {
+	x int
+	y int
+}
+
 func part2(input string) {
+	seen := map[coord]bool{}
+	north, east := 0, 0
+	northVelocity, eastVelocity := 1, 0
+	for _, d := range strings.Split(input, ", ") {
+		turn := d[0]
+		distance, _ := strconv.Atoi(d[1:])
+		if turn == 'L' {
+			northVelocity, eastVelocity = eastVelocity, -northVelocity
+		} else {
+			northVelocity, eastVelocity = -eastVelocity, northVelocity
+		}
+		for i := 0; i < distance; i++ {
+			north += northVelocity
+			east += eastVelocity
+			key := coord{east, north}
+			_, present := seen[key]
+			if present {
+				println("The answer to part two is " + strconv.Itoa(abs(north)+abs(east)))
+				return
+			}
+			seen[key] = true
+		}
+	}
 }
