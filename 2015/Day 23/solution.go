@@ -81,4 +81,7 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	instructions := strings.Split(input, "\n")
+	_, b := runInstructions(instructions, 1, 0)
+	println("The answer to part two is " + strconv.Itoa(b))
 }
