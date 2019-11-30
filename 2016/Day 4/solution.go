@@ -68,5 +68,28 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(total))
 }
 
+func decryptName(name string, sectorID int) string {
+	shift := sectorID % 26
+	out := ""
+	for _, c := range name {
+		if c == '-' {
+			out += " "
+		} else {
+			c += rune(shift)
+			if c > 'z' {
+				c -= 26
+			}
+			out += string(c)
+		}
+	}
+	return out
+}
+
 func part2(input string) {
+	for _, r := range parse(input) {
+		if r.checksum == getRoomChecksum(r.name) && decryptName(r.name, r.sectorID) == "northpole object storage" {
+			println("The answer to part two is " + strconv.Itoa(r.sectorID))
+			return
+		}
+	}
 }
