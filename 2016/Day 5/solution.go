@@ -34,4 +34,23 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	passwordBits := []rune{'_', '_', '_', '_', '_', '_', '_', '_'}
+	index := 0
+	known := 0
+	for known < 8 {
+		hash, newIndex := getInterestingHash(input, index)
+		index = newIndex + 1
+		position := hash[5]
+		if position > '7' {
+			continue
+		}
+		idx, _ := strconv.Atoi(string(position))
+		value := hash[6]
+		if passwordBits[idx] == '_' {
+			passwordBits[idx] = rune(value)
+			known++
+			println("I know more of the password: " + string(passwordBits))
+		}
+	}
+	println("The answer to part two is " + string(passwordBits))
 }
