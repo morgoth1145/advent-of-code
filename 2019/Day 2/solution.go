@@ -64,4 +64,16 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	program := parse(input)
+	for noun := 0; noun < 100; noun++ {
+		program[1] = noun
+		for verb := 0; verb < 100; verb++ {
+			program[2] = verb
+			if execute(program)[0] == 19690720 {
+				println("The answer to part one is " + strconv.Itoa(100*noun+verb))
+				return
+			}
+		}
+	}
+	println("Didn't find an answer to part 2!")
 }
