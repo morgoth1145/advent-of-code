@@ -76,4 +76,20 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	parts := strings.Split(input, "\n")
+	wire1 := getWirePositions(parts[0])
+	wire2 := getWirePositions(parts[1])
+
+	best := -1
+	for pos, steps1 := range wire1 {
+		steps2, present := wire2[pos]
+		if present {
+			dist := steps1 + steps2
+			if best == -1 || dist < best {
+				best = dist
+			}
+		}
+	}
+
+	println("The answer to part two is " + strconv.Itoa(best))
 }
