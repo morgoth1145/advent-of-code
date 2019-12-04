@@ -54,5 +54,33 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(valid))
 }
 
+func validate2(n int) bool {
+	c := -1
+	doubleDigit := -1
+	doubleDigitCount := 0
+	for _, d := range getDigits(n) {
+		if d < c {
+			return false // Decreasing
+		} else if d == c {
+			if doubleDigit == d {
+				doubleDigitCount++
+			} else if doubleDigit == -1 || doubleDigitCount != 1 {
+				doubleDigit = d
+				doubleDigitCount = 1
+			}
+		}
+		c = d
+	}
+	return doubleDigit != -1 && doubleDigitCount == 1
+}
+
 func part2(input string) {
+	low, high := parse(input)
+	valid := 0
+	for i := low; i <= high; i++ {
+		if validate2(i) {
+			valid++
+		}
+	}
+	println("The answer to part two is " + strconv.Itoa(valid))
 }
