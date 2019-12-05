@@ -64,6 +64,36 @@ func execute(codes []int, input func() int, output func(int)) []int {
 			params := getParams(1)
 			output(params[0])
 			instructionIdx += 2
+		case 5:
+			params := getParams(2)
+			if params[0] != 0 {
+				instructionIdx = params[1]
+			} else {
+				instructionIdx += 3
+			}
+		case 6:
+			params := getParams(2)
+			if params[0] == 0 {
+				instructionIdx = params[1]
+			} else {
+				instructionIdx += 3
+			}
+		case 7:
+			params := getParams(2)
+			val := 0
+			if params[0] < params[1] {
+				val = 1
+			}
+			write(2, val)
+			instructionIdx += 4
+		case 8:
+			params := getParams(2)
+			val := 0
+			if params[0] == params[1] {
+				val = 1
+			}
+			write(2, val)
+			instructionIdx += 4
 		case 99:
 			return codes
 		default:
@@ -102,4 +132,8 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	codes := parse(input)
+	output := []int{}
+	execute(codes, getInputMaker(5), getOutputAccumulator(&output))
+	println("The answer to part two is " + strconv.Itoa(getDiagnostic(output)))
 }
