@@ -24,35 +24,22 @@ func parse(input string) map[string]string {
 func part1(input string) {
 	orbits := parse(input)
 
-	orbitCounts := map[string]int{}
-	for obj, orbited := range orbits {
-		orbitCounts[obj] = -1
-		orbitCounts[orbited] = -1
+	orbited := map[string][]string{}
+	for obj, orbitedObj := range orbits {
+		orbited[orbitedObj] = append(orbited[orbitedObj], obj)
 	}
 
-	unknown := len(orbitCounts)
-	for unknown > 0 {
-		for obj, orbitedCount := range orbitCounts {
-			if orbitedCount != -1 {
-				continue
-			}
-			orbited, doesOrbit := orbits[obj]
-			if !doesOrbit {
-				orbitCounts[obj] = 0
-				unknown--
-				continue
-			}
-			indirectOrbits := orbitCounts[orbited]
-			if indirectOrbits != -1 {
-				orbitCounts[obj] = indirectOrbits + 1
-				unknown--
-				continue
-			}
-		}
-	}
 	total := 0
-	for _, orbitCount := range orbitCounts {
-		total += orbitCount
+	orbitCount := 0
+	generation := []string{"COM"}
+	for len(generation) > 0 {
+		nextGeneration := []string{}
+		for _, obj := range generation {
+			total += orbitCount
+			nextGeneration = append(nextGeneration, orbited[obj]...)
+		}
+		generation = nextGeneration
+		orbitCount++
 	}
 
 	println("The answer to part one is " + strconv.Itoa(total))
