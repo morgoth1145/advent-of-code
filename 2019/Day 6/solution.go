@@ -59,4 +59,41 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	orbits := parse(input)
+
+	transferCount := map[string]int{}
+
+	generation := []string{orbits["YOU"]}
+	for len(generation) > 0 {
+		nextGeneration := []string{}
+		for _, obj := range generation {
+			transfers := transferCount[obj]
+			for objA, orbited := range orbits {
+				if objA == obj {
+					{
+						_, present := transferCount[orbited]
+						if present {
+							continue
+						}
+					}
+					transferCount[orbited] = transfers + 1
+					nextGeneration = append(nextGeneration, orbited)
+				}
+				if orbited == obj {
+					{
+						_, present := transferCount[objA]
+						if present {
+							continue
+						}
+					}
+					transferCount[objA] = transfers + 1
+					nextGeneration = append(nextGeneration, objA)
+				}
+			}
+		}
+		generation = nextGeneration
+	}
+
+	bestTransfers := transferCount[orbits["SAN"]]
+	println("The answer to part two is " + strconv.Itoa(bestTransfers))
 }
