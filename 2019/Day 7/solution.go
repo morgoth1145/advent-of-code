@@ -170,4 +170,22 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	codes := parse(input)
+	best := -1
+	for sequence := range permutations([]int{5, 6, 7, 8, 9}) {
+		amplifierInput := make(chan int)
+		lastAmplifierOutput := chainChannel(listChannel(0), amplifierInput)
+		for _, phase := range sequence {
+			lastAmplifierOutput = execute(codes, chainChannel(listChannel(phase), lastAmplifierOutput))
+		}
+		var output int
+		for output = range lastAmplifierOutput {
+			amplifierInput <- output
+		}
+		close(amplifierInput)
+		if best == -1 || best < output {
+			best = output
+		}
+	}
+	println("The answer to part two is " + strconv.Itoa(best))
 }
