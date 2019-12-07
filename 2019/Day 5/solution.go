@@ -13,7 +13,7 @@ func main() {
 	part2(input)
 }
 
-func getDiagnostic(output chan int) int {
+func getDiagnostic(output <-chan int) int {
 	last := 0
 	for v := range output {
 		if last != 0 {

@@ -35,7 +35,7 @@ func getParams(program []int, instructionIdx int, parameterCount int) []int {
 }
 
 // Execute runs an Intcode program
-func Execute(program []int, input chan int) chan int {
+func Execute(program []int, input <-chan int) <-chan int {
 	// Copy to avoid messing with the original program
 	program = append([]int{}, program...)
 	output := make(chan int)
