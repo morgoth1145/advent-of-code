@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advent-of-code/2019/helpers"
 	"advent-of-code/aochelpers"
 	"strconv"
 	"strings"
@@ -49,13 +50,6 @@ func getWirePositions(wire string) map[position]int {
 	return out
 }
 
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
 func part1(input string) {
 	parts := strings.Split(input, "\n")
 	wire1 := getWirePositions(parts[0])
@@ -65,7 +59,7 @@ func part1(input string) {
 	for pos := range wire1 {
 		_, present := wire2[pos]
 		if present {
-			dist := abs(pos.x) + abs(pos.y)
+			dist := helpers.Abs(pos.x) + helpers.Abs(pos.y)
 			if best == -1 || dist < best {
 				best = dist
 			}

@@ -1,5 +1,13 @@
 package helpers
 
+// Abs returns the absolute value of an int
+func Abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
 // IntPermutations generates the permutations of an integer list
 func IntPermutations(values ...int) chan []int {
 	out := make(chan []int)
