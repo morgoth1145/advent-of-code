@@ -37,5 +37,30 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(bestVal))
 }
 
+func composeLayers(layers []string, layerSize int) string {
+	out := ""
+	for idx := 0; idx < layerSize; idx++ {
+		for _, l := range layers {
+			if '0' == l[idx] {
+				out += " "
+				break
+			} else if '1' == l[idx] {
+				out += "X"
+				break
+			}
+		}
+	}
+	return out
+}
+
 func part2(input string) {
+	width := 25
+	height := 6
+	composed := composeLayers(splitIntoLayers(input), width*height)
+	println("The answer to part two is an image:")
+	for len(composed) > 0 {
+		println(strings.ReplaceAll(composed[:width], "X", "\u2588"))
+		composed = composed[width:]
+	}
+	println(strings.Repeat("-", width))
 }
