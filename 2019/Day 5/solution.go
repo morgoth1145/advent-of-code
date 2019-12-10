@@ -25,11 +25,11 @@ func getDiagnostic(output <-chan int) int {
 }
 
 func part1(input string) {
-	output := getDiagnostic(intcode.Execute(intcode.Parse(input), channeltypes.List(1)))
+	output := getDiagnostic(intcode.Parse(input).AsyncRun(channeltypes.List(1)))
 	println("The answer to part one is " + strconv.Itoa(output))
 }
 
 func part2(input string) {
-	output := getDiagnostic(intcode.Execute(intcode.Parse(input), channeltypes.List(5)))
+	output := getDiagnostic(intcode.Parse(input).AsyncRun(channeltypes.List(5)))
 	println("The answer to part two is " + strconv.Itoa(output))
 }
