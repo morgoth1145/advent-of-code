@@ -89,5 +89,28 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(calcEnergy(moons)))
 }
 
+func getCycleLength(axis moonAxis) int64 {
+	axisString := func() string {
+		out := ""
+		for _, v := range axis.pos {
+			out += strconv.Itoa(v) + " "
+		}
+		for _, v := range axis.vel {
+			out += strconv.Itoa(v) + " "
+		}
+		return out
+	}
+	start := axisString()
+	for iter := int64(1); true; iter++ {
+		axis = updateAxis(axis)
+		if axisString() == start {
+			return iter
+		}
+	}
+	return -1
+}
+
 func part2(input string) {
+	moons := parse(input)
+	println("The answer to part two is " + strconv.FormatInt(helpers.LCM64(getCycleLength(moons.x), getCycleLength(moons.y), getCycleLength(moons.z)), 10))
 }

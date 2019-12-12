@@ -31,13 +31,6 @@ func parse(input string) map[vector2D]bool {
 	return out
 }
 
-func gcd(a, b int) int {
-	for b != 0 {
-		a, b = b, a%b
-	}
-	return a
-}
-
 func getVisibleAngles(c vector2D, asteroids map[vector2D]bool) map[vector2D]bool {
 	seen := map[vector2D]bool{}
 	for other := range asteroids {
@@ -46,7 +39,7 @@ func getVisibleAngles(c vector2D, asteroids map[vector2D]bool) map[vector2D]bool
 		}
 
 		angle := vector2D{x: other.x - c.x, y: other.y - c.y}
-		denominator := gcd(helpers.Abs(angle.x), helpers.Abs(angle.y))
+		denominator := helpers.GCD(helpers.Abs(angle.x), helpers.Abs(angle.y))
 		angle.x /= denominator
 		angle.y /= denominator
 		seen[angle] = true
