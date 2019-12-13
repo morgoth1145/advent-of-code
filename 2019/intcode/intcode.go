@@ -7,7 +7,7 @@ import (
 
 // Program holds the state of an Intcode program (obviously)
 type Program struct {
-	memory             []int64
+	Memory             []int64
 	instructionPointer int64
 	relativeBase       int64
 }
@@ -19,7 +19,7 @@ func Parse(input string) Program {
 		val, _ := strconv.ParseInt(line, 10, 64)
 		memory = append(memory, val)
 	}
-	return Program{memory: memory, instructionPointer: 0, relativeBase: 0}
+	return Program{Memory: memory, instructionPointer: 0, relativeBase: 0}
 }
 
 type parameter struct {
@@ -30,18 +30,18 @@ type parameter struct {
 func (p *Program) read(param parameter) int64 {
 	switch param.mode {
 	case 0:
-		if param.val > int64(len(p.memory)) {
+		if param.val > int64(len(p.Memory)) {
 			return int64(0)
 		}
-		return p.memory[param.val]
+		return p.Memory[param.val]
 	case 1:
 		return param.val
 	case 2:
 		pos := p.relativeBase + param.val
-		if pos > int64(len(p.memory)) {
+		if pos > int64(len(p.Memory)) {
 			return int64(0)
 		}
-		return p.memory[pos]
+		return p.Memory[pos]
 	default:
 		panic("Unknown mode")
 	}
@@ -57,17 +57,17 @@ func (p *Program) write(param parameter, val int64) {
 	default:
 		panic("Unknown mode")
 	}
-	for pos >= int64(len(p.memory)) {
-		p.memory = append(p.memory, int64(0))
+	for pos >= int64(len(p.Memory)) {
+		p.Memory = append(p.Memory, int64(0))
 	}
-	p.memory[pos] = val
+	p.Memory[pos] = val
 }
 
 func (p *Program) params(count int) []parameter {
 	params := []parameter{}
-	modes := p.memory[p.instructionPointer] / 100
+	modes := p.Memory[p.instructionPointer] / 100
 	for paramIdx := 0; paramIdx < count; paramIdx++ {
-		params = append(params, parameter{mode: modes % 10, val: p.memory[p.instructionPointer+int64(paramIdx+1)]})
+		params = append(params, parameter{mode: modes % 10, val: p.Memory[p.instructionPointer+int64(paramIdx+1)]})
 		modes /= 10
 	}
 	return params
@@ -76,11 +76,11 @@ func (p *Program) params(count int) []parameter {
 // AsyncRun executes a copy of an Intcode program asynchronously
 func (p Program) AsyncRun(input <-chan int64) <-chan int64 {
 	// Copy to avoid messing with the original program
-	p = Program{memory: append([]int64{}, p.memory...), instructionPointer: p.instructionPointer, relativeBase: p.relativeBase}
+	p = Program{Memory: append([]int64{}, p.Memory...), instructionPointer: p.instructionPointer, relativeBase: p.relativeBase}
 	output := make(chan int64)
 	impl := func() {
 		for {
-			switch p.memory[p.instructionPointer] % 100 {
+			switch p.Memory[p.instructionPointer] % 100 {
 			case 1:
 				params := p.params(3)
 				p.write(params[2], p.read(params[0])+p.read(params[1]))
