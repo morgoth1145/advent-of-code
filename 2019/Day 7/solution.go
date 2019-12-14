@@ -2,9 +2,9 @@ package main
 
 import (
 	"advent-of-code/2019/channeltypes"
-	"advent-of-code/2019/helpers"
 	"advent-of-code/2019/intcode"
 	"advent-of-code/aochelpers"
+	"advent-of-code/helpers"
 	"strconv"
 )
 
@@ -17,7 +17,7 @@ func main() {
 func part1(input string) {
 	program := intcode.Parse(input)
 	best := int64(-1)
-	for sequence := range helpers.IntPermutations(0, 1, 2, 3, 4) {
+	for sequence := range helpers.PermuteInts(0, 1, 2, 3, 4) {
 		lastAmplifierOutput := channeltypes.List(int64(0))
 		for _, phase := range sequence {
 			lastAmplifierOutput = program.AsyncRun(intcode.InputChannelFunction(channeltypes.Chain(channeltypes.List(int64(phase)), lastAmplifierOutput)))
@@ -33,7 +33,7 @@ func part1(input string) {
 func part2(input string) {
 	program := intcode.Parse(input)
 	best := int64(-1)
-	for sequence := range helpers.IntPermutations(5, 6, 7, 8, 9) {
+	for sequence := range helpers.PermuteInts(5, 6, 7, 8, 9) {
 		amplifierInput := make(chan int64)
 		lastAmplifierOutput := channeltypes.Chain(channeltypes.List(int64(0)), amplifierInput)
 		for _, phase := range sequence {

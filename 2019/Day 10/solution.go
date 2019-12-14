@@ -1,8 +1,8 @@
 package main
 
 import (
-	"advent-of-code/2019/helpers"
 	"advent-of-code/aochelpers"
+	"advent-of-code/helpers"
 	"math"
 	"strconv"
 	"strings"

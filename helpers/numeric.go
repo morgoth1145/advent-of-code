@@ -8,29 +8,6 @@ func Abs(n int) int {
 	return n
 }
 
-// IntPermutations generates the permutations of an integer list
-func IntPermutations(values ...int) chan []int {
-	out := make(chan []int)
-	var impl func(int)
-	impl = func(idx int) {
-		if idx == len(values) {
-			out <- append([]int{}, values...)
-			return
-		}
-		impl(idx + 1)
-		for j := idx + 1; j < len(values); j++ {
-			values[idx], values[j] = values[j], values[idx]
-			impl(idx + 1)
-			values[idx], values[j] = values[j], values[idx]
-		}
-		if 0 == idx {
-			close(out)
-		}
-	}
-	go impl(0)
-	return out
-}
-
 // GCD calculates the greatest common denominator of two integers
 func GCD(a, b int) int {
 	for b != 0 {
