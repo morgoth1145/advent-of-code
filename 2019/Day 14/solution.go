@@ -54,12 +54,15 @@ func getReactionOrder(reactions map[string]reaction) []string {
 	return helpers.ReverseStrings(helpers.TopologicalSortStrings(graph))
 }
 
-func calcNeededForFuel(reactions map[string]reaction, fuel int64) map[string]int64 {
+func makeFuel(reactions map[string]reaction, amounts map[string]int64, desiredFuel int64) map[string]int64 {
 	reactionOrder := getReactionOrder(reactions)
-	need := map[string]int64{}
-	need["FUEL"] = fuel
+	storedFuel := amounts["FUEL"]
+	amounts["FUEL"] = -desiredFuel
 	for _, item := range reactionOrder {
-		needAmnt := need[item]
+		needAmnt := -amounts[item]
+		if needAmnt <= 0 {
+			continue
+		}
 		r, hasReaction := reactions[item]
 		if !hasReaction {
 			continue
@@ -70,40 +73,35 @@ func calcNeededForFuel(reactions map[string]reaction, fuel int64) map[string]int
 			times++
 		}
 
+		amounts[r.output.name] += times * r.output.amount
 		for _, chem := range r.inputs {
-			need[chem.name] += times * chem.amount
+			amounts[chem.name] -= times * chem.amount
 		}
 	}
-	return need
+	amounts["FUEL"] += storedFuel + desiredFuel
+	return amounts
 }
 
 func part1(input string) {
 	reactions := parse(input)
-	need := calcNeededForFuel(reactions, 1)
-	println("The answer to part one is " + strconv.FormatInt(need["ORE"], 10))
+	amounts := makeFuel(reactions, map[string]int64{}, 1)
+	println("The answer to part one is " + strconv.FormatInt(-amounts["ORE"], 10))
 }
 
 func part2(input string) {
-	oreBank := int64(1000000000000)
 	reactions := parse(input)
-	best := int64(-1)
-	guess := int64(1)
-	jumpEst := int64(-1)
-	for {
-		need := calcNeededForFuel(reactions, guess)
-		if best == -1 {
-			jumpEst = need["ORE"]
+	jumpSize := -makeFuel(reactions, map[string]int64{}, 1)["ORE"]
+
+	oreBank := int64(1000000000000)
+	amounts := map[string]int64{"ORE": oreBank}
+	best := int64(0)
+	for amounts["ORE"] > 0 {
+		best = amounts["FUEL"]
+		toMake := amounts["ORE"] / jumpSize
+		if toMake == 0 {
+			toMake++
 		}
-		if oreBank < need["ORE"] {
-			break
-		} else {
-			best = guess
-			inc := (oreBank - need["ORE"]) / jumpEst
-			if inc == 0 {
-				inc++
-			}
-			guess += inc
-		}
+		amounts = makeFuel(reactions, amounts, toMake)
 	}
 	println("The answer to part two is " + strconv.FormatInt(best, 10))
 }
