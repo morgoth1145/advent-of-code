@@ -22,3 +22,12 @@ func PermuteInts(values ...int) chan []int {
 	go impl(0)
 	return out
 }
+
+// ReverseStrings returns the list of strings in reverse order
+func ReverseStrings(list []string) []string {
+	out := append([]string{}, list...)
+	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+		out[i], out[j] = out[j], out[i]
+	}
+	return out
+}
