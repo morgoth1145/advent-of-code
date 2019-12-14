@@ -79,4 +79,22 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	reactions := parse(input)
+	reactionOrder := getReactionOrder(reactions)
+	need := map[string]float64{}
+	need["FUEL"] = 1
+	for _, item := range reactionOrder {
+		needAmnt := need[item]
+		r, hasReaction := reactions[item]
+		if !hasReaction {
+			continue
+		}
+
+		times := needAmnt / float64(r.output.amount)
+		for _, chem := range r.inputs {
+			need[chem.name] += times * float64(chem.amount)
+		}
+	}
+	estimate := 1000000000000 / need["ORE"]
+	println("The estimate to part two is " + strconv.FormatFloat(estimate, 'f', 10, 64))
 }
