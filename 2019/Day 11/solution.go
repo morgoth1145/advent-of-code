@@ -23,7 +23,7 @@ func paintHull(input string, startColor int64) map[point2D]int64 {
 	points[p] = startColor
 	inputs := make(chan int64, 1)
 	inputs <- startColor
-	commands := intcode.Parse(input).AsyncRun(inputs)
+	commands := intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(inputs))
 	vx, vy := 0, 1
 	for color := range commands {
 		points[p] = color

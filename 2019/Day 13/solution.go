@@ -4,6 +4,7 @@ import (
 	"advent-of-code/2019/intcode"
 	"advent-of-code/aochelpers"
 	"strconv"
+	"sync"
 )
 
 func main() {
@@ -74,42 +75,45 @@ func part2(input string) {
 	program := intcode.Parse(input)
 	program.Memory[0] = 2
 
-	moves := make(chan int64, 1)
-	tiles := map[point2D]int64{}
-	gameFeed := program.AsyncRun(moves)
+	mutex := new(sync.Mutex)
 	ballPos := point2D{}
 	paddlePos := point2D{}
-	knownPositions := 0
+	// tiles := map[point2D]int64{}
 	score := int64(0)
+
+	moves := func() int64 {
+		mutex.Lock()
+		defer mutex.Unlock()
+		// renderTiles(tiles, score)
+		if ballPos.x < paddlePos.x {
+			return -1 // Left
+		} else if ballPos.x > paddlePos.x {
+			return 1 // Right
+		} else {
+			return 0 // Neutral
+		}
+	}
+
+	gameFeed := program.AsyncRun(moves)
 	for x := range gameFeed {
-		y := <-gameFeed
-		pos := point2D{x, y}
-		tile := <-gameFeed
-		if x == -1 && y == 0 {
-			score = tile
-			continue
-		}
-		tiles[pos] = tile
-		switch tile {
-		case 3:
-			paddlePos = pos
-			knownPositions++
-		case 4:
-			ballPos = pos
-			knownPositions++
-		}
-		if 2 == knownPositions {
-			// renderTiles(tiles, score)
-			knownPositions = 0
-			if ballPos.x < paddlePos.x {
-				moves <- -1 // Left
-			} else if ballPos.x > paddlePos.x {
-				moves <- 1 // Right
-			} else {
-				moves <- 0       // Neutral
-				knownPositions++ // The paddle won't give an update
+		func() { // defer works at function scope
+			mutex.Lock()
+			defer mutex.Unlock()
+			y := <-gameFeed
+			pos := point2D{x, y}
+			tile := <-gameFeed
+			if x == -1 && y == 0 {
+				score = tile
+				return
 			}
-		}
+			// tiles[pos] = tile
+			switch tile {
+			case 3:
+				paddlePos = pos
+			case 4:
+				ballPos = pos
+			}
+		}()
 	}
 	println("The answer to part two is " + strconv.FormatInt(score, 10))
 }

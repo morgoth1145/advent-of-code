@@ -20,7 +20,7 @@ func part1(input string) {
 	for sequence := range helpers.IntPermutations(0, 1, 2, 3, 4) {
 		lastAmplifierOutput := channeltypes.List(int64(0))
 		for _, phase := range sequence {
-			lastAmplifierOutput = program.AsyncRun(channeltypes.Chain(channeltypes.List(int64(phase)), lastAmplifierOutput))
+			lastAmplifierOutput = program.AsyncRun(intcode.InputChannelFunction(channeltypes.Chain(channeltypes.List(int64(phase)), lastAmplifierOutput)))
 		}
 		output := <-lastAmplifierOutput
 		if best == -1 || best < output {
@@ -37,7 +37,7 @@ func part2(input string) {
 		amplifierInput := make(chan int64)
 		lastAmplifierOutput := channeltypes.Chain(channeltypes.List(int64(0)), amplifierInput)
 		for _, phase := range sequence {
-			lastAmplifierOutput = program.AsyncRun(channeltypes.Chain(channeltypes.List(int64(phase)), lastAmplifierOutput))
+			lastAmplifierOutput = program.AsyncRun(intcode.InputChannelFunction(channeltypes.Chain(channeltypes.List(int64(phase)), lastAmplifierOutput)))
 		}
 		var output int64
 		for output = range lastAmplifierOutput {

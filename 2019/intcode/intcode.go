@@ -22,6 +22,13 @@ func Parse(input string) Program {
 	return Program{Memory: memory, instructionPointer: 0, relativeBase: 0}
 }
 
+// InputChannelFunction returns an input function based on an input channel
+func InputChannelFunction(input <-chan int64) func() int64 {
+	return func() int64 {
+		return <-input
+	}
+}
+
 type parameter struct {
 	mode int64
 	val  int64
@@ -74,7 +81,7 @@ func (p *Program) params(count int) []parameter {
 }
 
 // AsyncRun executes a copy of an Intcode program asynchronously
-func (p Program) AsyncRun(input <-chan int64) <-chan int64 {
+func (p Program) AsyncRun(input func() int64) <-chan int64 {
 	// Copy to avoid messing with the original program
 	p = Program{Memory: append([]int64{}, p.Memory...), instructionPointer: p.instructionPointer, relativeBase: p.relativeBase}
 	output := make(chan int64)
@@ -90,7 +97,7 @@ func (p Program) AsyncRun(input <-chan int64) <-chan int64 {
 				p.write(params[2], p.read(params[0])*p.read(params[1]))
 				p.instructionPointer += 4
 			case 3:
-				p.write(p.params(1)[0], <-input)
+				p.write(p.params(1)[0], input())
 				p.instructionPointer += 2
 			case 4:
 				output <- p.read(p.params(1)[0])
