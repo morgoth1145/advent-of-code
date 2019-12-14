@@ -22,6 +22,11 @@ func Parse(input string) Program {
 	return Program{Memory: memory, instructionPointer: 0, relativeBase: 0}
 }
 
+// Clone returns a clone of the program (for memory isolation)
+func (p Program) Clone() Program {
+	return Program{Memory: append([]int64{}, p.Memory...), instructionPointer: p.instructionPointer, relativeBase: p.relativeBase}
+}
+
 // InputChannelFunction returns an input function based on an input channel
 func InputChannelFunction(input <-chan int64) func() int64 {
 	return func() int64 {
@@ -34,7 +39,7 @@ type parameter struct {
 	val  int64
 }
 
-func (p *Program) read(param parameter) int64 {
+func (p Program) read(param parameter) int64 {
 	switch param.mode {
 	case 0:
 		if param.val > int64(len(p.Memory)) {
@@ -70,7 +75,7 @@ func (p *Program) write(param parameter, val int64) {
 	p.Memory[pos] = val
 }
 
-func (p *Program) params(count int) []parameter {
+func (p Program) params(count int) []parameter {
 	params := []parameter{}
 	modes := p.Memory[p.instructionPointer] / 100
 	for paramIdx := 0; paramIdx < count; paramIdx++ {
@@ -82,8 +87,6 @@ func (p *Program) params(count int) []parameter {
 
 // AsyncRun executes a copy of an Intcode program asynchronously
 func (p Program) AsyncRun(input func() int64) <-chan int64 {
-	// Copy to avoid messing with the original program
-	p = Program{Memory: append([]int64{}, p.Memory...), instructionPointer: p.instructionPointer, relativeBase: p.relativeBase}
 	output := make(chan int64)
 	impl := func() {
 		for {

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"advent-of-code/2019/intcode"
 	"advent-of-code/aochelpers"
 	"strconv"
-	"strings"
 )
 
 func main() {
@@ -12,64 +12,25 @@ func main() {
 	part2(input)
 }
 
-func parse(input string) []int {
-	program := []int{}
-	for _, line := range strings.Split(input, ",") {
-		val, _ := strconv.Atoi(line)
-		program = append(program, val)
-	}
-	return program
-}
-
-func execute(codes []int) []int {
-	// Copy to avoid messing with the original codes
-	codes = append([]int{}, codes...)
-	instructionIdx := 0
-
-	getParams := func(parameterCount int) []int {
-		params := []int{}
-		for paramIdx := 0; paramIdx < parameterCount; paramIdx++ {
-			parameter := codes[codes[instructionIdx+paramIdx+1]]
-			params = append(params, parameter)
-		}
-		return params
-	}
-	write := func(outputParameterIdx int, value int) {
-		codes[codes[instructionIdx+outputParameterIdx+1]] = value
-	}
-	for {
-		switch codes[instructionIdx] {
-		case 1:
-			params := getParams(2)
-			write(2, params[0]+params[1])
-			instructionIdx += 4
-		case 2:
-			params := getParams(2)
-			write(2, params[0]*params[1])
-			instructionIdx += 4
-		case 99:
-			return codes
-		default:
-			panic("Something broke!")
-		}
-	}
-}
-
 func part1(input string) {
-	program := parse(input)
-	program[1] = 12
-	program[2] = 2
-	answer := execute(program)[0]
-	println("The answer to part one is " + strconv.Itoa(answer))
+	program := intcode.Parse(input)
+	program.Memory[1] = 12
+	program.Memory[2] = 2
+	for range program.AsyncRun(nil) {
+	}
+	println("The answer to part one is " + strconv.Itoa(int(program.Memory[0])))
 }
 
 func part2(input string) {
-	program := parse(input)
+	program := intcode.Parse(input)
 	for noun := 0; noun < 100; noun++ {
-		program[1] = noun
+		program.Memory[1] = int64(noun)
 		for verb := 0; verb < 100; verb++ {
-			program[2] = verb
-			if execute(program)[0] == 19690720 {
+			program.Memory[2] = int64(verb)
+			workingProgram := program.Clone()
+			for range workingProgram.AsyncRun(nil) {
+			}
+			if workingProgram.Memory[0] == 19690720 {
 				println("The answer to part one is " + strconv.Itoa(100*noun+verb))
 				return
 			}
