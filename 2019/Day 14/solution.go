@@ -54,11 +54,10 @@ func getReactionOrder(reactions map[string]reaction) []string {
 	return helpers.ReverseStrings(helpers.TopologicalSortStrings(graph))
 }
 
-func part1(input string) {
-	reactions := parse(input)
+func calcNeededForFuel(reactions map[string]reaction, fuel int64) map[string]int64 {
 	reactionOrder := getReactionOrder(reactions)
 	need := map[string]int64{}
-	need["FUEL"] = 1
+	need["FUEL"] = fuel
 	for _, item := range reactionOrder {
 		needAmnt := need[item]
 		r, hasReaction := reactions[item]
@@ -75,26 +74,36 @@ func part1(input string) {
 			need[chem.name] += times * chem.amount
 		}
 	}
+	return need
+}
+
+func part1(input string) {
+	reactions := parse(input)
+	need := calcNeededForFuel(reactions, 1)
 	println("The answer to part one is " + strconv.FormatInt(need["ORE"], 10))
 }
 
 func part2(input string) {
+	oreBank := int64(1000000000000)
 	reactions := parse(input)
-	reactionOrder := getReactionOrder(reactions)
-	need := map[string]float64{}
-	need["FUEL"] = 1
-	for _, item := range reactionOrder {
-		needAmnt := need[item]
-		r, hasReaction := reactions[item]
-		if !hasReaction {
-			continue
+	best := int64(-1)
+	guess := int64(1)
+	jumpEst := int64(-1)
+	for {
+		need := calcNeededForFuel(reactions, guess)
+		if best == -1 {
+			jumpEst = need["ORE"]
 		}
-
-		times := needAmnt / float64(r.output.amount)
-		for _, chem := range r.inputs {
-			need[chem.name] += times * float64(chem.amount)
+		if oreBank < need["ORE"] {
+			break
+		} else {
+			best = guess
+			inc := (oreBank - need["ORE"]) / jumpEst
+			if inc == 0 {
+				inc++
+			}
+			guess += inc
 		}
 	}
-	estimate := 1000000000000 / need["ORE"]
-	println("The estimate to part two is " + strconv.FormatFloat(estimate, 'f', 10, 64))
+	println("The answer to part two is " + strconv.FormatInt(best, 10))
 }
