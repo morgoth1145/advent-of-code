@@ -25,3 +25,26 @@ func TopologicalSortStrings(graph map[string][]string) []string {
 	}
 	return out
 }
+
+// ShortestIntPath searches for and returns the shortest path from start to end in the graph
+// This uses BFS
+func ShortestIntPath(graph map[int][]int, start int, end int) []int {
+	seen := map[int]bool{}
+	queue := [][]int{[]int{start}}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		pos := current[len(current)-1]
+		seen[pos] = true
+		if pos == end {
+			return current
+		}
+
+		for _, neighbor := range graph[pos] {
+			if !seen[neighbor] {
+				queue = append(queue, append(append([]int{}, current...), neighbor))
+			}
+		}
+	}
+	return nil // No path!
+}

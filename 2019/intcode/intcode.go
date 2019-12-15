@@ -89,6 +89,7 @@ func (p Program) params(count int) []parameter {
 func (p Program) AsyncRun(input func() int64) <-chan int64 {
 	output := make(chan int64)
 	impl := func() {
+		defer close(output)
 		for {
 			switch p.Memory[p.instructionPointer] % 100 {
 			case 1:
@@ -140,7 +141,6 @@ func (p Program) AsyncRun(input func() int64) <-chan int64 {
 				p.relativeBase += p.read(params[0])
 				p.instructionPointer += 2
 			case 99:
-				close(output)
 				return
 			default:
 				panic("Something broke!")
