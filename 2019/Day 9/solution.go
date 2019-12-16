@@ -14,11 +14,11 @@ func main() {
 }
 
 func part1(input string) {
-	output := <-intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(channeltypes.List(int64(1))))
+	output := <-intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(channeltypes.List(int64(1)), intcode.EOFPanic))
 	println("The answer to part one is " + strconv.FormatInt(output, 10))
 }
 
 func part2(input string) {
-	output := <-intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(channeltypes.List(int64(2))))
+	output := <-intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(channeltypes.List(int64(2)), intcode.EOFPanic))
 	println("The answer to part two is " + strconv.FormatInt(output, 10))
 }

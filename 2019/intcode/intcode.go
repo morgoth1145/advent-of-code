@@ -1,6 +1,7 @@
 package intcode
 
 import (
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -27,10 +28,35 @@ func (p Program) Clone() Program {
 	return Program{Memory: append([]int64{}, p.Memory...), instructionPointer: p.instructionPointer, relativeBase: p.relativeBase}
 }
 
+// EndOfFileBehavior specifies behavior for InputChannelFunction when the input channel depletes
+type EndOfFileBehavior int
+
+const (
+	// EOFPanic specifies to panic if the input channel used by InputChannelFunction depletes
+	EOFPanic EndOfFileBehavior = 0
+	// EOFTerminateProgram specifies to terminate the intcode program if the input channel used by InputChannelFunction depletes
+	EOFTerminateProgram EndOfFileBehavior = 1
+	// EOFReturnZero specifies to return 0 if the input channel used by InputChannelFunction depletes
+	EOFReturnZero EndOfFileBehavior = 2
+)
+
 // InputChannelFunction returns an input function based on an input channel
-func InputChannelFunction(input <-chan int64) func() int64 {
+func InputChannelFunction(input <-chan int64, eofBehavior EndOfFileBehavior) func() int64 {
 	return func() int64 {
-		return <-input
+		val, ok := <-input
+		if !ok {
+			switch eofBehavior {
+			case EOFPanic:
+				panic("No input!")
+			case EOFTerminateProgram:
+				runtime.Goexit()
+			case EOFReturnZero:
+				return 0
+			default:
+				panic("Unknown end of input case!")
+			}
+		}
+		return val
 	}
 }
 

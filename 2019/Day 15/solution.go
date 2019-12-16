@@ -77,7 +77,7 @@ func exploreMaze(input string) map[vector2D]int {
 	moveChan <- 1 // North
 	positionStack := []vector2D{vector2D{0, 0}, vector2D{0, 1}}
 
-	statusChan := intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(moveChan))
+	statusChan := intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(moveChan, intcode.EOFTerminateProgram))
 	for status := range statusChan {
 		pos := positionStack[len(positionStack)-1]
 		if _, known := tiles[pos]; !known {
