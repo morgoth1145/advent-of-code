@@ -48,3 +48,25 @@ func ShortestIntPath(graph map[int][]int, start int, end int) []int {
 	}
 	return nil // No path!
 }
+
+// LongestIntPathLength returns the length of the longest path from start to somewhere in the graph
+func LongestIntPathLength(graph map[int][]int, start int) int {
+	seen := map[int]bool{start: true}
+	steps := -1
+	queue := []int{start}
+	for len(queue) > 0 {
+		steps++
+		newQueue := []int{}
+		for _, pos := range queue {
+			for _, n := range graph[pos] {
+				_, alreadySeen := seen[n]
+				if !alreadySeen {
+					newQueue = append(newQueue, n)
+					seen[n] = true
+				}
+			}
+		}
+		queue = newQueue
+	}
+	return steps
+}

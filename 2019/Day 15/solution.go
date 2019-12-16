@@ -198,4 +198,6 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	graph, _, system := convertToGraph(exploreMaze(input))
+	println("The answer to part two is " + strconv.Itoa(helpers.LongestIntPathLength(graph, system)))
 }
