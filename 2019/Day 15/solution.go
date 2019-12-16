@@ -4,10 +4,8 @@ import (
 	"advent-of-code/2019/intcode"
 	"advent-of-code/aochelpers"
 	"advent-of-code/helpers"
-	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 func main() {
@@ -27,29 +25,6 @@ func surroundingTiles(pos vector2D) []vector2D {
 		vector2D{pos.x + 1, pos.y},
 		vector2D{pos.x, pos.y - 1},
 		vector2D{pos.x, pos.y + 1},
-	}
-}
-
-func getBestExploringPath(tiles map[vector2D]int, pos vector2D) []vector2D {
-	seen := map[vector2D]bool{}
-	queue := [][]vector2D{[]vector2D{pos}}
-	for {
-		current := queue[0]
-		queue = queue[1:]
-		pos := current[len(current)-1]
-		seen[pos] = true
-
-		for _, surroundingPos := range surroundingTiles(pos) {
-			t, known := tiles[surroundingPos]
-			if !known {
-				// This is exploration!
-				return append(current, surroundingPos)
-			}
-			_, known = seen[surroundingPos]
-			if !known && t != 0 {
-				queue = append(queue, append(append([]vector2D{}, current...), surroundingPos))
-			}
-		}
 	}
 }
 
@@ -96,63 +71,53 @@ func renderTiles(tiles map[vector2D]int) {
 }
 
 func exploreMaze(input string) map[vector2D]int {
-	pos := vector2D{0, 0}
-	tiles := map[vector2D]int{pos: 1}
-	unknownTiles := map[vector2D]bool{
-		vector2D{1, 0}:  true,
-		vector2D{-1, 0}: true,
-		vector2D{0, 1}:  true,
-		vector2D{0, -1}: true,
-	}
-	currentPath := getBestExploringPath(tiles, pos)[1:]
+	tiles := map[vector2D]int{vector2D{0, 0}: 1}
 
-	m := new(sync.Mutex)
-	directionFunc := func() int64 {
-		m.Lock() // Unlocked by reading goroutine
-		if 0 == len(currentPath) {
-			runtime.Goexit() // Kill the program goroutine.
-		}
-		targetPos := currentPath[0]
-		if pos.x < targetPos.x {
-			return 4 // East
-		} else if pos.x > targetPos.x {
-			return 3 // West
-		}
-		if pos.y < targetPos.y {
-			return 1 // North
-		} else if pos.y > targetPos.y {
-			return 2 // South
-		}
-		panic("I don't know where to go!")
-	}
-	statusChan := intcode.Parse(input).AsyncRun(directionFunc)
-	for len(unknownTiles) > 0 {
-		// Unlocked
-		status := <-statusChan
+	moveChan := make(chan int64, 1)
+	moveChan <- 1 // North
+	positionStack := []vector2D{vector2D{0, 0}, vector2D{0, 1}}
 
-		// Locked (an input is required prior to each output)
-		targetPos := currentPath[0]
-		currentPath = currentPath[1:]
-		tiles[targetPos] = int(status)
-		if status != 0 {
-			pos = targetPos
-			for _, surroundingPos := range surroundingTiles(pos) {
-				_, known := tiles[surroundingPos]
-				if !known {
-					unknownTiles[surroundingPos] = true
-				}
-			}
-		}
-		_, learnedTile := unknownTiles[targetPos]
-		if learnedTile {
+	statusChan := intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(moveChan))
+	for status := range statusChan {
+		pos := positionStack[len(positionStack)-1]
+		if _, known := tiles[pos]; !known {
+			tiles[pos] = int(status)
 			// renderTiles(tiles)
-			delete(unknownTiles, targetPos)
-
-			if 0 != len(unknownTiles) {
-				currentPath = getBestExploringPath(tiles, pos)[1:]
+		}
+		if status == 0 {
+			// We hit a wall and didn't move
+			positionStack = positionStack[:len(positionStack)-1]
+			pos = positionStack[len(positionStack)-1]
+		}
+		advancementFound := false
+		for _, n := range surroundingTiles(pos) {
+			if _, known := tiles[n]; !known {
+				positionStack = append(positionStack, n)
+				advancementFound = true
+				break
 			}
 		}
-		m.Unlock() // Status processed
+		if !advancementFound {
+			// We need to backtrack
+			positionStack = positionStack[:len(positionStack)-1]
+			if 0 == len(positionStack) {
+				// We've explored everything! Time to exit
+				close(moveChan)
+				continue
+			}
+		}
+		nextPos := positionStack[len(positionStack)-1]
+		if pos.y < nextPos.y {
+			moveChan <- 1 // North
+		} else if pos.y > nextPos.y {
+			moveChan <- 2 // South
+		} else if pos.x > nextPos.x {
+			moveChan <- 3 // West
+		} else if pos.x < nextPos.x {
+			moveChan <- 4 // East
+		} else {
+			panic("I don't know where to go!")
+		}
 	}
 	return tiles
 }
