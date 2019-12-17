@@ -4,6 +4,7 @@ import (
 	"advent-of-code/aochelpers"
 	"advent-of-code/helpers"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -59,4 +60,15 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	offset, _ := strconv.Atoi(input[:7])
+	values := parse(strings.Repeat(input, 10000))[offset:]
+	values = helpers.ReverseInts(values)
+	for iter := 0; iter < 100; iter++ {
+		values = helpers.PartialSumsInt(values)
+		for idx, v := range values {
+			values[idx] = v % 10
+		}
+	}
+	values = helpers.ReverseInts(values)
+	println("The answer to part two is " + valuesToString(values[:8]))
 }

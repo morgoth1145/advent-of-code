@@ -31,3 +31,23 @@ func ReverseStrings(list []string) []string {
 	}
 	return out
 }
+
+// ReverseInts returns the list of ints in reverse order
+func ReverseInts(list []int) []int {
+	out := append([]int{}, list...)
+	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+		out[i], out[j] = out[j], out[i]
+	}
+	return out
+}
+
+// PartialSumsInt calculates the partial sums of a list
+func PartialSumsInt(list []int) []int {
+	out := []int{}
+	tot := 0
+	for _, v := range list {
+		tot += v
+		out = append(out, tot)
+	}
+	return out
+}
