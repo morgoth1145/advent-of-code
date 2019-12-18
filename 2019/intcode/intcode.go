@@ -76,7 +76,7 @@ func (p Program) read(param parameter) int64 {
 		return param.val
 	case 2:
 		pos := p.relativeBase + param.val
-		if pos > int64(len(p.Memory)) {
+		if pos >= int64(len(p.Memory)) {
 			return int64(0)
 		}
 		return p.Memory[pos]
