@@ -128,6 +128,84 @@ func findFullSequence(tiles map[vector2D]rune) string {
 	return strings.Join(sequence, ",")
 }
 
+func decomposeSequence(sequence string, maxLength int) (string, string, string, string) {
+	findCandidates := func(subSequence string) []string {
+		parts := strings.Split(subSequence, ",")
+		candidates := []string{}
+		current := parts[0]
+		parts = parts[1:]
+		for len(current) <= maxLength {
+			candidates = append(candidates, current)
+			if len(parts) == 0 {
+				break
+			}
+			current += "," + parts[0]
+			parts = parts[1:]
+		}
+		return candidates
+	}
+	getCandidateBestOrder := func(candidates []string, curSequence string) []string {
+		numOccuranceToCandidates := map[int][]string{}
+		mostOccurances := 0
+		for _, c := range candidates {
+			count := strings.Count(curSequence, c)
+			numOccuranceToCandidates[count] = append(numOccuranceToCandidates[count], c)
+			if count > mostOccurances {
+				mostOccurances = count
+			}
+		}
+		out := []string{}
+		for count := mostOccurances; count > 0; count-- {
+			candidatesForCount := numOccuranceToCandidates[count]
+			for idx := len(candidatesForCount) - 1; idx >= 0; idx-- {
+				out = append(out, candidatesForCount[idx])
+			}
+		}
+		return out
+	}
+	getCandidateSlice := func(curSequence string) string {
+		parts := strings.Split(curSequence, ",")
+		for len(parts) > 0 && (parts[0] == "A" || parts[0] == "B") {
+			parts = parts[1:]
+		}
+		goodParts := []string{}
+		for _, p := range parts {
+			if p == "A" || p == "B" {
+				break
+			}
+			goodParts = append(goodParts, p)
+		}
+		return strings.Join(goodParts, ",")
+	}
+	isMainSequenceValid := func(mainSequence string) bool {
+		if len(mainSequence) > maxLength {
+			return false
+		}
+		for _, c := range mainSequence {
+			switch c {
+			case 'A', 'B', 'C', ',':
+				break
+			default:
+				return false
+			}
+		}
+		return true
+	}
+	for _, aSequence := range getCandidateBestOrder(findCandidates(sequence), sequence) {
+		aReplacedSequence := strings.ReplaceAll(sequence, aSequence, "A")
+		for _, bSequence := range getCandidateBestOrder(findCandidates(getCandidateSlice(aReplacedSequence)), aReplacedSequence) {
+			bReplacedSequence := strings.ReplaceAll(aReplacedSequence, bSequence, "B")
+			for _, cSequence := range getCandidateBestOrder(findCandidates(getCandidateSlice(bReplacedSequence)), bReplacedSequence) {
+				cReplacedSequence := strings.ReplaceAll(bReplacedSequence, cSequence, "C")
+				if isMainSequenceValid(cReplacedSequence) {
+					return cReplacedSequence, aSequence, bSequence, cSequence
+				}
+			}
+		}
+	}
+	panic("No solution found!")
+}
+
 func part2(input string) {
 	roboChan := make(chan int64)
 	program := intcode.Parse(input)
@@ -136,21 +214,16 @@ func part2(input string) {
 	tiles := parseTileMap(readTileMap(outChan))
 
 	go func() {
-		println("Sequence: " + findFullSequence(tiles))
+		mainSequence, aSequence, bSequence, cSequence := decomposeSequence(findFullSequence(tiles), 20)
+		robotInput := mainSequence + "\n" + aSequence + "\n" + bSequence + "\n" + cSequence + "\n" + "n\n"
 
-		// Solved by hand
-		mainSequence := "A,C,C,A,B,A,B,A,B,C"
-		aSequence := "R,6,R,6,R,8,L,10,L,4"
-		bSequence := "L,4,L,12,R,6,L,10"
-		cSequence := "R,6,L,10,R,8"
-
-		for _, c := range mainSequence + "\n" + aSequence + "\n" + bSequence + "\n" + cSequence + "\n" + "n\n" {
+		for _, c := range robotInput {
 			roboChan <- int64(c)
 		}
 		close(roboChan)
 	}()
 
-	// Apparently the tiles are given to us two more times? I don't care about that!
+	// Apparently the tiles are given to us two more times? I don't care about that, I have the info that I need!
 	readTileMap(outChan)
 	readTileMap(outChan)
 
