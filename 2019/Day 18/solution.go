@@ -130,7 +130,7 @@ func getAvailableKeys(start rune, maze map[rune][]graphLink, missing map[rune]bo
 	return out
 }
 
-func solve(maze map[rune][]graphLink, start rune) int {
+func solve(maze map[rune][]graphLink, start []rune) int {
 	missing := map[rune]bool{}
 	for key := range maze {
 		if unicode.IsLower(key) {
@@ -139,12 +139,12 @@ func solve(maze map[rune][]graphLink, start rune) int {
 	}
 
 	memo := map[string]int{}
-	var impl func(rune) int
-	impl = func(cur rune) int {
+	var impl func([]rune) int
+	impl = func(curArr []rune) int {
 		if 0 == len(missing) {
 			return 0
 		}
-		memoLookup := getMemoKey(string(cur), missing)
+		memoLookup := getMemoKey(string(curArr), missing)
 		{
 			cached, isKnown := memo[memoLookup]
 			if isKnown {
@@ -152,16 +152,20 @@ func solve(maze map[rune][]graphLink, start rune) int {
 			}
 		}
 		best := -1
-		for key, dist := range getAvailableKeys(cur, maze, missing) {
-			delete(missing, key)
-			childBest := impl(key)
-			missing[key] = true
-			if childBest == -1 {
-				continue
-			}
-			childBest += dist
-			if best == -1 || childBest < best {
-				best = childBest
+		for idx, cur := range curArr {
+			for key, dist := range getAvailableKeys(cur, maze, missing) {
+				delete(missing, key)
+				curArr[idx] = key
+				childBest := impl(curArr)
+				curArr[idx] = cur
+				missing[key] = true
+				if childBest == -1 {
+					continue
+				}
+				childBest += dist
+				if best == -1 || childBest < best {
+					best = childBest
+				}
 			}
 		}
 		memo[memoLookup] = best
@@ -172,9 +176,36 @@ func solve(maze map[rune][]graphLink, start rune) int {
 }
 
 func part1(input string) {
-	answer := solve(parseToGraph(input), '@')
+	answer := solve(parseToGraph(input), []rune{'@'})
 	println("The answer to part one is " + strconv.Itoa(answer))
 }
 
 func part2(input string) {
+	lines := strings.Split(input, "\n")
+	for lineIdx, l := range lines {
+		idx := strings.Index(l, "@")
+		if idx == -1 {
+			continue
+		}
+		prevLine := []rune(lines[lineIdx-1])
+		prevLine[idx-1] = '1'
+		prevLine[idx] = '#'
+		prevLine[idx+1] = '2'
+		lines[lineIdx-1] = string(prevLine)
+		curLine := []rune(l)
+		curLine[idx-1] = '#'
+		curLine[idx] = '#'
+		curLine[idx+1] = '#'
+		lines[lineIdx] = string(curLine)
+		nextLine := []rune(lines[lineIdx+1])
+		nextLine[idx-1] = '3'
+		nextLine[idx] = '#'
+		nextLine[idx+1] = '4'
+		lines[lineIdx+1] = string(nextLine)
+		break
+	}
+	input = strings.Join(lines, "\n")
+
+	answer := solve(parseToGraph(input), []rune{'1', '2', '3', '4'})
+	println("The answer to part two is " + strconv.Itoa(answer))
 }
