@@ -37,29 +37,13 @@ func part1(input string) {
 
 func part2(input string) {
 	program := intcode.Parse(input)
-	startX := 0
-	for y := 100; ; y++ {
-		for x := startX; ; x++ {
-			if !isSquareAffected(x, y, program) {
-				continue
-			}
-			startX = x
-			candidateBlockX := startX
-			candidateBlockY := y - 99
-			{
-				isGood := true
-				for testY := candidateBlockY; testY < candidateBlockY+100; testY++ {
-					if !isSquareAffected(candidateBlockX+99, testY, program) {
-						isGood = false
-						break
-					}
-				}
-				if isGood {
-					println("The answer to part two is " + strconv.Itoa(candidateBlockX*10000+candidateBlockY))
-					return
-				}
-			}
-			break
+	x := 0
+	y := 0
+	for !isSquareAffected(x+99, y, program) {
+		y++
+		for !isSquareAffected(x, y+99, program) {
+			x++
 		}
 	}
+	println("The answer to part two is " + strconv.Itoa(x*10000+y))
 }
