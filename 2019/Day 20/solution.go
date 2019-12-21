@@ -34,8 +34,15 @@ func surroundingTiles(pos vector2D) []vector2D {
 
 func parseToGraph(input string) map[string][]graphLink {
 	maze := map[vector2D]rune{}
+	maxX, maxY := 0, 0
 	for y, line := range strings.Split(input, "\n") {
+		if y > maxY {
+			maxY = y
+		}
 		for x, c := range line {
+			if x > maxX {
+				maxX = x
+			}
 			if c == ' ' {
 				continue
 			}
@@ -56,10 +63,13 @@ func parseToGraph(input string) map[string][]graphLink {
 						// Marker is reversed
 						label = string(t2) + string(t)
 					}
-					{
-						_, nameTaken := labels[label]
-						if nameTaken {
-							label += "2"
+					if label != "AA" && label != "ZZ" {
+						if n.x == 1 || n.y == 1 || n.x == maxX-1 || n.y == maxY-1 {
+							// Outer
+							label += "Out"
+						} else {
+							// Inner
+							label += "In"
 						}
 					}
 					labels[label] = pos
@@ -110,9 +120,12 @@ func parseToGraph(input string) map[string][]graphLink {
 		if label == "AA" || label == "ZZ" {
 			continue
 		}
-		otherLabel := label[:2]
-		if label[2:] == "" {
-			otherLabel += "2"
+		baseLabel := label[:2]
+		otherLabel := baseLabel
+		if label[2:] == "Out" {
+			otherLabel += "In"
+		} else {
+			otherLabel += "Out"
 		}
 		out[label] = append(out[label], graphLink{otherLabel, 1})
 	}
@@ -149,5 +162,63 @@ func part1(input string) {
 	println("The answer to part one is " + strconv.Itoa(solve(maze, "AA", "ZZ")))
 }
 
+type solveRecursiveStep struct {
+	layer int
+	dest  string
+	dist  int
+}
+
+func solve2(maze map[string][]graphLink, start string, end string) int {
+	seen := map[string]bool{}
+	getKey := func(layer int, label string) string {
+		return strconv.Itoa(layer) + ":" + label
+	}
+	queue := []solveRecursiveStep{solveRecursiveStep{0, start, 0}}
+	for len(queue) > 0 {
+		item := queue[0]
+		queue = queue[1:]
+		layer := item.layer
+		tile := item.dest
+		if layer == 0 && tile == end {
+			return item.dist
+		}
+		key := getKey(layer, tile)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		for _, link := range maze[tile] {
+			if link.dest[:2] == "AA" {
+				// This is never useful
+				continue
+			}
+			if layer != 0 {
+				if link.dest[:2] == "ZZ" {
+					// Entrance/exit are invalid on inner layers
+					continue
+				}
+			}
+			newLayer := layer
+			if tile[:2] == link.dest[:2] {
+				if tile[2:] == "In" {
+					newLayer++
+				} else {
+					newLayer--
+				}
+			}
+			if newLayer < 0 {
+				continue // This is invalid
+			}
+			queue = append(queue, solveRecursiveStep{newLayer, link.dest, item.dist + link.dist})
+		}
+		sort.Slice(queue, func(i, j int) bool {
+			return queue[i].dist < queue[j].dist
+		})
+	}
+	panic("Did not finish the maze!")
+}
+
 func part2(input string) {
+	maze := parseToGraph(input)
+	println("The answer to part two is " + strconv.Itoa(solve2(maze, "AA", "ZZ")))
 }
