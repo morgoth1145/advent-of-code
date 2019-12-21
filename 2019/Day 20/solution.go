@@ -2,6 +2,7 @@ package main
 
 import (
 	"advent-of-code/aochelpers"
+	"advent-of-code/graphsearch"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,6 +24,20 @@ type graphLink struct {
 	dist int
 }
 
+type maze struct {
+	maze       map[vector2D]rune
+	labels     map[string]vector2D
+	posToLabel map[vector2D]string
+}
+
+func makeMaze() maze {
+	return maze{
+		map[vector2D]rune{},
+		map[string]vector2D{},
+		map[vector2D]string{},
+	}
+}
+
 func surroundingTiles(pos vector2D) []vector2D {
 	return []vector2D{
 		vector2D{pos.x - 1, pos.y},
@@ -32,8 +47,8 @@ func surroundingTiles(pos vector2D) []vector2D {
 	}
 }
 
-func parseToGraph(input string) map[string][]graphLink {
-	maze := map[vector2D]rune{}
+func parseMaze(input string) maze {
+	m := makeMaze()
 	maxX, maxY := 0, 0
 	for y, line := range strings.Split(input, "\n") {
 		if y > maxY {
@@ -46,18 +61,17 @@ func parseToGraph(input string) map[string][]graphLink {
 			if c == ' ' {
 				continue
 			}
-			maze[vector2D{x, y}] = c
+			m.maze[vector2D{x, y}] = c
 		}
 	}
-	labels := map[string]vector2D{}
-	posToLabel := map[vector2D]string{}
-	for pos, c := range maze {
+
+	for pos, c := range m.maze {
 		if c == '.' {
 			for _, n := range surroundingTiles(pos) {
-				t := maze[n]
+				t := m.maze[n]
 				if t != '.' && t != '#' {
 					// It's a marker!
-					t2 := maze[vector2D{n.x*2 - pos.x, n.y*2 - pos.y}]
+					t2 := m.maze[vector2D{n.x*2 - pos.x, n.y*2 - pos.y}]
 					label := string(t) + string(t2)
 					if n.x < pos.x || n.y < pos.y {
 						// Marker is reversed
@@ -72,51 +86,63 @@ func parseToGraph(input string) map[string][]graphLink {
 							label += "In"
 						}
 					}
-					labels[label] = pos
-					posToLabel[pos] = label
+					m.labels[label] = pos
+					m.posToLabel[pos] = label
 				}
 			}
 			continue
 		}
 	}
+	return m
+}
+
+type mazeGraph struct {
+	m         maze
+	nodeToPos map[int]vector2D
+	posToNode map[vector2D]int
+}
+
+func (mg *mazeGraph) Neighbors(node int) []graphsearch.GraphLink {
+	out := []graphsearch.GraphLink{}
+	pos := mg.nodeToPos[node]
+	for _, n := range surroundingTiles(pos) {
+		neighborNode, ok := mg.posToNode[n]
+		if !ok {
+			if mg.m.maze[n] != '.' {
+				continue
+			}
+			neighborNode = len(mg.nodeToPos)
+			mg.nodeToPos[neighborNode] = n
+			mg.posToNode[n] = neighborNode
+		}
+		out = append(out, graphsearch.GraphLink{Node: neighborNode, Distance: 1})
+	}
+	return out
+}
+
+func parseToGraph(input string) map[string][]graphLink {
+	m := parseMaze(input)
 
 	out := map[string][]graphLink{}
-	for label, startPos := range labels {
+	for label, startPos := range m.labels {
+		mg := mazeGraph{
+			m,
+			map[int]vector2D{},
+			map[vector2D]int{},
+		}
+		mg.nodeToPos[0] = startPos
+		mg.posToNode[startPos] = 0
 		links := []graphLink{}
-		seen := map[vector2D]bool{}
-		steps := -1
-		queue := []vector2D{startPos}
-		for len(queue) > 0 {
-			steps++
-			newQueue := []vector2D{}
-			for _, pos := range queue {
-				if seen[pos] {
-					continue
-				}
-				seen[pos] = true
-				cur := maze[pos]
-				if cur == '#' {
-					continue
-				}
-				if cur == '.' || pos == startPos {
-					for _, n := range surroundingTiles(pos) {
-						newQueue = append(newQueue, n)
-					}
-				}
-				if pos == startPos {
-					continue
-				}
-				foundLabel, hasLabel := posToLabel[pos]
-				if hasLabel {
-					links = append(links, graphLink{foundLabel, steps})
-				}
+		for _, n := range graphsearch.AllReachable(&mg, 0) {
+			label := m.posToLabel[mg.nodeToPos[n.Node]]
+			if len(label) > 0 {
+				links = append(links, graphLink{label, n.Distance})
 			}
-			queue = newQueue
 		}
 		out[label] = links
 	}
 
-	for label := range labels {
+	for label := range m.labels {
 		if label == "AA" || label == "ZZ" {
 			continue
 		}
