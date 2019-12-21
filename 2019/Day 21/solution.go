@@ -40,11 +40,9 @@ WALK
 }
 
 func part2(input string) {
-	// Jump if 1-3 tiles away is a gap, 4 tiles away is safe, and 8 tiles away is safe
+	// Jump if 2 or 3 tiles away is a gap, 4 tiles away is safe, and 8 tiles away is safe
 	//   OR if 1 tile away is a gap
-	instructions := `NOT A J
-NOT B T
-OR T J
+	instructions := `NOT B J
 NOT C T
 OR T J
 AND D J
