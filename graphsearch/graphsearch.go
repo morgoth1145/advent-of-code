@@ -44,3 +44,27 @@ func AllReachable(graph Interface, start int) []GraphLink {
 	}
 	return foundLinks
 }
+
+// TODO: Dijkstra implementation for path *and* length
+func DijkstraLength(graph Interface, start int, end int) int {
+	seen := map[int]bool{}
+	queue := []GraphLink{GraphLink{start, 0}}
+	for len(queue) > 0 {
+		currentStep := queue[0]
+		if currentStep.Node == end {
+			return currentStep.Distance
+		}
+		queue = queue[1:]
+		if seen[currentStep.Node] {
+			continue
+		}
+		seen[currentStep.Node] = true
+		for _, link := range graph.Neighbors(currentStep.Node) {
+			queue = append(queue, GraphLink{link.Node, currentStep.Distance + link.Distance})
+		}
+		sort.Slice(queue, func(i, j int) bool {
+			return queue[i].Distance < queue[j].Distance
+		})
+	}
+	return -1
+}
