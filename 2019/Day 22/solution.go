@@ -2,8 +2,7 @@ package main
 
 import (
 	"advent-of-code/aochelpers"
-	"advent-of-code/helpers"
-	"strconv"
+	"math/big"
 	"strings"
 )
 
@@ -13,57 +12,51 @@ func main() {
 	part2(input)
 }
 
-func cut(deck []int, offset int) []int {
-	if offset < 0 {
-		offset += len(deck)
-	}
-	newDeck := []int{}
-	newDeck = append(newDeck, deck[offset:]...)
-	newDeck = append(newDeck, deck[:offset]...)
-	return newDeck
+type shuffleRNG struct {
+	factor    *big.Int
+	increment *big.Int
+	modulus   *big.Int
 }
 
-func dealIncrement(deck []int, increment int) []int {
-	newDeck := make([]int, len(deck))
-	idx := 0
-	for _, card := range deck {
-		newDeck[idx] = card
-		idx += increment
-		idx = idx % len(deck)
-	}
-	return newDeck
-}
-
-func part1(input string) {
-	cardCount := 10007
-	deck := []int{}
-	for len(deck) < cardCount {
-		deck = append(deck, len(deck))
+func parseShuffle(input string, cardCount *big.Int) shuffleRNG {
+	shuffle := shuffleRNG{
+		big.NewInt(1),
+		big.NewInt(0),
+		cardCount,
 	}
 	for _, line := range strings.Split(input, "\n") {
 		if line == "deal into new stack" {
-			deck = helpers.ReverseInts(deck)
+			shuffle.increment.Sub(cardCount, shuffle.increment).Sub(shuffle.increment, big.NewInt(1))
+			shuffle.factor.Neg(shuffle.factor)
 			continue
 		}
 		parts := strings.Split(line, " ")
 		switch parts[0] {
 		case "cut":
-			offset, _ := strconv.Atoi(parts[1])
-			deck = cut(deck, offset)
+			cutOffset, _ := big.NewInt(0).SetString(parts[1], 10)
+			shuffle.increment.Add(shuffle.increment, cardCount).Sub(shuffle.increment, cutOffset).Mod(shuffle.increment, cardCount)
 		case "deal":
-			increment, _ := strconv.Atoi(parts[3])
-			deck = dealIncrement(deck, increment)
+			increment, _ := big.NewInt(0).SetString(parts[3], 10)
+			shuffle.factor.Mul(shuffle.factor, increment).Mod(shuffle.factor, cardCount)
+			shuffle.increment.Mul(shuffle.increment, increment).Mod(shuffle.increment, cardCount)
 		default:
 			panic("Unknown shuffle action!")
 		}
 	}
-	for idx, card := range deck {
-		if card == 2019 {
-			println("The answer to part one is " + strconv.Itoa(idx))
-			return
-		}
+	for shuffle.factor.Cmp(big.NewInt(0)) < 0 {
+		shuffle.factor.Add(shuffle.factor, cardCount)
 	}
-	panic("Card 2019 not found!")
+	return shuffle
+}
+
+func (shuffle shuffleRNG) iterate(pos *big.Int) *big.Int {
+	return pos.Mul(pos, shuffle.factor).Add(pos, shuffle.increment).Mod(pos, shuffle.modulus)
+}
+
+func part1(input string) {
+	shuffle := parseShuffle(input, big.NewInt(10007))
+	pos := shuffle.iterate(big.NewInt(2019))
+	println("The answer to part one is " + pos.String())
 }
 
 func part2(input string) {
