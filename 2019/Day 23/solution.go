@@ -41,7 +41,14 @@ func (q *messageQueue) PopFromQueue() *packet {
 	return &p
 }
 
-func makeComputerInputFunc(id int64, q *messageQueue, shutdownFlag *bool) func() int64 {
+type computerStatus struct {
+	id          int64
+	send        bool
+	badReceive  bool
+	goodReceive bool
+}
+
+func makeComputerInputFunc(id int64, q *messageQueue, statusChan chan computerStatus, shutdownFlag *bool) func() int64 {
 	gaveID := false
 	var currentPacket *packet
 	currentPacket = nil
@@ -62,8 +69,14 @@ func makeComputerInputFunc(id int64, q *messageQueue, shutdownFlag *bool) func()
 		}
 		currentPacket = q.PopFromQueue()
 		if currentPacket == nil {
+			if statusChan != nil {
+				statusChan <- computerStatus{id: id, badReceive: true}
+			}
 			// time.Sleep(time.Microsecond) // Don't block, but give other threads time to make progress
 			return -1 // No message
+		}
+		if statusChan != nil {
+			statusChan <- computerStatus{id: id, goodReceive: true}
 		}
 		if currentPacket.dest != id {
 			panic("Oh no!")
@@ -95,7 +108,7 @@ func part1(input string) {
 		// println("Comptuer receiver shut down...")
 	}
 	for id := 0; id < 50; id++ {
-		outChan := program.Clone().AsyncRun(makeComputerInputFunc(int64(id), computerQueues[id], &shutdown))
+		outChan := program.Clone().AsyncRun(makeComputerInputFunc(int64(id), computerQueues[id], nil, &shutdown))
 		go computerReciever(outChan)
 	}
 	for p := range messageBus {
@@ -114,4 +127,83 @@ func part1(input string) {
 }
 
 func part2(input string) {
+	program := intcode.Parse(input)
+	computerQueues := []*messageQueue{}
+	computerIdles := []*bool{}
+	for id := 0; id < 50; id++ {
+		q := &messageQueue{
+			[]packet{},
+			new(sync.Mutex),
+		}
+		computerQueues = append(computerQueues, q)
+		computerIdles = append(computerIdles, new(bool))
+	}
+	shutdown := false // Will be true when it should shut down
+	messageBus := make(chan packet)
+	statusChan := make(chan computerStatus)
+	computerReciever := func(id int64, outChan <-chan int64) {
+		for !shutdown {
+			dest := <-outChan
+			// Note the status as soon as a message starts
+			statusChan <- computerStatus{id: id, send: true}
+			x := <-outChan
+			y := <-outChan
+			messageBus <- packet{dest, x, y}
+		}
+		// println("Comptuer receiver shut down...")
+	}
+	for id := 0; id < 50; id++ {
+		outChan := program.Clone().AsyncRun(makeComputerInputFunc(int64(id), computerQueues[id], statusChan, &shutdown))
+		go computerReciever(int64(id), outChan)
+	}
+	var natMemory packet
+	go func() {
+		lastY := int64(-1)
+		lastStatuses := []computerStatus{}
+		idleComputers := []bool{}
+		for len(lastStatuses) < 50 {
+			lastStatuses = append(lastStatuses, computerStatus{id: 0, send: true})
+			idleComputers = append(idleComputers, false)
+		}
+		idleCount := 0
+		for status := range statusChan {
+			last := lastStatuses[status.id]
+			lastStatuses[status.id] = status
+			if last.badReceive {
+				if status.badReceive && !idleComputers[status.id] {
+					idleComputers[status.id] = true
+					idleCount++
+				} else if !status.badReceive && idleComputers[status.id] {
+					idleComputers[status.id] = false
+					idleCount--
+				}
+			}
+			if idleCount == 50 {
+				if natMemory.y == lastY {
+					shutdown = true
+					println("The answer to part two is " + strconv.FormatInt(natMemory.y, 10))
+					return
+				}
+				lastY = natMemory.y
+				// fmt.Printf("All computers idle, sending %d,%d to 0\n", natMemory.x, natMemory.y)
+				computerQueues[0].PushIntoQueue(packet{0, natMemory.x, natMemory.y})
+				idleComputers[0] = false
+				idleCount--
+				lastStatuses[0].badReceive = false
+				lastStatuses[0].send = true
+			}
+		}
+	}()
+	for p := range messageBus {
+		if p.dest == 255 {
+			natMemory = p
+			continue
+		}
+		if p.dest > int64(len(computerQueues)) {
+			panic("This is bad...")
+		}
+		// fmt.Printf("%d, %d => %d\n", p.x, p.y, p.dest)
+		computerQueues[p.dest].PushIntoQueue(p)
+		// fmt.Printf("Queued\n")
+	}
 }
