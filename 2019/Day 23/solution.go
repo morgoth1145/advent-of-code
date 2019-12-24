@@ -19,191 +19,166 @@ type packet struct {
 	x, y int64
 }
 
-type messageQueue struct {
-	packets []packet
-	mutex   *sync.Mutex
-}
-
-func (q *messageQueue) PushIntoQueue(p packet) {
-	q.mutex.Lock()
-	defer q.mutex.Unlock()
-	q.packets = append(q.packets, p)
-}
-
-func (q *messageQueue) PopFromQueue() *packet {
-	q.mutex.Lock()
-	defer q.mutex.Unlock()
-	if 0 == len(q.packets) {
-		return nil
-	}
-	p := q.packets[0]
-	q.packets = q.packets[1:]
-	return &p
-}
-
-type computerStatus struct {
-	id          int64
-	send        bool
-	badReceive  bool
-	goodReceive bool
-}
-
-func makeComputerInputFunc(id int64, q *messageQueue, statusChan chan computerStatus, shutdownFlag *bool) func() int64 {
-	gaveID := false
-	var currentPacket *packet
-	currentPacket = nil
-	return func() int64 {
-		if !gaveID {
-			gaveID = true
-			// fmt.Printf("Giving id for %d\n", id)
-			return id
-		}
-		if *shutdownFlag {
-			runtime.Goexit()
-		}
-		if currentPacket != nil {
-			val := currentPacket.y
-			// fmt.Printf("Packet %d,%d fully processed by %d\n", currentPacket.x, currentPacket.y, id)
-			currentPacket = nil
-			return val
-		}
-		currentPacket = q.PopFromQueue()
-		if currentPacket == nil {
-			if statusChan != nil {
-				statusChan <- computerStatus{id: id, badReceive: true}
-			}
-			// time.Sleep(time.Microsecond) // Don't block, but give other threads time to make progress
-			return -1 // No message
-		}
-		if statusChan != nil {
-			statusChan <- computerStatus{id: id, goodReceive: true}
-		}
-		if currentPacket.dest != id {
-			panic("Oh no!")
-		}
-		// fmt.Printf("Packet %d,%d received by %d\n", currentPacket.x, currentPacket.y, id)
-		return currentPacket.x
-	}
-}
-
 func part1(input string) {
-	program := intcode.Parse(input)
-	computerQueues := []*messageQueue{}
-	for id := 0; id < 50; id++ {
-		q := &messageQueue{
-			[]packet{},
-			new(sync.Mutex),
-		}
-		computerQueues = append(computerQueues, q)
-	}
-	shutdown := false // Will be true when it should shut down
+	println("The correct answer to Part 1 is 27182")
 	messageBus := make(chan packet)
+	receiverWG := sync.WaitGroup{}
+	receiverWG.Add(50)
+	go func() {
+		receiverWG.Wait()
+		close(messageBus)
+	}()
 	computerReciever := func(outChan <-chan int64) {
-		for !shutdown {
-			dest := <-outChan
+		for dest := range outChan {
 			x := <-outChan
 			y := <-outChan
 			messageBus <- packet{dest, x, y}
 		}
-		// println("Comptuer receiver shut down...")
+		receiverWG.Done()
 	}
+	channels := []chan int64{}
 	for id := 0; id < 50; id++ {
-		outChan := program.Clone().AsyncRun(makeComputerInputFunc(int64(id), computerQueues[id], nil, &shutdown))
+		c := make(chan int64, 10000)
+		channels = append(channels, c)
+		outChan := intcode.Parse(input).AsyncRun(intcode.InputChannelFunction(c, intcode.EOFTerminateProgram))
 		go computerReciever(outChan)
+		c <- int64(id)
+		c <- -1
 	}
 	for p := range messageBus {
 		if p.dest == 255 {
-			shutdown = true
 			println("The answer to part one is " + strconv.FormatInt(p.y, 10))
-			return
+			break
 		}
-		if p.dest > int64(len(computerQueues)) {
+		if p.dest > int64(len(channels)) {
 			panic("This is bad...")
 		}
-		// fmt.Printf("%d, %d => %d\n", p.x, p.y, p.dest)
-		computerQueues[p.dest].PushIntoQueue(p)
-		// fmt.Printf("Queued\n")
+		channels[p.dest] <- p.x
+		channels[p.dest] <- p.y
+	}
+	for _, c := range channels {
+		close(c)
+	}
+	for range messageBus {
 	}
 }
 
+type packetTracker struct {
+	dest   int64
+	isSend bool
+}
+
 func part2(input string) {
-	program := intcode.Parse(input)
-	computerQueues := []*messageQueue{}
-	computerIdles := []*bool{}
-	for id := 0; id < 50; id++ {
-		q := &messageQueue{
-			[]packet{},
-			new(sync.Mutex),
-		}
-		computerQueues = append(computerQueues, q)
-		computerIdles = append(computerIdles, new(bool))
-	}
-	shutdown := false // Will be true when it should shut down
+	println("The correct answer to Part 2 is 19285")
 	messageBus := make(chan packet)
-	statusChan := make(chan computerStatus)
+	networkTracker := make(chan packetTracker)
+	receiverWG := sync.WaitGroup{}
+	receiverWG.Add(50)
+	go func() {
+		receiverWG.Wait()
+		close(messageBus)
+		close(networkTracker)
+	}()
+
+	messagesHandled := sync.WaitGroup{}
+	computerSender := func(id int64, input <-chan packet) func() int64 {
+		gaveID := false
+		initialNegative := false
+		var currentPacket *packet
+		return func() int64 {
+			if !gaveID {
+				gaveID = true
+				return id
+			}
+			if !initialNegative {
+				initialNegative = true
+				return -1
+			}
+			if currentPacket != nil {
+				val := currentPacket.y
+				currentPacket = nil
+				return val
+			}
+			networkTracker <- packetTracker{id, false}
+			nextPacket, ok := <-input
+			if !ok {
+				runtime.Goexit()
+			}
+			currentPacket = &nextPacket
+			return currentPacket.x
+		}
+	}
 	computerReciever := func(id int64, outChan <-chan int64) {
-		for !shutdown {
-			dest := <-outChan
-			// Note the status as soon as a message starts
-			statusChan <- computerStatus{id: id, send: true}
+		for dest := range outChan {
+			messagesHandled.Add(1)
+			networkTracker <- packetTracker{dest, true}
 			x := <-outChan
 			y := <-outChan
 			messageBus <- packet{dest, x, y}
 		}
-		// println("Comptuer receiver shut down...")
+		receiverWG.Done()
 	}
+	channels := []chan packet{}
 	for id := 0; id < 50; id++ {
-		outChan := program.Clone().AsyncRun(makeComputerInputFunc(int64(id), computerQueues[id], statusChan, &shutdown))
+		c := make(chan packet, 100)
+		channels = append(channels, c)
+		outChan := intcode.Parse(input).AsyncRun(computerSender(int64(id), c))
 		go computerReciever(int64(id), outChan)
 	}
 	var natMemory packet
 	go func() {
-		lastY := int64(-1)
-		lastStatuses := []computerStatus{}
-		idleComputers := []bool{}
-		for len(lastStatuses) < 50 {
-			lastStatuses = append(lastStatuses, computerStatus{id: 0, send: true})
-			idleComputers = append(idleComputers, false)
-		}
-		idleCount := 0
-		for status := range statusChan {
-			last := lastStatuses[status.id]
-			lastStatuses[status.id] = status
-			if last.badReceive {
-				if status.badReceive && !idleComputers[status.id] {
-					idleComputers[status.id] = true
-					idleCount++
-				} else if !status.badReceive && idleComputers[status.id] {
-					idleComputers[status.id] = false
-					idleCount--
-				}
+		for p := range messageBus {
+			if p.dest == 255 {
+				natMemory = p
+				messagesHandled.Done()
+				continue
 			}
-			if idleCount == 50 {
-				if natMemory.y == lastY {
-					shutdown = true
-					println("The answer to part two is " + strconv.FormatInt(natMemory.y, 10))
-					return
-				}
-				lastY = natMemory.y
-				// fmt.Printf("All computers idle, sending %d,%d to 0\n", natMemory.x, natMemory.y)
-				computerQueues[0].PushIntoQueue(packet{0, natMemory.x, natMemory.y})
-				idleComputers[0] = false
-				idleCount--
-				lastStatuses[0].badReceive = false
-				lastStatuses[0].send = true
+			if p.dest > int64(len(channels)) {
+				panic("This is bad...")
 			}
+			channels[p.dest] <- p
+			messagesHandled.Done()
 		}
 	}()
-	for p := range messageBus {
-		if p.dest == 255 {
-			natMemory = p
+	lastY := int64(0)
+	pendingPacketCounts := []int{}
+	for len(pendingPacketCounts) < 50 {
+		pendingPacketCounts = append(pendingPacketCounts, 0)
+	}
+	idleComputers := 0
+	for io := range networkTracker {
+		if io.dest == 255 {
 			continue
 		}
-		if p.dest > int64(len(computerQueues)) {
-			panic("This is bad...")
+		if io.isSend {
+			pendingPacketCounts[io.dest]++
+			if pendingPacketCounts[io.dest] == 0 {
+				idleComputers--
+			}
+		} else {
+			pendingPacketCounts[io.dest]--
+			if pendingPacketCounts[io.dest] == -1 {
+				idleComputers++
+			}
 		}
-		// fmt.Printf("%d, %d => %d\n", p.x, p.y, p.dest)
-		computerQueues[p.dest].PushIntoQueue(p)
-		// fmt.Printf("Queued\n")
+		if 50 == idleComputers {
+			// Wait for all pending messages to be handled (including 255!)
+			messagesHandled.Wait()
+
+			if natMemory.y == lastY {
+				println("The answer to part two is " + strconv.FormatInt(natMemory.y, 10))
+				break
+			}
+			lastY = natMemory.y
+			channels[0] <- packet{0, natMemory.x, natMemory.y}
+			pendingPacketCounts[0]++
+			idleComputers--
+		}
+	}
+	for _, c := range channels {
+		close(c)
+	}
+	// Discard the rest
+	for range networkTracker {
 	}
 }
