@@ -66,33 +66,13 @@ func iterate(bugs map[vector2D]bool) map[vector2D]bool {
 	return out
 }
 
-func getBoundingBox(bugs map[vector2D]bool) (vector2D, vector2D) {
-	min, max := vector2D{0, 0}, vector2D{0, 0}
-	for p := range bugs {
-		if p.x < min.x {
-			min.x = p.x
-		} else if p.x > max.x {
-			max.x = p.x
-		}
-		if p.y < min.y {
-			min.y = p.y
-		} else if p.y > max.y {
-			max.y = p.y
-		}
-	}
-	return min, max
-}
-
 func calcBiodiversity(tiles map[vector2D]bool) int {
 	out := 0
-	mask := 1
-	min, max := getBoundingBox(tiles)
-	for y := min.y; y <= max.y; y++ {
-		for x := min.x; x <= max.x; x++ {
+	for y := 0; y < 5; y++ {
+		for x := 0; x < 5; x++ {
 			if tiles[vector2D{x, y}] {
-				out += mask
+				out += 1 << (y*5 + x)
 			}
-			mask *= 2
 		}
 	}
 	return out
@@ -121,14 +101,9 @@ type vector3D struct {
 
 func parse3D(input string) map[vector3D]bool {
 	out := map[vector3D]bool{}
-	for y, line := range strings.Split(input, "\n") {
-		for x, c := range line {
-			if x == 2 && y == 2 {
-				continue
-			}
-			if c == '#' {
-				out[vector3D{x, y, 0}] = true
-			}
+	for pos, bug := range parse(input) {
+		if bug && (pos.x != 2 || pos.y != 2) {
+			out[vector3D{pos.x, pos.y, 0}] = true
 		}
 	}
 	return out
@@ -180,39 +155,19 @@ func surroundingTiles3D(pos vector3D) []vector3D {
 	return out
 }
 
-func getTilesToProcess3D(bugs map[vector3D]bool) []vector3D {
-	shouldHandle := map[vector3D]bool{}
-	for pos := range bugs {
-		shouldHandle[pos] = true
-		for _, n := range surroundingTiles3D(pos) {
-			shouldHandle[n] = true
-		}
-	}
-	out := []vector3D{}
-	for pos := range shouldHandle {
-		out = append(out, pos)
-	}
-	return out
-}
-
 func iterate3D(bugs map[vector3D]bool) map[vector3D]bool {
-	out := map[vector3D]bool{}
-	for _, pos := range getTilesToProcess3D(bugs) {
-		bug := bugs[pos]
-		neighborCount := 0
+	counts := map[vector3D]int{}
+	for pos := range bugs {
 		for _, n := range surroundingTiles3D(pos) {
-			if bugs[n] {
-				neighborCount++
-			}
+			counts[n]++
 		}
-		if bug {
-			if 1 == neighborCount {
-				out[pos] = true
-			}
-		} else {
-			if 1 == neighborCount || 2 == neighborCount {
-				out[pos] = true
-			}
+	}
+	out := map[vector3D]bool{}
+	for pos, count := range counts {
+		if count == 1 {
+			out[pos] = true
+		} else if count == 2 && !bugs[pos] {
+			out[pos] = true
 		}
 	}
 	return out
