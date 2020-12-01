@@ -95,3 +95,25 @@ def clear_input_cache():
         if child == cookie_file:
             continue
         shutil.rmtree(child)
+
+# TODO: This really should live elsewhere...
+def submit_answer(year, day, part, answer):
+    _load_session_cookie()
+
+    url = f'https://adventofcode.com/{year}/day/{day}/answer'
+    r = _s.post(url, data={'level': part, 'answer': str(answer)})
+    r.raise_for_status()
+
+    good_request = False
+
+    KEYS = ["That's not the right answer.",
+            'You gave an answer too recently',
+            "You don't seem to be solving the right level.",
+            "That's the right answer!"]
+    for line in r.text.splitlines():
+        for k in KEYS:
+            if k in line:
+                print(line)
+                good_request = True
+
+    assert(good_request)
