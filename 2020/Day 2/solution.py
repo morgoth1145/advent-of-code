@@ -13,7 +13,16 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = 0
+    for line in s.splitlines():
+        policy, password = line.split(':')
+        nums, c = policy.split()
+        loca, locb = list(map(int, nums.split('-')))
+        password = password.strip()
+        bits = password[loca-1] + password[locb-1]
+        if bits.count(c) == 1:
+            answer += 1
+    print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 2)
 part1(INPUT)
