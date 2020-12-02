@@ -4,6 +4,8 @@ import requests
 import shutil
 import subprocess
 
+# TODO: Compare with https://github.com/wimglenn/advent-of-code-data
+
 _s = requests.Session()
 
 def _get_cache_directory():
