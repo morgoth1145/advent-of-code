@@ -16,7 +16,20 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    seen = set()
+    for row, column in iter_seats(s):
+        seat_id = row * 8 + column
+        seen.add(seat_id)
+    for i in range(1, 1<<10):
+        if i in seen:
+            continue
+        if i-1 not in seen:
+            continue
+        if i+1 not in seen:
+            continue
+        answer = i
+        break
+    print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 5)
 part1(INPUT)
