@@ -2,9 +2,7 @@ import helpers.input
 
 def iter_seats(s):
     for seat in s.splitlines():
-        seat = seat.replace('B', '1').replace('R', '1')
-        seat = seat.replace('F', '0').replace('L', '0')
-        yield int(seat, 2)
+        yield int(seat.translate(str.maketrans('FBLR', '0101')), 2)
 
 def part1(s):
     answer = max(iter_seats(s))
