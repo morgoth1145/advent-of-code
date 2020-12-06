@@ -10,9 +10,7 @@ def part1(s):
 
 def part2(s):
     seats = set(iter_seats(s))
-    sub_1 = {seat_id-1 for seat_id in seats}
-    plus_1 = {seat_id+1 for seat_id in seats}
-    answer = list(sub_1.intersection(plus_1) - seats)[0]
+    answer = [s for s in range(min(seats), max(seats)) if s not in seats][0]
     print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 5)
