@@ -9,7 +9,15 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    groups = s.split('\n\n')
+    answer = 0
+    for g in groups:
+        people = g.split()
+        all_yes = set(people[0])
+        for p in people[1:]:
+            all_yes = all_yes.intersection(p)
+        answer += len(set(all_yes))
+    print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 6)
 part1(INPUT)
