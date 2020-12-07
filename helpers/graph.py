@@ -6,7 +6,7 @@ def topological_sort(graph):
         if key in seen:
             return
         seen.add(key)
-        for link in graph[key]:
+        for link in graph.get(key, []):
             yield from impl(link)
         yield key
     for key in graph.keys():
