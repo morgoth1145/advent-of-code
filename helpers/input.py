@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import requests
@@ -100,11 +101,28 @@ def clear_input_cache():
 
 # TODO: This really should live elsewhere...
 def submit_answer(year, day, part, answer):
+    answer_file_path = _get_cache_directory() / str(year) / f'answers-day-{day}.json'
+    try:
+        with open(answer_file_path) as f:
+            tried_answers = json.load(f)
+    except:
+        tried_answers = {'1':[], '2':[]}
+
+    if answer in tried_answers[str(part)]:
+        print(f'You already submitted {answer} for {year} day {day} part {part}!')
+        return
+
+    tried_answers[str(part)].append(answer)
+
     _load_session_cookie()
 
     url = f'https://adventofcode.com/{year}/day/{day}/answer'
     r = _s.post(url, data={'level': part, 'answer': str(answer)})
     r.raise_for_status()
+
+    answer_webpage_file = _get_cache_directory() / str(year) / f'answer-page-{day}-part-{part}.html'
+    with open(answer_webpage_file, 'wb+') as f:
+        f.write(r.content)
 
     good_request = False
 
@@ -119,3 +137,6 @@ def submit_answer(year, day, part, answer):
                 good_request = True
 
     assert(good_request)
+
+    with open(answer_file_path, 'w+') as f:
+        json.dump(tried_answers, f)
