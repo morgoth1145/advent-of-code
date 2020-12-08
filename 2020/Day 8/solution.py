@@ -1,16 +1,18 @@
 import helpers.input
 
-def part1(s):
-    instructions = list(s.splitlines())
-
+def run(program, return_accumulator_on_looping=False):
     acc = 0
     idx = 0
-    previously_run = set()
+    seen = set()
     while True:
-        if idx in previously_run:
-            break
-        previously_run.add(idx)
-        op, val = instructions[idx].split()
+        if idx == len(program):
+            return acc
+        if idx in seen:
+            if return_accumulator_on_looping:
+                return acc
+            return None
+        seen.add(idx)
+        op, val = program[idx].split()
         val = int(val)
         if op == 'acc':
             acc = acc + val
@@ -22,46 +24,24 @@ def part1(s):
         if op == 'nop':
             idx += 1
             continue
-    answer = acc
+        assert(False)
+
+def part1(s):
+    program = list(s.splitlines())
+    answer = run(program, True)
     print(f'The answer to part one is {answer}')
 
-def run(instructions):
-    acc = 0
-    idx = 0
-    previously_run = set()
-    while True:
-        if idx == len(instructions):
-            return acc
-        if idx in previously_run:
-            return None
-        previously_run.add(idx)
-        op, val = instructions[idx].split()
-        val = int(val)
-        if op == 'acc':
-            acc = acc + val
-            idx += 1
-            continue
-        if op == 'jmp':
-            idx += val
-            continue
-        if op == 'nop':
-            idx += 1
-            continue
-
 def part2(s):
-    answer = None
-    instructions = list(s.splitlines())
-    for idx in range(len(instructions)):
-        inst = instructions[idx]
-        op, val = inst.split()
-        if op == 'nop':
-            instructions[idx] = f'jmp {val}'
-            answer = run(instructions)
-            instructions[idx] = inst
-        elif op == 'jmp':
-            instructions[idx] = f'nop {val}'
-            answer = run(instructions)
-            instructions[idx] = inst
+    program = list(s.splitlines())
+    for idx, inst in enumerate(program):
+        if inst.startswith('nop'):
+            program[idx] = inst.replace('nop', 'jmp')
+            answer = run(program)
+            program[idx] = inst
+        elif inst.startswith('jmp'):
+            program[idx] = inst.replace('jmp', 'nop')
+            answer = run(program)
+            program[idx] = inst
         else:
             continue
         if answer is not None:
