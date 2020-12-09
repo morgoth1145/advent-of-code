@@ -1,35 +1,24 @@
+import itertools
+
 import helpers.input
 
-def valid_check(preamble, n):
-    for idx, a in enumerate(preamble):
-        for b in preamble[idx+1:]:
-            if a+b == n:
-                return True
-    return False
-
 def get_invalid_num(nums):
-    preamble = nums[:25]
-    rest = nums[25:]
-    for n in rest:
-        if not valid_check(preamble, n):
+    for idx, n in enumerate(nums[25:]):
+        options = set(nums[idx:idx+25])
+        if not any(n-v in options
+                   for v
+                   in options):
             return n
-        preamble = preamble[1:] + [n]
 
 def part1(s):
     nums = list(map(int, s.split()))
     answer = get_invalid_num(nums)
     print(f'The answer to part one is {answer}')
 
-def partial_sums(nums):
-    tot = 0
-    for n in nums:
-        tot += n
-        yield tot
-
 def part2(s):
     nums = list(map(int, s.split()))
     target = get_invalid_num(nums)
-    sums = list(partial_sums(nums))
+    sums = list(itertools.accumulate(nums))
     for idx, a in enumerate(sums):
         for idx2, b in enumerate(sums[idx+1:]):
             diff = b - a
