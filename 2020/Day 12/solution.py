@@ -35,7 +35,38 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    sx, sy = 0, 0
+    x = 10
+    y = 1
+    for act in s.splitlines():
+        t = act[0]
+        n = int(act[1:])
+        if t == 'N':
+            y += n
+            continue
+        if t == 'S':
+            y -= n
+            continue
+        if t == 'E':
+            x += n
+            continue
+        if t == 'W':
+            x -= n
+            continue
+        if t == 'L':
+            for _ in range(n//90):
+                x, y = -y, x
+            continue
+        if t == 'R':
+            for _ in range(n//90):
+                x, y = y, -x
+            continue
+        if t == 'F':
+            sx += x*n
+            sy += y*n
+            continue
+    answer = abs(sx) + abs(sy)
+    print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 12)
 
