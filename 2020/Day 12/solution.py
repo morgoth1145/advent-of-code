@@ -9,28 +9,21 @@ def part1(s):
         n = int(act[1:])
         if t == 'N':
             y += n
-            continue
         if t == 'S':
             y -= n
-            continue
         if t == 'E':
             x += n
-            continue
         if t == 'W':
             x -= n
-            continue
         if t == 'L':
             for _ in range(n//90):
                 dx, dy = -dy, dx
-            continue
         if t == 'R':
             for _ in range(n//90):
                 dx, dy = dy, -dx
-            continue
         if t == 'F':
             x += dx*n
             y += dy*n
-            continue
     answer = abs(x) + abs(y)
     print(f'The answer to part one is {answer}')
 
@@ -43,28 +36,21 @@ def part2(s):
         n = int(act[1:])
         if t == 'N':
             y += n
-            continue
         if t == 'S':
             y -= n
-            continue
         if t == 'E':
             x += n
-            continue
         if t == 'W':
             x -= n
-            continue
         if t == 'L':
             for _ in range(n//90):
                 x, y = -y, x
-            continue
         if t == 'R':
             for _ in range(n//90):
                 x, y = y, -x
-            continue
         if t == 'F':
             sx += x*n
             sy += y*n
-            continue
     answer = abs(sx) + abs(sy)
     print(f'The answer to part two is {answer}')
 
