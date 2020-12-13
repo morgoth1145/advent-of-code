@@ -1,3 +1,5 @@
+import math
+
 import helpers.input
 
 def parse_notes(s):
@@ -22,9 +24,14 @@ def part2(s):
     time = 1
     cadence = 1
     for b, offset in busses:
+        tries = 0
         while (time+offset) % b != 0:
             time += cadence
-        cadence *= b
+            tries += 1
+            if tries == b:
+                print('There is no answer!')
+                return
+        cadence *= b // math.gcd(cadence, b)
     answer = time
     print(f'The answer to part two is {answer}')
 
