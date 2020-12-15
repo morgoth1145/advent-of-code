@@ -1,48 +1,24 @@
 import helpers.input
 
-def enumerate_nums(seed):
-    last_seen = {}
-    turn = 1
-    last = None
-    turns_since_last_spoken = None
-    was_new = False
-    for n in seed:
-        yield n
-        if n in last_seen:
-            turns_since_last_spoken = turn - last_seen[n]
-        else:
-            turns_since_last_spoken = None
-        last_seen[n] = turn
-        turn += 1
-        last = n
-    while True:
-        if turns_since_last_spoken is None:
-            n = 0
-        else:
-            n = turns_since_last_spoken
-        yield n
-        if n in last_seen:
-            turns_since_last_spoken = turn - last_seen[n]
-        else:
-            turns_since_last_spoken = None
-        last_seen[n] = turn
-        turn += 1
-        last = n
+def get_nth_number_in_game(seed, desired_turn):
+    spoken_on = {n:turn
+                 for turn, n
+                 in enumerate(map(int,
+                                  seed.split(',')))}
+    n = 0 # The seed numbers are all unique
+    for turn in range(len(spoken_on), desired_turn-1):
+        # Get the number of turns since the number was spoken (or 0 if it's new)
+        n_next = turn - spoken_on.get(n, turn)
+        spoken_on[n] = turn
+        n = n_next
+    return n
 
 def part1(s):
-    nums = list(map(int, s.split(',')))
-    game = enumerate_nums(nums)
-    answer = None
-    for _ in range(2020):
-        answer = next(game)
+    answer = get_nth_number_in_game(s, 2020)
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    nums = list(map(int, s.split(',')))
-    game = enumerate_nums(nums)
-    answer = None
-    for _ in range(30000000):
-        answer = next(game)
+    answer = get_nth_number_in_game(s, 30000000)
     print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 15)
