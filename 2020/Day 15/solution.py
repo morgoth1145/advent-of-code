@@ -38,7 +38,12 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    nums = list(map(int, s.split(',')))
+    game = enumerate_nums(nums)
+    answer = None
+    for _ in range(30000000):
+        answer = next(game)
+    print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 15)
 
