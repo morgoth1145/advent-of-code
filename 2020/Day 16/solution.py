@@ -30,19 +30,6 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
-# TODO: This can probably be done better
-def determine_rule_order(available, rule_order_candidates):
-    if 0 == len(rule_order_candidates):
-        return []
-
-    candidates = rule_order_candidates[0]
-    rest = rule_order_candidates[1:]
-
-    for name in candidates & available:
-        answer = determine_rule_order(available - {name}, rest)
-        if answer is not None:
-            return [name] + answer
-
 def part2(s):
     rules, my_ticket, nearby = parse_input(s)
 
@@ -59,7 +46,15 @@ def part2(s):
                 candidates.add(name)
         rule_order_candidates.append(candidates)
 
-    rule_order = determine_rule_order(set(rules.keys()), rule_order_candidates)
+    rule_order = [None] * len(rule_order_candidates)
+    for _ in range(len(rule_order)):
+        for idx, candidates in enumerate(rule_order_candidates):
+            if rule_order[idx] is None and 1 == len(candidates):
+                (rule_order[idx],) = candidates
+                for j, old_candidates in enumerate(rule_order_candidates):
+                    rule_order_candidates[j] = old_candidates - candidates
+                break
+    assert(None not in rule_order)
 
     answer = 1
     for name, val in zip(rule_order, my_ticket):
