@@ -2,29 +2,30 @@ import re
 
 import helpers.input
 
-def part1(s):
-    rules, my_ticket, nearby = s.split('\n\n')
+def parse_input(s):
+    raw_rules, my_ticket, nearby = s.split('\n\n')
 
-    rules = rules.splitlines()
-
-    _, my_ticket = my_ticket.splitlines()
-    my_ticket = list(map(int, my_ticket.split(',')))
-
-    nearby = [list(map(int, l.split(','))) for l in nearby.splitlines()[1:]]
-
-    valid_numbers = set()
-    for rule in rules:
+    rules = {}
+    for rule in raw_rules.splitlines():
         m = re.match('(.*): (\d+)\-(\d+) or (\d+)\-(\d+)', rule)
         name = m.group(1)
         range_1 = range(int(m.group(2)), int(m.group(3))+1)
         range_2 = range(int(m.group(4)), int(m.group(5))+1)
-        valid_numbers |= set(range_1)
-        valid_numbers |= set(range_2)
+        rules[name] = set(range_1) | set(range_2)
+
+    my_ticket = list(map(int, my_ticket.splitlines()[1].split(',')))
+
+    nearby = [list(map(int, l.split(','))) for l in nearby.splitlines()[1:]]
+
+    return rules, my_ticket, nearby
+
+def part1(s):
+    rules, _, nearby = parse_input(s)
 
     answer = 0
     for ticket in nearby:
         for n in ticket:
-            if n not in valid_numbers:
+            if not any(n in nums for nums in rules.values()):
                 answer += n
 
     print(f'The answer to part one is {answer}')
@@ -37,52 +38,28 @@ def determine_rule_order(available, rule_order_candidates):
     candidates = rule_order_candidates[0]
     rest = rule_order_candidates[1:]
 
-    for name in candidates:
-        if name in available:
-            answer = determine_rule_order(available - {name}, rest)
-            if answer is not None:
-                return [name] + answer
+    for name in candidates & available:
+        answer = determine_rule_order(available - {name}, rest)
+        if answer is not None:
+            return [name] + answer
 
 def part2(s):
-    rules, my_ticket, nearby = s.split('\n\n')
+    rules, my_ticket, nearby = parse_input(s)
 
-    rules = rules.splitlines()
-
-    _, my_ticket = my_ticket.splitlines()
-    my_ticket = list(map(int, my_ticket.split(',')))
-
-    nearby = [list(map(int, l.split(','))) for l in nearby.splitlines()[1:]]
-
-    parsed_rules = {}
-    valid_numbers = set()
-    for rule in rules:
-        m = re.match('(.*): (\d+)\-(\d+) or (\d+)\-(\d+)', rule)
-        name = m.group(1)
-        range_1 = range(int(m.group(2)), int(m.group(3))+1)
-        range_2 = range(int(m.group(4)), int(m.group(5))+1)
-        valid_numbers |= set(range_1)
-        valid_numbers |= set(range_2)
-        parsed_rules[name] = set(range_1) | set(range_2)
-
-    good_nearby = []
-    for ticket in nearby:
-        is_valid = True
-        for n in ticket:
-            if n not in valid_numbers:
-                is_valid = False
-                break
-        if is_valid:
-            good_nearby.append(ticket)
+    # Filter to the good nearby tickets
+    nearby = [ticket for ticket in nearby
+              if all(any(n in nums for nums in rules.values())
+                     for n in ticket)]
 
     rule_order_candidates = []
-    for vals in zip(*good_nearby):
+    for vals in zip(*nearby):
         candidates = set()
-        for name, valid_nums in parsed_rules.items():
+        for name, valid_nums in rules.items():
             if all(v in valid_nums for v in vals):
                 candidates.add(name)
         rule_order_candidates.append(candidates)
 
-    rule_order = determine_rule_order(set(parsed_rules.keys()), rule_order_candidates)
+    rule_order = determine_rule_order(set(rules.keys()), rule_order_candidates)
 
     answer = 1
     for name, val in zip(rule_order, my_ticket):
