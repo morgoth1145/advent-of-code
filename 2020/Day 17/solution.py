@@ -1,20 +1,17 @@
 import collections
+import itertools
 
 import helpers.input
 
-def iter_neighbors(coord):
-    x, y, z = coord
-    for dx in (-1, 0, 1):
-        for dy in (-1, 0, 1):
-            for dz in (-1, 0, 1):
-                if dx == dy == dz == 0:
-                    continue
-                yield (x+dx, y+dy, z+dz)
+def neighbor_coords(coord):
+    neighbors = itertools.product(*((c-1, c, c+1)
+                                    for c in coord))
+    return (n for n in neighbors if n != coord)
 
-def do_cycle(prev_active):
+def step(prev_active):
     active_counts = collections.defaultdict(int)
     for coord in prev_active:
-        for neighbor in iter_neighbors(coord):
+        for neighbor in neighbor_coords(coord):
             active_counts[neighbor] += 1
     new_active = []
     for coord in prev_active:
@@ -25,52 +22,26 @@ def do_cycle(prev_active):
         if count == 3:
             new_active.append(coord)
     return new_active
+
+def parse_active_coords(s, coord_suffix):
+    return active_coords
+
+def run_simulation(s, dims, steps):
+    active_coords = []
+    for y, line in enumerate(s.splitlines()):
+        for x, c in enumerate(line):
+            if c == '#':
+                active_coords.append((x, y) + (0,) * (dims - 2))
+    for _ in range(steps):
+        active_coords = step(active_coords)
+    return len(active_coords)
 
 def part1(s):
-    active_coords = []
-    for y, line in enumerate(s.splitlines()):
-        for x, c in enumerate(line):
-            if c == '#':
-                active_coords.append((x, y, 0))
-    for _ in range(6):
-        active_coords = do_cycle(active_coords)
-    answer = len(active_coords)
+    answer = run_simulation(s, dims=3, steps=6)
     print(f'The answer to part one is {answer}')
 
-def iter_neighbors2(coord):
-    x, y, z, w = coord
-    for dx in (-1, 0, 1):
-        for dy in (-1, 0, 1):
-            for dz in (-1, 0, 1):
-                for dw in (-1, 0, 1):
-                    if dx == dy == dz == dw == 0:
-                        continue
-                    yield (x+dx, y+dy, z+dz, w+dw)
-
-def do_cycle2(prev_active):
-    active_counts = collections.defaultdict(int)
-    for coord in prev_active:
-        for neighbor in iter_neighbors2(coord):
-            active_counts[neighbor] += 1
-    new_active = []
-    for coord in prev_active:
-        count = active_counts.pop(coord, 0)
-        if count in (2, 3):
-            new_active.append(coord)
-    for coord, count in active_counts.items():
-        if count == 3:
-            new_active.append(coord)
-    return new_active
-
 def part2(s):
-    active_coords = []
-    for y, line in enumerate(s.splitlines()):
-        for x, c in enumerate(line):
-            if c == '#':
-                active_coords.append((x, y, 0, 0))
-    for _ in range(6):
-        active_coords = do_cycle2(active_coords)
-    answer = len(active_coords)
+    answer = run_simulation(s, dims=4, steps=6)
     print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 17)
