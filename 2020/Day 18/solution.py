@@ -1,28 +1,8 @@
 import helpers.input
-
-def tokenize(expression):
-    paren_count = 0
-    current = ''
-    for idx, part in enumerate(expression.split()):
-        if part[0] == '(':
-            paren_count += part.count('(')
-            current += f' {part}'
-            continue
-        if part[-1] == ')':
-            current += f' {part}'
-            paren_count -= part.count(')')
-            if paren_count == 0:
-                yield current.strip()
-                current = ''
-            continue
-        if paren_count > 0:
-            current += f' {part}'
-            continue
-        yield part
-    assert(paren_count == 0)
+import helpers.parsing
 
 def eval_helper(expression, part_merger):
-    parts = list(tokenize(expression))
+    parts = list(helpers.parsing.tokenize_parenthesized_expression(expression))
     for idx in range(0, len(parts), 2):
         p = parts[idx]
         if p[0] == '(':
