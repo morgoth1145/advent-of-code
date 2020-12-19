@@ -41,119 +41,40 @@ def part1(s):
     answer = len(list(filter(validator.fullmatch, messages.splitlines())))
     print(f'The answer to part one is {answer}')
 
-def expand_candidates(candidate_options):
-    if len(candidate_options) == 0:
-        yield ''
-        return
-    for o in candidate_options[0]:
-        for sub_bit in expand_candidates(candidate_options[1:]):
-            yield o + sub_bit
-
-def gen_possibilities(rules, start):
-    @functools.lru_cache()
-    def impl(start):
-        answers = []
-        for o in rules[start]:
-            if isinstance(o, str):
-                answers.append(o)
-                continue
-            candidate_options = []
-            for item in o:
-                if isinstance(item, str):
-                    candidate_options.append([item])
-                else:
-                    candidate_options.append(impl(item))
-            answers.extend(expand_candidates(candidate_options))
-        return answers
-    return impl(start)
-
-def prune_unreachable(rules):
-    while True:
-        referenced = {0}
-        for options in rules.values():
-            for o in options:
-                if isinstance(o, str):
-                    continue
-                for item in o:
-                    referenced.add(item)
-        progress = False
-        new_rules = {}
-        for num, options in rules.items():
-            if num not in referenced:
-                progress = True
-                continue
-            new_rules[num] = options
-        if not progress:
-            return rules
-        rules = new_rules
-
-def gen_bounded_possibilities(rules, start, max_length):
-    def impl(start, max_length):
-        answer = []
-        if max_length <= 0:
-            return []
-        for o in rules[start]:
-            if isinstance(o, str):
-                if len(o) <= max_length:
-                    answer.append(o)
-                continue
-            candidate_options = []
-            sub_max_length = max_length
-            for idx, item in enumerate(o):
-                if isinstance(item, str):
-                    candidate_options.append([item])
-                    sub_max_length -= len(item)
-                else:
-                    sub_options = impl(item, sub_max_length)
-                    if len(sub_options) > 0:
-                        sub_max_length -= min(map(len, sub_options))
-                        candidate_options.append(sub_options)
-            answer.extend(expand_candidates(candidate_options))
-        return answer
-    return impl(start, max_length)
-
-def preprocess_message(msg, options_for_42, options_for_31):
-    length = set(map(len, options_for_42)) | set(map(len, options_for_31))
-    assert(len(length) == 1)
-    length = list(length)[0]
-    if len(msg) % length != 0:
-        return None
-    answer = ''
-    for idx in range(0, len(msg), length):
-        if msg[idx:idx+length] in options_for_42:
-            answer += 'c'
-        elif msg[idx:idx+length] in options_for_31:
-            answer += 'd'
-        else:
-            return None
-    return answer
-
 def part2(s):
     rule_list, messages = s.split('\n\n')
     rules = parse_rules(rule_list)
-    rules[8] = [[42], [42, 8]]
-    rules[11] = [[42, 31], [42, 11, 31]]
 
-    options_for_42 = gen_possibilities(rules, 42)
-    options_for_31 = gen_possibilities(rules, 31)
-    rules[42] = 'c'
-    rules[31] = 'd'
+    regex_42 = gen_rule_regex(rules, 42)
+    regex_31 = gen_rule_regex(rules, 31)
 
-    rules = prune_unreachable(rules)
+    # Delete these just to make sure they don't get hit elsewhere
+    del rules[42]
+    del rules[31]
 
-    messages = messages.split()
-    messages = [preprocess_message(msg, options_for_42, options_for_31)
-                for msg in messages]
-    messages = [msg for msg in messages if msg is not None]
+    # Rule 8 is 42 | 42 8
+    # That essentially means "repeat rule 42 one or more times"
+    rules[8] = [f'(?:{regex_42})+']
 
-    max_length = max(map(len, messages))
+    # Rule 11 is 42 31 | 42 11 31
+    # That essentially means "Repeat rule 42 one or more times, then
+    # repeat rule 31 the same number of times"
+    min_rule_42_len = min(map(len, re.findall(regex_42, messages)))
+    min_rule_31_len = min(map(len, re.findall(regex_31, messages)))
+    min_rule_11_rep_len = min_rule_42_len+min_rule_31_len
 
-    possibilities = set(gen_bounded_possibilities(rules, 0, max_length))
+    messages = messages.splitlines()
+    max_msg_len = max(map(len, messages))
 
-    answer = 0
-    for msg in messages:
-        if msg in possibilities:
-            answer += 1
+    max_reps = (max_msg_len + min_rule_11_rep_len - 1) // min_rule_11_rep_len
+
+    rule_11 = [regex_42*times + regex_31*times
+               for times in range(1, max_reps+1)]
+    rules[11] = [f'(?:{"|".join(rule_11)})']
+
+    validator = re.compile(gen_rule_regex(rules, 0))
+
+    answer = len(list(filter(validator.fullmatch, messages)))
     print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 19)
