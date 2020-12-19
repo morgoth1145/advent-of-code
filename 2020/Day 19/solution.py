@@ -1,4 +1,5 @@
 import functools
+import re
 
 import helpers.input
 
@@ -16,6 +17,29 @@ def parse_rules(rule_list):
             options.append(tuple(map(int, opt.split())))
         rules[num] = options
     return rules
+
+def gen_rule_regex(rules, start):
+    @functools.lru_cache()
+    def impl(start):
+        parts = []
+        for option in rules[start]:
+            if isinstance(option, str):
+                parts.append(option)
+            else:
+                parts.append(''.join(impl(item) for item in option))
+        if len(parts) == 1:
+            return parts[0]
+        return '(?:' + '|'.join(parts) + ')'
+    return impl(start)
+
+def part1(s):
+    rule_list, messages = s.split('\n\n')
+    rules = parse_rules(rule_list)
+
+    validator = re.compile(gen_rule_regex(rules, 0))
+
+    answer = len(list(filter(validator.fullmatch, messages.splitlines())))
+    print(f'The answer to part one is {answer}')
 
 def expand_candidates(candidate_options):
     if len(candidate_options) == 0:
@@ -62,23 +86,6 @@ def prune_unreachable(rules):
         if not progress:
             return rules
         rules = new_rules
-
-def part1(s):
-    rule_list, messages = s.split('\n\n')
-    rules = parse_rules(rule_list)
-
-    options_for_42 = gen_possibilities(rules, 42)
-    options_for_31 = gen_possibilities(rules, 31)
-    rules[42] = options_for_42
-    rules[31] = options_for_31
-    rules = prune_unreachable(rules)
-
-    possibilities = set(gen_possibilities(rules, 0))
-    answer = 0
-    for msg in messages.splitlines():
-        if msg in possibilities:
-            answer += 1
-    print(f'The answer to part one is {answer}')
 
 def gen_bounded_possibilities(rules, start, max_length):
     def impl(start, max_length):
