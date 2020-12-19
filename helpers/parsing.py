@@ -1,29 +1,33 @@
-def tokenize_parenthesized_expression(string):
-    '''Yields tokens from a parenthesized expression, treating each parenthesized
-    piece as one token. Supports recursive parenthesization.
-    Example: tokenize_parenthesized_expression('a + (b * c) + d') would yield
-    'a'
-    '+'
-    '(b * c)'
-    '+'
-    'd'
+def get_parenthesized_expression_parse_tree(expression, operators='+-*/'):
+    '''Returns a simple parse tree from a parenthesized expression, grouping
+    each parenthesized piece into a sublist. Supports recursive parenthesizetion.
+    Example: tokenize_parenthesized_expression('a + (b * c) + d') would return
+    ['a', '+', ['b', '*', 'c'], '+', 'd']
     '''
-    paren_count = 0
-    current = ''
-    for idx, part in enumerate(string.split()):
-        if part[0] == '(':
-            paren_count += part.count('(')
-            current += f' {part}'
-            continue
-        if part[-1] == ')':
-            current += f' {part}'
-            paren_count -= part.count(')')
-            if paren_count == 0:
-                yield current.strip()
-                current = ''
-            continue
-        if paren_count > 0:
-            current += f' {part}'
-            continue
-        yield part
-    assert(paren_count == 0)
+    stack = [[]]
+    last_idx = 0
+    for idx, c in enumerate(expression):
+        if c == '(':
+            if last_idx != idx:
+                stack[-1].append(expression[last_idx:idx])
+            stack.append([])
+            last_idx = idx+1
+        elif c == ')':
+            if last_idx != idx:
+                stack[-1].append(expression[last_idx:idx])
+            subtree = stack.pop()
+            stack[-1].append(subtree)
+            last_idx = idx+1
+        elif c in operators:
+            if last_idx != idx:
+                stack[-1].append(expression[last_idx:idx])
+            stack[-1].append(c)
+            last_idx = idx+1
+        elif c.isspace():
+            if last_idx != idx:
+                stack[-1].append(expression[last_idx:idx])
+            last_idx = idx+1
+    if last_idx != len(expression):
+        stack[-1].append(expression[last_idx:])
+    assert(len(stack) == 1)
+    return stack[0]
