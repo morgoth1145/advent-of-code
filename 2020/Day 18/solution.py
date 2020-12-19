@@ -1,36 +1,33 @@
 import helpers.input
 import helpers.parsing
 
-def eval_helper(expression, part_merger):
-    parts = list(helpers.parsing.tokenize_parenthesized_expression(expression))
-    for idx in range(0, len(parts), 2):
-        p = parts[idx]
-        if p[0] == '(':
-            parts[idx] = eval_helper(p[1:-1], part_merger)
-    return part_merger(parts)
-
 def special_eval(expression):
-    def part_merger(parts):
-        while len(parts) > 1:
-            a, op, b = parts[:3]
-            parts = [eval(f'{a} {op} {b}')] + parts[3:]
-        return int(parts[0])
-    return eval_helper(expression, part_merger)
+    def merger(tree):
+        while len(tree) > 1:
+            a, op, b = tree[:3]
+            if isinstance(a, list): a = merger(a)
+            if isinstance(b, list): b = merger(b)
+            tree[:3] = [eval(f'{a} {op} {b}')]
+        return tree[0]
+    tree = helpers.parsing.get_parenthesized_expression_parse_tree(expression)
+    return merger(tree)
 
 def part1(s):
     answer = sum(map(special_eval, s.splitlines()))
     print(f'The answer to part one is {answer}')
 
 def advanced_special_eval(expression):
-    def part_merger(parts):
+    def merger(tree):
         for op in '+*':
-            while op in parts:
-                idx = parts.index(op)
-                val = eval(f'{parts[idx-1]} {op} {parts[idx+1]}')
-                parts = parts[:idx-1] + [val] + parts[idx+2:]
-        assert(len(parts) == 1)
-        return int(parts[0])
-    return eval_helper(expression, part_merger)
+            while op in tree:
+                idx = tree.index(op)
+                a, op, b = tree[idx-1:idx+2]
+                if isinstance(a, list): a = merger(a)
+                if isinstance(b, list): b = merger(b)
+                tree[idx-1:idx+2] = [eval(f'{a} {op} {b}')]
+        return tree[0]
+    tree = helpers.parsing.get_parenthesized_expression_parse_tree(expression)
+    return merger(tree)
 
 def part2(s):
     answer = sum(map(advanced_special_eval, s.splitlines()))
