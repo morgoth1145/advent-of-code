@@ -48,33 +48,25 @@ def part2(s):
     regex_42 = gen_rule_regex(rules, 42)
     regex_31 = gen_rule_regex(rules, 31)
 
-    # Delete these just to make sure they don't get hit elsewhere
-    del rules[42]
-    del rules[31]
+    assert(rules[0] == [(8, 11)])
+    # Given that rule 0 is 8 11
+    # And rule 8 is 42 | 42 8 (from the problem description)
+    # And rule 11 is 42 31 | 42 11 31 (from the problem description)
+    # We can make a simple regex and do post-validation.
+    # Rule 8 is <rule_42>+
+    # Rule 11 is <rule_42>{n}<rule_31>{n} (for any n)
+    # So rule 0 is <rule_42>{n}<rule_31>{m} (for n > m)
+    # We can write this as ((?:<rule_42>)+)((?:<rule_11>)+), so long as
+    # we then verify that capture group 1 is repeated more than capture group 2!
+    # It turns out that rule_42 and rule_11 match strings of the same length, so
+    # we just need to check the length of each group.
+    regex_0 = re.compile(f'((?:{regex_42})+)((?:{regex_31})+)')
 
-    # Rule 8 is 42 | 42 8
-    # That essentially means "repeat rule 42 one or more times"
-    rules[8] = [f'(?:{regex_42})+']
+    def validator(msg):
+        m = regex_0.fullmatch(msg)
+        return m is not None and len(m.group(1)) > len(m.group(2))
 
-    # Rule 11 is 42 31 | 42 11 31
-    # That essentially means "Repeat rule 42 one or more times, then
-    # repeat rule 31 the same number of times"
-    min_rule_42_len = min(map(len, re.findall(regex_42, messages)))
-    min_rule_31_len = min(map(len, re.findall(regex_31, messages)))
-    min_rule_11_rep_len = min_rule_42_len+min_rule_31_len
-
-    messages = messages.splitlines()
-    max_msg_len = max(map(len, messages))
-
-    max_reps = (max_msg_len + min_rule_11_rep_len - 1) // min_rule_11_rep_len
-
-    rule_11 = [regex_42*times + regex_31*times
-               for times in range(1, max_reps+1)]
-    rules[11] = [f'(?:{"|".join(rule_11)})']
-
-    validator = re.compile(gen_rule_regex(rules, 0))
-
-    answer = len(list(filter(validator.fullmatch, messages)))
+    answer = len(list(filter(validator, messages.split())))
     print(f'The answer to part two is {answer}')
 
 INPUT = helpers.input.get_input(2020, 19)
