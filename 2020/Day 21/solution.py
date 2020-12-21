@@ -4,85 +4,56 @@ import helpers.input
 
 def parse_foods(s):
     foods = []
+    all_ingredients = set()
+    all_allergens = set()
     for line in s.splitlines():
         m = re.fullmatch('([a-zA-Z ]+) \(contains ([a-zA-Z ,]+)\)', line)
         ingredients = set(m.group(1).split())
         allergens = set(m.group(2).split(', '))
+        all_ingredients |= ingredients
+        all_allergens |= allergens
         foods.append((ingredients, allergens))
-    return foods
+    return foods, all_ingredients, all_allergens
 
-def part1(s):
-    foods = parse_foods(s)
-
-    all_ingredients = set()
-    all_allergens = set()
-
-    for ingredients, allergens in foods:
-        all_ingredients |= ingredients
-        all_allergens |= allergens
-
-    possible_allergens = set()
-
-    for allergen in all_allergens:
-        possibilities = set(all_ingredients)
-        for ingredients, allergens in foods:
-            if allergen in allergens:
-                possibilities &= ingredients
-        possible_allergens |= possibilities
-
-    safe_ingredients = all_ingredients - possible_allergens
-
-    answer = 0
-    for ingredients, allergens in foods:
-        answer += len(ingredients & safe_ingredients)
-    print(f'The answer to part one is {answer}')
-
-def part2(s):
-    foods = parse_foods(s)
-
-    all_ingredients = set()
-    all_allergens = set()
-
-    for ingredients, allergens in foods:
-        all_ingredients |= ingredients
-        all_allergens |= allergens
-
-    possible_bad_ingredients = set()
-
-    for allergen in all_allergens:
-        possibilities = set(all_ingredients)
-        for ingredients, allergens in foods:
-            if allergen in allergens:
-                possibilities &= ingredients
-        possible_bad_ingredients |= possibilities
-
-    assert(len(possible_bad_ingredients) == len(all_allergens))
-
-    allergen_to_triggers = {}
-    for allergen in all_allergens:
-        allergen_to_triggers[allergen] = set(possible_bad_ingredients)
+def find_allergen_containing_ingredients(foods, all_ingredients, all_allergens):
+    allergen_to_ingredients = {allergen:set(all_ingredients)
+                               for allergen in all_allergens}
 
     for ingredients, allergens in foods:
         for allergen in allergens:
-            allergen_to_triggers[allergen] &= ingredients
+            allergen_to_ingredients[allergen] &= ingredients
 
-    def solved():
-        for thing in allergen_to_triggers.values():
-            if len(thing) > 1:
-                return False
-        return True
+    isolated_ingredients = set()
+    while len(isolated_ingredients) < len(all_allergens):
+        for ingredients in allergen_to_ingredients.values():
+            if len(ingredients) == 1:
+                isolated_ingredients |= ingredients
+        for ingredients in allergen_to_ingredients.values():
+            if len(ingredients) > 1:
+                ingredients -= isolated_ingredients
 
-    while not solved():
-        identified = set()
-        for thing in allergen_to_triggers.values():
-            if len(thing) == 1:
-                identified |= thing
-        for allergen, thing in allergen_to_triggers.items():
-            if len(thing) > 1:
-                allergen_to_triggers[allergen] -= identified
+    return {allergen:list(ingredients)[0]
+            for allergen,ingredients in allergen_to_ingredients.items()}
 
-    stuff = sorted(allergen_to_triggers.items())
-    answer = ','.join(list(trigger)[0] for _,trigger in stuff)
+def part1(s):
+    foods, all_ingredients, all_allergens = parse_foods(s)
+    allergen_to_ingredient = find_allergen_containing_ingredients(foods,
+                                                                  all_ingredients,
+                                                                  all_allergens)
+
+    bad_ingredients = set(allergen_to_ingredient.values())
+
+    answer = 0
+    for ingredients, allergens in foods:
+        answer += len(ingredients - bad_ingredients)
+    print(f'The answer to part one is {answer}')
+
+def part2(s):
+    allergen_to_ingredient = find_allergen_containing_ingredients(*parse_foods(s))
+
+    answer = ','.join(ingredient
+                      for _,ingredient
+                      in sorted(allergen_to_ingredient.items()))
 
     print(f'The answer to part two is {answer}')
 
