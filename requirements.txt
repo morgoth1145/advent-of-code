@@ -1,1 +1,3 @@
+jsonplus
+python-dateutil
 requests
