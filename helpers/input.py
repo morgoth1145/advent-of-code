@@ -1,4 +1,6 @@
-import json
+import datetime
+import dateutil.tz
+import jsonplus as json
 import os
 import pathlib
 import requests
@@ -104,15 +106,15 @@ def submit_answer(year, day, part, answer):
     answer_file_path = _get_cache_directory() / str(year) / f'answers-day-{day}.json'
     try:
         with open(answer_file_path) as f:
-            tried_answers = json.load(f)
+            tried_answers = json.loads(f.read())
     except:
-        tried_answers = {'1':[], '2':[]}
+        tried_answers = {'1':{}, '2':{}}
 
-    if answer in tried_answers[str(part)]:
+    if str(answer) in tried_answers[str(part)]:
         print(f'You already submitted {answer} for {year} day {day} part {part}!')
         return
 
-    tried_answers[str(part)].append(answer)
+    tried_answers[str(part)][str(answer)] = datetime.datetime.now(dateutil.tz.tzutc())
 
     _load_session_cookie()
 
@@ -139,4 +141,4 @@ def submit_answer(year, day, part, answer):
     assert(good_request)
 
     with open(answer_file_path, 'w+') as f:
-        json.dump(tried_answers, f)
+        f.write(json.dumps(tried_answers))
