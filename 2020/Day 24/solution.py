@@ -1,33 +1,22 @@
 import collections
+import re
 
 import helpers.input
-
-def tile_neighbor(pos, move):
-    x, y = pos
-    if move == 'e':
-        return x+1, y
-    if move == 'w':
-        return x-1, y
-    if move == 'sw':
-        return x-1, y-1
-    if move == 'se':
-        return x, y-1
-    if move == 'nw':
-        return x, y+1
-    if move == 'ne':
-        return x+1, y+1
 
 def get_initially_active_tiles(move_list):
     active_tiles = set()
     for moves in move_list.splitlines():
-        pos = (0, 0)
-        while moves:
-            if moves[0] in 'sn':
-                pos = tile_neighbor(pos, moves[:2])
-                moves = moves[2:]
-            else:
-                pos = tile_neighbor(pos, moves[0])
-                moves = moves[1:]
+        x, y = 0, 0
+        for move in re.findall('e|w|se|sw|nw|ne', moves):
+            x, y = {
+                'e': (x+1, y),
+                'w': (x-1, y),
+                'sw': (x-1, y-1),
+                'se': (x, y-1),
+                'nw': (x, y+1),
+                'ne': (x+1, y+1)
+                }[move]
+        pos = (x, y)
         if pos in active_tiles:
             active_tiles.remove(pos)
         else:
