@@ -126,13 +126,17 @@ def submit_answer(year, day, part, answer):
     with open(answer_webpage_file, 'wb+') as f:
         f.write(r.content)
 
-    good_request = False
+    good_request = day == 25 and part == 2
+    good_answer = False
 
     KEYS = ["That's not the right answer.",
             'You gave an answer too recently',
             "You don't seem to be solving the right level.",
             "That's the right answer!"]
+    GOOD_ANSWER_KEY = "That's the right answer!"
     for line in r.text.splitlines():
+        if GOOD_ANSWER_KEY in line:
+            good_answer = True
         for k in KEYS:
             if k in line:
                 print(line)
@@ -142,3 +146,5 @@ def submit_answer(year, day, part, answer):
 
     with open(answer_file_path, 'w+') as f:
         f.write(json.dumps(tried_answers))
+
+    return good_answer
