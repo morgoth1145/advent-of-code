@@ -1,26 +1,22 @@
 import helpers.input
 
-def crack(subject_num, target):
-    val = 1
-    loop_size = 0
-    while True:
-        if val == target:
-            return loop_size
-        val *= subject_num
-        val = val % 20201227
-        loop_size += 1
-
-def do_thing(subject_num, loop_size):
-    val = 1
-    for _ in range(loop_size):
-        val *= subject_num
-        val = val % 20201227
-    return val
-
 def part1(s):
     a, b = map(int, s.splitlines())
-    loop_a = crack(7, a)
-    answer = do_thing(b, loop_a)
+
+    cracking_val = 1
+    encrypt_a = 1
+    encrypt_b = 1
+    while True:
+        if cracking_val == a:
+            answer = encrypt_b
+            break
+        if cracking_val == b:
+            answer = encrypt_a
+            break
+        cracking_val = (cracking_val * 7) % 20201227
+        encrypt_a = (encrypt_a * a) % 20201227
+        encrypt_b = (encrypt_b * b) % 20201227
+
     print(f'The answer to part one is {answer}')
 
 def part2(s):
