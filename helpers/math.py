@@ -4,19 +4,7 @@ def mod_mult_inv(n, mod):
     '''Calculates and returns the modular multiplicative inverse of n % mod
     such that (n * n_inv) % mod == 1
     '''
-    if mod == 1:
-        return 1
-
-    assert(math.gcd(n, mod) == 1)
-    initial_mod = mod
-    x, y = 0, 1
-    while n > 1:
-        q = n // mod
-        n, mod = mod, n % mod
-        x, y = y - q * x, x
-    if y < 0:
-        y += initial_mod
-    return y
+    return pow(n, -1, mod)
 
 def chinese_remainder(congruencies):
     '''Efficiently calculates and returns the smallest number which works for
