@@ -1,7 +1,7 @@
 import functools
 import re
 
-import helpers.input
+import lib.aoc
 
 def parse_rules(rule_list):
     rules = {}
@@ -69,7 +69,7 @@ def part2(s):
     answer = len(list(filter(validator, messages.split())))
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 19)
+INPUT = lib.aoc.get_input(2020, 19)
 
 part1(INPUT)
 part2(INPUT)

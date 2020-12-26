@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def run(program, return_accumulator_on_looping=False):
     acc = 0
@@ -49,7 +49,7 @@ def part2(s):
     assert(answer is not None)
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 8)
+INPUT = lib.aoc.get_input(2020, 8)
 
 part1(INPUT)
 part2(INPUT)

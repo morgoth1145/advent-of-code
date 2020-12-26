@@ -1,6 +1,6 @@
 import itertools
 
-import helpers.input
+import lib.aoc
 
 def get_invalid_num(nums):
     for idx, n in enumerate(nums[25:]):
@@ -31,7 +31,7 @@ def part2(s):
                 print(f'The answer to part two is {answer}')
                 return
 
-INPUT = helpers.input.get_input(2020, 9)
+INPUT = lib.aoc.get_input(2020, 9)
 
 part1(INPUT)
 part2(INPUT)

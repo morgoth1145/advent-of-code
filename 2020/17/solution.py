@@ -1,7 +1,7 @@
 import collections
 import itertools
 
-import helpers.input
+import lib.aoc
 
 def neighbor_coords(coord):
     neighbors = itertools.product(*((c-1, c, c+1)
@@ -44,7 +44,7 @@ def part2(s):
     answer = run_simulation(s, dims=4, steps=6)
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 17)
+INPUT = lib.aoc.get_input(2020, 17)
 
 part1(INPUT)
 part2(INPUT)

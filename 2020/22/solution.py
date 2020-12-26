@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def iter_game(p1, p2):
     c1, c2 = p1[0], p2[0]
@@ -62,7 +62,7 @@ def part2(s):
     answer = score(p1 + p2)
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 22)
+INPUT = lib.aoc.get_input(2020, 22)
 
 part1(INPUT)
 part2(INPUT)

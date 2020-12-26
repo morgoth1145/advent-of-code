@@ -2,7 +2,7 @@ import collections
 import math
 import re
 
-import helpers.input
+import lib.aoc
 
 def parse_tiles(s):
     tiles = {}
@@ -167,7 +167,7 @@ def part2(s):
     answer = count_non_monster_tiles(generate_image(parse_tiles(s)))
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 20)
+INPUT = lib.aoc.get_input(2020, 20)
 
 part1(INPUT)
 part2(INPUT)

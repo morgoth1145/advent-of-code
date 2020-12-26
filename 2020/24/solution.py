@@ -1,7 +1,7 @@
 import collections
 import re
 
-import helpers.input
+import lib.aoc
 
 def get_initially_active_tiles(move_list):
     active_tiles = set()
@@ -55,7 +55,7 @@ def part2(s):
     answer = len(active_tiles)
     print(f'The answer to part one is {answer}')
 
-INPUT = helpers.input.get_input(2020, 24)
+INPUT = lib.aoc.get_input(2020, 24)
 
 part1(INPUT)
 part2(INPUT)

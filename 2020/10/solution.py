@@ -1,6 +1,6 @@
 import collections
 
-import helpers.input
+import lib.aoc
 
 def part1(s):
     nums = list(map(int, s.split()))
@@ -30,7 +30,7 @@ def part2(s):
     answer = arrangements[-1]
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 10)
+INPUT = lib.aoc.get_input(2020, 10)
 
 part1(INPUT)
 part2(INPUT)

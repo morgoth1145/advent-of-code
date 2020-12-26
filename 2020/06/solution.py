@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def part1(s):
     groups = s.split('\n\n')
@@ -19,6 +19,6 @@ def part2(s):
         answer += len(set(all_yes))
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 6)
+INPUT = lib.aoc.get_input(2020, 6)
 part1(INPUT)
 part2(INPUT)

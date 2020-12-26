@@ -101,7 +101,6 @@ def clear_input_cache():
             continue
         shutil.rmtree(child)
 
-# TODO: This really should live elsewhere...
 def submit_answer(year, day, part, answer):
     answer_file_path = _get_cache_directory() / str(year) / f'answers-day-{day}.json'
     try:

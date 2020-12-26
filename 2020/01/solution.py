@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def part1(s):
     nums = list(map(int, s.split()))
@@ -21,6 +21,6 @@ def part2(s):
                     print(f'The answer to part one is {answer}')
                     return
 
-INPUT = helpers.input.get_input(2020, 1)
+INPUT = lib.aoc.get_input(2020, 1)
 part1(INPUT)
 part2(INPUT)

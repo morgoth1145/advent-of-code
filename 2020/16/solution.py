@@ -1,6 +1,6 @@
 import re
 
-import helpers.input
+import lib.aoc
 
 def parse_input(s):
     raw_rules, my_ticket, nearby = s.split('\n\n')
@@ -63,7 +63,7 @@ def part2(s):
 
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 16)
+INPUT = lib.aoc.get_input(2020, 16)
 
 part1(INPUT)
 part2(INPUT)

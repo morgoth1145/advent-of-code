@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def count_tree_hits(s, right, down):
     answer = 0
@@ -23,6 +23,6 @@ def part2(s):
         answer *= count_tree_hits(s, right, down)
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 3)
+INPUT = lib.aoc.get_input(2020, 3)
 part1(INPUT)
 part2(INPUT)
