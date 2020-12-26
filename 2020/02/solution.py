@@ -1,6 +1,6 @@
 import re
 
-import helpers.input
+import lib.aoc
 
 def count_valid_password(s, validator):
     valid_count = 0
@@ -22,6 +22,6 @@ def part2(s):
     answer = count_valid_password(s, validator)
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 2)
+INPUT = lib.aoc.get_input(2020, 2)
 part1(INPUT)
 part2(INPUT)

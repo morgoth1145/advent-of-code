@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def play_cups(seed, cup_count, turns):
     assert(sorted(seed) == list(range(1, max(seed)+1)))
@@ -49,7 +49,7 @@ def part2(s):
     answer = a*b
     print(f'The answer to part one is {answer}')
 
-INPUT = helpers.input.get_input(2020, 23)
+INPUT = lib.aoc.get_input(2020, 23)
 
 part1(INPUT)
 part2(INPUT)

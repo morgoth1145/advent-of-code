@@ -1,5 +1,5 @@
-import helpers.input
-import helpers.parsing
+import lib.aoc
+import lib.parsing
 
 def special_eval(expression):
     def merger(parts):
@@ -7,7 +7,7 @@ def special_eval(expression):
             a, op, b = parts[:3]
             parts[:3] = [eval(f'{a} {op} {b}')]
         return parts[0]
-    return helpers.parsing.eval_parenthesized_expression(expression, merger)
+    return lib.parsing.eval_parenthesized_expression(expression, merger)
 
 def part1(s):
     answer = sum(map(special_eval, s.splitlines()))
@@ -21,13 +21,13 @@ def advanced_special_eval(expression):
                 a, op, b = parts[idx-1:idx+2]
                 parts[idx-1:idx+2] = [eval(f'{a} {op} {b}')]
         return parts[0]
-    return helpers.parsing.eval_parenthesized_expression(expression, merger)
+    return lib.parsing.eval_parenthesized_expression(expression, merger)
 
 def part2(s):
     answer = sum(map(advanced_special_eval, s.splitlines()))
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 18)
+INPUT = lib.aoc.get_input(2020, 18)
 
 part1(INPUT)
 part2(INPUT)

@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def compute_immediate_neighbors(grid):
     grid_neighbors = [l[:] for l in grid]
@@ -88,7 +88,7 @@ def part2(s):
     answer = ''.join(''.join(l) for l in grid).count('#')
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 11)
+INPUT = lib.aoc.get_input(2020, 11)
 
 part1(INPUT)
 part2(INPUT)

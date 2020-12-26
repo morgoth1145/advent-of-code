@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def get_nth_number_in_game(seed, desired_turn):
     spoken_on = {n:turn
@@ -21,7 +21,7 @@ def part2(s):
     answer = get_nth_number_in_game(s, 30000000)
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 15)
+INPUT = lib.aoc.get_input(2020, 15)
 
 part1(INPUT)
 part2(INPUT)

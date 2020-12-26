@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def iter_seats(s):
     for seat in s.splitlines():
@@ -13,6 +13,6 @@ def part2(s):
     answer = [s for s in range(min(seats), max(seats)) if s not in seats][0]
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 5)
+INPUT = lib.aoc.get_input(2020, 5)
 part1(INPUT)
 part2(INPUT)

@@ -1,5 +1,5 @@
-import helpers.math
-import helpers.input
+import lib.aoc
+import lib.math
 
 def parse_notes(s):
     timestamp, rest = s.splitlines()
@@ -20,10 +20,10 @@ def part1(s):
 
 def part2(s):
     _, busses, offsets = parse_notes(s)
-    answer = helpers.math.offset_chinese_remainder(zip(busses, offsets))
+    answer = lib.math.offset_chinese_remainder(zip(busses, offsets))
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 13)
+INPUT = lib.aoc.get_input(2020, 13)
 
 part1(INPUT)
 part2(INPUT)

@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def parse_passports(s):
     for record in s.split('\n\n'):
@@ -57,6 +57,6 @@ def part2(s):
             answer += 1
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 4)
+INPUT = lib.aoc.get_input(2020, 4)
 part1(INPUT)
 part2(INPUT)

@@ -1,7 +1,7 @@
 import re
 
-import helpers.graph
-import helpers.input
+import lib.aoc
+import lib.graph
 
 def parse_bags(s):
     graph = {}
@@ -38,7 +38,7 @@ def part2(s):
     answer = count_contents(graph, 'shiny gold')
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 7)
+INPUT = lib.aoc.get_input(2020, 7)
 
 part1(INPUT)
 part2(INPUT)
@@ -47,7 +47,7 @@ def leaf_to_root_bags(bag_graph):
     graph = {}
     for key, items in bag_graph.items():
         graph[key] = [t for t,_ in items]
-    return helpers.graph.topological_sort(graph)
+    return lib.graph.topological_sort(graph)
 
 def part1_optimized(s):
     graph = parse_bags(s)

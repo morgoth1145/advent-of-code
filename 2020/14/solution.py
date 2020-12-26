@@ -1,6 +1,6 @@
 import re
 
-import helpers.input
+import lib.aoc
 
 def parse_program(prog):
     for line in prog.splitlines():
@@ -55,7 +55,7 @@ def part2(s):
     answer = sum(memory.values())
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 14)
+INPUT = lib.aoc.get_input(2020, 14)
 
 part1(INPUT)
 part2(INPUT)

@@ -1,4 +1,4 @@
-import helpers.input
+import lib.aoc
 
 def part1(s):
     dx, dy = 1, 0
@@ -54,7 +54,7 @@ def part2(s):
     answer = abs(sx) + abs(sy)
     print(f'The answer to part two is {answer}')
 
-INPUT = helpers.input.get_input(2020, 12)
+INPUT = lib.aoc.get_input(2020, 12)
 
 part1(INPUT)
 part2(INPUT)

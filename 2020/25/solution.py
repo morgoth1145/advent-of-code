@@ -1,6 +1,6 @@
 import itertools
 
-import helpers.input
+import lib.aoc
 
 def part1(s):
     a, b = map(int, s.splitlines())
@@ -22,7 +22,7 @@ def part1(s):
 def part2(s):
     print('There is no part two for Christmas!')
 
-INPUT = helpers.input.get_input(2020, 25)
+INPUT = lib.aoc.get_input(2020, 25)
 
 part1(INPUT)
 part2(INPUT)
