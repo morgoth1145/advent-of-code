@@ -40,6 +40,7 @@ def _load_session_cookie():
 
 def _download_file(url, file_path):
     r = _s.get(url)
+    r.raise_for_status()
     file_path.write_bytes(r.content)
 
 def _get_input_cache_file(year, day):
