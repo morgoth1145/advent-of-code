@@ -11,14 +11,9 @@ def part1(s):
 
 def part2(s):
     nums = list(map(int, s.split()))
-
-    windows = []
-    for i in range(len(nums)-2):
-        windows.append(nums[i]+nums[i+1]+nums[i+2])
-
     answer = 0
-    for i in range(len(windows)-1):
-        if windows[i] < windows[i+1]:
+    for i in range(len(nums)-3):
+        if nums[i] < nums[i+3]:
             answer += 1
 
     print(f'The answer to part two is {answer}')
