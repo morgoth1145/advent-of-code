@@ -1,3 +1,5 @@
+from collections import Counter
+
 import lib.aoc
 
 def parse(s):
@@ -8,15 +10,8 @@ def parse(s):
              for b in range(bits-1, -1, -1)]
     return nums, masks
 
-def split_list(nums, mask):
-    ones = []
-    zeros = []
-    for n in nums:
-        if n & mask:
-            ones.append(n)
-        else:
-            zeros.append(n)
-    return ones, zeros
+def most_least(nums, mask):
+    return Counter(n & mask for n in nums).most_common(2)
 
 def part1(s):
     nums, masks = parse(s)
@@ -24,12 +19,9 @@ def part1(s):
     gamma, epsilon = 0, 0
 
     for m in masks:
-        ones, zeros = split_list(nums, m)
-
-        if len(ones) > len(zeros):
-            gamma |= m
-        else:
-            epsilon |= m
+        most, least = most_least(nums, m)
+        gamma |= most[0]
+        epsilon |= least[0]
 
     answer = gamma * epsilon
 
@@ -42,11 +34,17 @@ def part2(s):
 
     for m in masks:
         if len(oxy_cands) > 1:
-            ones, zeros = split_list(oxy_cands, m)
-            oxy_cands = ones if len(ones) >= len(zeros) else zeros
+            most, least = most_least(oxy_cands, m)
+            target = most[0]
+            if most[1] == least[1]:
+                target = m
+            oxy_cands = [n for n in oxy_cands if n & m == target]
         if len(co2_cands) > 1:
-            ones, zeros = split_list(co2_cands, m)
-            co2_cands = ones if len(ones) < len(zeros) else zeros
+            most, least = most_least(co2_cands, m)
+            target = least[0]
+            if most[1] == least[1]:
+                target = 0
+            co2_cands = [n for n in co2_cands if n & m == target]
 
     answer = oxy_cands[0]*co2_cands[0]
 
