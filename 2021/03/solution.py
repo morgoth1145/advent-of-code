@@ -1,74 +1,54 @@
 import lib.aoc
 
-def determine_common(nums, bit, default=None):
-    c1 = 0
-    c0 = 0
+def parse(s):
+    nums = [int(n, 2)
+            for n in s.split()]
+    bits = len(s.split()[0])
+    masks = [2**b
+             for b in range(bits-1, -1, -1)]
+    return nums, masks
+
+def split_list(nums, mask):
+    ones = []
+    zeros = []
     for n in nums:
-        if n[bit] == '1':
-            c1 += 1
+        if n & mask:
+            ones.append(n)
         else:
-            c0 += 1
-
-    if c1 == c0 and default is not None:
-        return default, default
-
-    if c1 > c0:
-        return '1', '0'
-    else:
-        return '0', '1'
+            zeros.append(n)
+    return ones, zeros
 
 def part1(s):
-    nums = []
-    for n in s.split():
-        nums.append(n)
+    nums, masks = parse(s)
 
-    bits = len(s.split()[0])
+    gamma, epsilon = 0, 0
 
-    gamma = []
-    epsilon = []
+    for m in masks:
+        ones, zeros = split_list(nums, m)
 
-    for b in range(bits):
-        most, least = determine_common(nums, b)
+        if len(ones) > len(zeros):
+            gamma |= m
+        else:
+            epsilon |= m
 
-        gamma.append(most)
-        epsilon.append(least)
-
-    gamma = int(''.join(gamma), base=2)
-    epsilon = int(''.join(epsilon), base=2)
-
-    answer = gamma*epsilon
+    answer = gamma * epsilon
 
     print(f'The answer to part one is {answer}')
 
-def filter_matching(cands, bit, target):
-    out = []
-    for n in cands:
-        if n[bit] == target:
-            out.append(n)
-    return out
-
 def part2(s):
-    nums = []
-    for n in s.split():
-        nums.append(n)
+    nums, masks = parse(s)
 
-    oxy_cands = nums[:]
-    co2_cands = nums[:]
+    oxy_cands, co2_cands = nums, nums
 
-    bits = len(s.split()[0])
-
-    for b in range(bits):
+    for m in masks:
         if len(oxy_cands) > 1:
-            most, least = determine_common(oxy_cands, b, '1')
-            oxy_cands = filter_matching(oxy_cands, b, most)
+            ones, zeros = split_list(oxy_cands, m)
+            oxy_cands = ones if len(ones) >= len(zeros) else zeros
         if len(co2_cands) > 1:
-            most, least = determine_common(co2_cands, b, '0')
-            co2_cands = filter_matching(co2_cands, b, least)
+            ones, zeros = split_list(co2_cands, m)
+            co2_cands = ones if len(ones) < len(zeros) else zeros
 
-    oxy = int(''.join(oxy_cands[0]), base=2)
-    co2 = int(''.join(co2_cands[0]), base=2)
-
-    answer = oxy*co2
+    answer = oxy_cands[0]*co2_cands[0]
 
     print(f'The answer to part two is {answer}')
 
