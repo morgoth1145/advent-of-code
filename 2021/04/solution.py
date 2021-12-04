@@ -64,7 +64,15 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    nums, boards = parse(s)
+
+    while True:
+        answer = find_winning_score(boards, nums)
+        boards = [b for b in boards if not b.winning]
+        if 0 == len(boards):
+            break
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 4)
 part1(INPUT)
