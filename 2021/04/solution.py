@@ -49,17 +49,17 @@ def parse(s):
     return nums, boards
 
 def find_winning_score(boards, nums):
-    for n in nums:
+    for idx, n in enumerate(nums):
         for b in boards:
             b.mark(n)
         for b in boards:
             if b.winning:
-                return b.score(n)
+                return b.score(n), nums[idx+1:]
 
 def part1(s):
     nums, boards = parse(s)
 
-    answer = find_winning_score(boards, nums)
+    answer, _ = find_winning_score(boards, nums)
 
     print(f'The answer to part one is {answer}')
 
@@ -67,7 +67,7 @@ def part2(s):
     nums, boards = parse(s)
 
     while True:
-        answer = find_winning_score(boards, nums)
+        answer, nums = find_winning_score(boards, nums)
         boards = [b for b in boards if not b.winning]
         if 0 == len(boards):
             break
