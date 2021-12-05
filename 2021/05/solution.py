@@ -3,7 +3,7 @@ import collections
 import lib.aoc
 
 def count_coord_hits(s, include_diagonals):
-    coord_hits = collections.defaultdict(int)
+    coord_hits = collections.Counter()
 
     for l in s.split('\n'):
         a, b = l.split(' -> ')
@@ -24,11 +24,11 @@ def count_coord_hits(s, include_diagonals):
         x = x0
         y = y0
 
-        coord_hits[(x,y)] += 1
+        coord_hits[x,y] += 1
         while x != x1 or y != y1:
             x += dx
             y += dy
-            coord_hits[(x,y)] += 1
+            coord_hits[x,y] += 1
 
     return sum(hits > 1 for hits in coord_hits.values())
 
