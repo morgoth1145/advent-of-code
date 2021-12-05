@@ -1,28 +1,18 @@
 import collections
+import parse
 
 import lib.aoc
 
-def count_coord_hits(s, include_diagonals):
+def parse_lines(s):
+    return parse.findall('{:d},{:d} -> {:d},{:d}', s)
+
+def count_coord_hits(lines):
     coord_hits = collections.Counter()
 
-    for l in s.split('\n'):
-        a, b = l.split(' -> ')
-        x0,y0 = list(map(int, a.split(',')))
-        x1,y1 = list(map(int, b.split(',')))
-
+    for x, y, x1, y1 in lines:
         # Any diagonals are 45 degrees so dx/dy are simple!
-        dx = 1 if x1>x0 else -1
-        if x0 == x1:
-            dx = 0
-        dy = 1 if y1>y0 else -1
-        if y0 == y1:
-            dy = 0
-
-        if dx != 0 and dy != 0 and not include_diagonals:
-            continue
-
-        x = x0
-        y = y0
+        dx = 1 if x1 > x else -1 if x1 < x else 0
+        dy = 1 if y1 > y else -1 if y1 < y else 0
 
         coord_hits[x,y] += 1
         while x != x1 or y != y1:
@@ -33,11 +23,12 @@ def count_coord_hits(s, include_diagonals):
     return sum(hits > 1 for hits in coord_hits.values())
 
 def part1(s):
-    answer = count_coord_hits(s, include_diagonals=False)
+    answer = count_coord_hits(filter(lambda l: l[0] == l[2] or l[1] == l[3],
+                                     parse_lines(s)))
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    answer = count_coord_hits(s, include_diagonals=True)
+    answer = count_coord_hits(parse_lines(s))
     print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 5)

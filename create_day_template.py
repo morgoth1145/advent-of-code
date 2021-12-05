@@ -33,6 +33,7 @@ template = f'''import collections
 import functools
 import itertools
 import math
+import parse
 import re
 
 import lib.aoc
