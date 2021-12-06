@@ -1,35 +1,21 @@
-import collections
-
 import lib.aoc
 
-def iterate(pop):
-    new_pop = collections.Counter()
-    for t, n in pop.items():
-        if t == 0:
-            new_pop[6] += n
-            new_pop[8] += n
-        else:
-            new_pop[t-1] += n
-    return new_pop
+def solve(s, iterations):
+    pop = [0] * 9
+    for t in map(int, s.split(',')):
+        pop[t] += 1
+    for _ in range(iterations):
+        reproducing = pop[0]
+        pop = pop[1:] + [reproducing]
+        pop[6] += reproducing
+    return sum(pop)
 
 def part1(s):
-    pop = collections.Counter(map(int, s.split(',')))
-
-    for _ in range(80):
-        pop = iterate(pop)
-
-    answer = sum(pop.values())
-
+    answer = solve(s, 80)
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pop = collections.Counter(map(int, s.split(',')))
-
-    for _ in range(256):
-        pop = iterate(pop)
-
-    answer = sum(pop.values())
-
+    answer = solve(s, 256)
     print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 6)
