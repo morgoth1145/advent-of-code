@@ -1,26 +1,36 @@
+import collections
+
 import lib.aoc
 
-def iterate(fish_timers):
-    new_timers = [t-1 for t in fish_timers]
-    for idx, t in enumerate(fish_timers):
+def iterate(pop):
+    new_pop = collections.Counter()
+    for t, n in pop.items():
         if t == 0:
-            # This fish reproduced!
-            new_timers[idx] = 6
-            new_timers.append(8)
-    return new_timers
+            new_pop[6] += n
+            new_pop[8] += n
+        else:
+            new_pop[t-1] += n
+    return new_pop
 
 def part1(s):
-    fish_timers = list(map(int, s.split(',')))
+    pop = collections.Counter(map(int, s.split(',')))
 
     for _ in range(80):
-        fish_timers = iterate(fish_timers)
+        pop = iterate(pop)
 
-    answer = len(fish_timers)
+    answer = sum(pop.values())
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    pop = collections.Counter(map(int, s.split(',')))
+
+    for _ in range(256):
+        pop = iterate(pop)
+
+    answer = sum(pop.values())
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 6)
 part1(INPUT)
