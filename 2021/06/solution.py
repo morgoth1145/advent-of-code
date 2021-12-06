@@ -1,3 +1,4 @@
+import gmpy2
 import numpy
 
 import lib.aoc
@@ -9,7 +10,7 @@ def solve(s, iterations):
 
     # Matrices are faster (due to fast exponentiation
     # and doing the work down in C!)
-    m = numpy.matrix([
+    m = [
         [0, 1, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 1, 0, 0, 0, 0, 0],
@@ -19,7 +20,9 @@ def solve(s, iterations):
         [1, 0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    ], dtype=object)
+    ]
+    # Also, Python's int is slower than gmpy2.mpz for some reason
+    m = numpy.matrix([list(map(gmpy2.mpz, row)) for row in m])
     m = m ** iterations
 
     return (m * numpy.matrix(pop).reshape((9,1))).sum()

@@ -1,3 +1,4 @@
+gmpy2
 jsonplus
 numpy
 parse
