@@ -1,4 +1,5 @@
 jsonplus
+numpy
 parse
 python-dateutil
 requests
