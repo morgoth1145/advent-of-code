@@ -9,7 +9,7 @@ os.makedirs(os.path.split(path)[0], exist_ok=True)
 
 def part_1_template():
     return f'''def part1(s):
-##    nums = list(map(int, s.split()))
+##    nums = list(map(lambda r:r[0], parse.findall('{{:d}}', s)))
 ##    lines = s.splitlines()
 ##    groups = s.split('\\n\\n')
 
