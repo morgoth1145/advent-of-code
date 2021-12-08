@@ -1,3 +1,6 @@
+import collections
+import itertools
+
 import lib.aoc
 
 def parse(s):
@@ -12,72 +15,50 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
-VALID_PATTERNS = {
-    'abcefg':0,
-    'cf':1,
-    'acdeg':2,
-    'acdfg':3,
-    'bcdf':4,
-    'abdfg':5,
-    'abdefg':6,
-    'acf':7,
-    'abcdefg':8,
-    'abcdfg':9
-}
+def part2(s):
+    VALID_PATTERNS = {
+        'abcefg':0,
+        'cf':1,
+        'acdeg':2,
+        'acdfg':3,
+        'bcdf':4,
+        'abdfg':5,
+        'abdefg':6,
+        'acf':7,
+        'abcdefg':8,
+        'abcdfg':9
+    }
 
-def map_display(m, n):
-    new_n = ''.join(sorted(m[c] for c in n))
-    return VALID_PATTERNS.get(new_n)
+    pattern_to_options = collections.defaultdict(set)
+    mapping_options = []
 
-def find_output_number_brute(line):
-    import itertools
-    patterns = line[0] + line[1]
     for order in itertools.permutations('abcdefg'):
         m = dict(zip('abcdefg', order))
-        if all(map_display(m, pattern) is not None
-               for pattern in patterns):
-            out = 0
-            for n in line[1]:
-                out = out * 10 + map_display(m, n)
-            return out
-    assert(False)
+        m_rev = dict(zip(order, 'abcdefg'))
 
-def find_output_number(line):
-    patterns = sorted(line[0] + line[1], key=len)
-    def do_search(m, patterns, unused_chars):
-        if len(patterns) == 0:
-            yield m
-            return
-        current = patterns[0]
-        rest = patterns[1:]
-        needed_chars = sorted(c for c in current if c not in m)
-        if needed_chars:
-            def iter_options(needed):
-                if 0 == len(needed):
-                    if map_display(m, current) is not None:
-                        yield from do_search(m, rest, unused_chars)
-                    return
-                c = needed[0]
-                rest_c = needed[1:]
-                for t in list(unused_chars):
-                    unused_chars.remove(t)
-                    m[c] = t
-                    yield from iter_options(rest_c)
-                    del m[c]
-                    unused_chars.add(t)
-            yield from iter_options(needed_chars)
-        elif map_display(m, current) is not None:
-            yield from do_search(m, rest, unused_chars)
+        idx = len(mapping_options)
+        mapping_options.append(m)
 
-    mapping = next(do_search({}, patterns, set('abcdefg')))
+        for real_pattern in VALID_PATTERNS.keys():
+            mangled_pattern = ''.join(sorted(m_rev[c]
+                                             for c in real_pattern))
+            pattern_to_options[mangled_pattern].add(idx)
 
-    out = 0
-    for n in line[1]:
-        out = out * 10 + map_display(mapping, n)
-    return out
+    answer = 0
+    for inputs, outputs in parse(s):
+        candidates = set(range(len(mapping_options)))
+        for pattern in inputs + outputs:
+            pattern = ''.join(sorted(pattern))
+            candidates &= pattern_to_options[pattern]
 
-def part2(s):
-    answer = sum(map(find_output_number, parse(s)))
+        assert(len(candidates) == 1)
+        mapping = mapping_options[list(candidates)[0]]
+
+        out = 0
+        for n in outputs:
+            new_n = ''.join(sorted(mapping[c] for c in n))
+            out = out * 10 + VALID_PATTERNS[new_n]
+        answer += out
 
     print(f'The answer to part two is {answer}')
 
