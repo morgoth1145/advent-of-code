@@ -129,20 +129,24 @@ def submit_answer(year, day, part, answer):
     good_request = day == 25 and part == 2
     good_answer = False
 
-    KEYS = ["That's not the right answer.",
-            'You gave an answer too recently',
-            "You don't seem to be solving the right level.",
-            "That's the right answer!"]
+    TOO_RECENT_KEY = 'You gave an answer too recently'
+    BAD_ANSWER_KEYS = ["That's not the right answer.",
+                       "You don't seem to be solving the right level."]
     GOOD_ANSWER_KEY = "That's the right answer!"
     for line in r.text.splitlines():
         if GOOD_ANSWER_KEY in line:
+            print(line)
             good_answer = True
-        for k in KEYS:
+            break
+        if TOO_RECENT_KEY in line:
+            print(line)
+            return False
+        for k in BAD_ANSWER_KEYS:
             if k in line:
                 print(line)
                 good_request = True
 
-    assert(good_request)
+    assert(good_request or good_answer)
 
     with open(answer_file_path, 'w+') as f:
         f.write(json.dumps(tried_answers))
