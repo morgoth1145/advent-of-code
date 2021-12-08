@@ -29,6 +29,19 @@ def map_display(m, n):
     new_n = ''.join(sorted(m[c] for c in n))
     return VALID_PATTERNS.get(new_n)
 
+def find_output_number_brute(line):
+    import itertools
+    patterns = line[0] + line[1]
+    for order in itertools.permutations('abcdefg'):
+        m = dict(zip('abcdefg', order))
+        if all(map_display(m, pattern) is not None
+               for pattern in patterns):
+            out = 0
+            for n in line[1]:
+                out = out * 10 + map_display(m, n)
+            return out
+    assert(False)
+
 def find_output_number(line):
     patterns = sorted(line[0] + line[1], key=len)
     def do_search(m, patterns, unused_chars):
