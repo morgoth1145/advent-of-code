@@ -1,9 +1,16 @@
 import lib.aoc
+import lib.math
 
 def part1(s):
     positions = list(map(int, s.split(',')))
-    answer = min(sum(abs(p-t) for p in positions)
-                 for t in range(min(positions), max(positions)+1))
+
+    def value_fn(target):
+        return sum(abs(p-target) for p in positions)
+
+    target = lib.math.find_continuous_curve_minimum(range(min(positions),
+                                                          max(positions)+1),
+                                                    value_fn)
+    answer = value_fn(target)
 
     print(f'The answer to part one is {answer}')
 
@@ -12,8 +19,14 @@ def tri_num(n):
 
 def part2(s):
     positions = list(map(int, s.split(',')))
-    answer = min(sum(tri_num(abs(p-t)) for p in positions)
-                 for t in range(min(positions), max(positions)+1))
+
+    def value_fn(target):
+        return sum(tri_num(abs(p-target)) for p in positions)
+
+    target = lib.math.find_continuous_curve_minimum(range(min(positions),
+                                                          max(positions)+1),
+                                                    value_fn)
+    answer = value_fn(target)
 
     print(f'The answer to part two is {answer}')
 

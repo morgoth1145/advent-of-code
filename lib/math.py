@@ -1,3 +1,4 @@
+import functools
 import math
 
 def mod_mult_inv(n, mod):
@@ -76,3 +77,66 @@ def offset_chinese_remainder(congruencies):
                     for mod, offset
                     in congruencies]
     return chinese_remainder(congruencies)
+
+def find_continuous_curve_minimum(domain, fn):
+    '''Efficiently finds the input in the domain that minimizes the function
+    value using pseudo-binary search. Only works for functions which are
+    continuous and concave (that is, it has one local minimum which is the
+    global minimum). For example, given the following function and domain:
+    def sample_fn(x):
+        return (x / 1000 - 5) ** 2
+    domain = range(-10000000, 10000001)
+
+    Using min(domain, key=sample_fn) will find 5000 as the answer, but it
+    takes a few seconds to run since it has to call sample_fn for every input
+    in the domain. (This can easily grow for larger domains or more expensive
+    functions.) find_continuous_curve_minimum(domain, sample_fn) will return
+    5000 nearly instantly as it only has to check a handful of points on the
+    curve to find the global minimum.
+
+    Arguments:
+    domain -- A list-like sequence (supporting len and __getindex__) of inputs
+    to test
+    fn -- The continuous concave function. (If you want to find the maximum,
+    just negate the output!)
+    '''
+    fn = functools.cache(fn)
+
+    # Search through indices in the domain instead of the domain directly
+    # This greatly accelerates the search when domain is a list since list
+    # slices create copies rather than views into the list
+    domain_indices = range(len(domain))
+
+    pivot_idx = len(domain_indices)//2
+    pivot = fn(domain[domain_indices[pivot_idx]])
+
+    while len(domain_indices) > 4:
+        low = domain_indices[:pivot_idx+1]
+        high = domain_indices[pivot_idx:]
+
+        low_side = len(low) > len(high)
+        to_check = low if low_side else high
+
+        check_idx = len(to_check)//2
+        check_val = fn(domain[to_check[check_idx]])
+
+        if check_val < pivot:
+            # The check block is smaller than the entire other side, that means
+            # that the minimum must lie inside the check bock
+            domain_indices = to_check
+            pivot_idx = check_idx
+            pivot = check_val
+        else:
+            # pivot is smaller, subdivide the big range accordingly
+            if low_side:
+                # The low side of the check block does not contain the minimum
+                domain_indices = domain_indices[check_idx:]
+                pivot_idx -= check_idx
+                low = check_val
+            else:
+                # The high side of the check bock does not contain the minimum
+                domain_indices = domain_indices[:pivot_idx+check_idx+1]
+                high = check_val
+
+    min_idx = min(domain_indices, key=lambda idx:fn(domain[idx]))
+    return domain[min_idx]
