@@ -1,75 +1,62 @@
 import lib.aoc
 
 def parse(s):
-    grid = []
-    for line in s.splitlines():
-        grid.append(list(map(int, line)))
+    grid = {}
+    for y,row in enumerate(s.splitlines()):
+        for x,val in enumerate(map(int, row)):
+            grid[x,y] = val
     return grid
+
+def neighbors(c):
+    x, y = c
+    yield x-1, y
+    yield x+1, y
+    yield x, y-1
+    yield x, y+1
 
 def part1(s):
     grid = parse(s)
 
     answer = 0
 
-    for x, row in enumerate(grid):
-        for y, val in enumerate(row):
-            if x > 0:
-                if grid[x-1][y] <= val:
-                    continue
-            if x < len(grid)-1:
-                if grid[x+1][y] <= val:
-                    continue
-            if y > 0:
-                if row[y-1] <= val:
-                    continue
-            if y < len(row)-1:
-                if row[y+1] <= val:
-                    continue
+    for c, val in grid.items():
+        if all(grid.get(n, 9) > val
+               for n in neighbors(c)):
             answer += val+1
 
     print(f'The answer to part one is {answer}')
 
+def count_basin_size(grid, c):
+    basin = set()
+    to_handle = [c]
+
+    while to_handle:
+        c = to_handle[0]
+        to_handle = to_handle[1:]
+        if c in basin:
+            continue
+
+        val = grid[c]
+        if val == 9:
+            continue
+
+        basin.add(c)
+
+        for n in neighbors(c):
+            if grid.get(n, -5) > val:
+                to_handle.append(n)
+
+    return len(basin)
+
 def part2(s):
     grid = parse(s)
 
-    handled = set()
-    for x,row in enumerate(grid):
-        for y,val in enumerate(row):
-            if val == 9:
-                handled.add((x,y))
-
-    remaining = {(x,y)
-                 for x,row in enumerate(grid)
-                 for y in range(len(row))} - handled
-
     basin_sizes = []
 
-    while len(remaining):
-        basin = set()
-        c = list(remaining)[0]
-        to_handle = [c]
-        while to_handle:
-            c = to_handle[0]
-            to_handle = to_handle[1:]
-
-            if c in handled or c in basin:
-                continue
-
-            basin.add(c)
-            x,y = c
-
-            if x > 0:
-                to_handle.append((x-1,y))
-            if x < len(grid)-1:
-                to_handle.append((x+1,y))
-            if y > 0:
-                to_handle.append((x,y-1))
-            if y < len(grid[x])-1:
-                to_handle.append((x,y+1))
-
-        basin_sizes.append(len(basin))
-        handled |= basin
-        remaining -= basin
+    for c, val in grid.items():
+        if all(grid.get(n, 9) > val
+               for n in neighbors(c)):
+            basin_sizes.append(count_basin_size(grid, c))
 
     a, b, c = sorted(basin_sizes)[-3:]
     answer = a*b*c
