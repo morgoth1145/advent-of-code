@@ -32,7 +32,7 @@ def score_line(line):
                 continue
             return 25137
     if len(seen):
-        return None
+        return seen
 
     # These aren't supposed to be valid!
     assert(False)
@@ -42,13 +42,39 @@ def part1(s):
 
     for line in s.splitlines():
         score = score_line(line)
-        if score is not None:
+        if score is not None and isinstance(score, int):
             answer += score
 
     print(f'The answer to part one is {answer}')
 
+def autocomplete_score(to_finish):
+    ratings = {
+        '(': 1,
+        '[': 2,
+        '{': 3,
+        '<': 4
+    }
+    score = 0
+    for c in to_finish[::-1]:
+        score = score * 5 + ratings[c]
+    return score
+
 def part2(s):
-    pass
+    incomplete_lines = []
+
+    for line in s.splitlines():
+        score = score_line(line)
+        if isinstance(score, list):
+            incomplete_lines.append((line, score))
+
+    auto_scores = sorted(autocomplete_score(to_finish)
+                         for line, to_finish in incomplete_lines)
+
+    assert(len(auto_scores)%2 == 1)
+
+    answer = auto_scores[len(auto_scores)//2]
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 10)
 part1(INPUT)
