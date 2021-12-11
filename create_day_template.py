@@ -12,6 +12,10 @@ def part_1_template():
 ##    nums = list(map(lambda r:r[0], parse.findall('{{:d}}', s)))
 ##    lines = s.splitlines()
 ##    groups = s.split('\\n\\n')
+##    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
+##    grid = lib.grid.FixedGrid.parse(s,
+##                                    linesplit_fn=lambda line: line.split(),
+##                                    value_fn=int)
 
     print(f'The answer to part one is {{answer}}')
     if input('Submit answer? ').lower() in ('y', 'yes', '1'):

@@ -1,18 +1,17 @@
 import lib.aoc
+import lib.grid
 
 class Board:
     def __init__(self, lines):
-        rows = [list(map(int, l.strip().split()))
-                for l in lines.split('\n')]
-        self._nums = {}
+        board = lib.grid.FixedGrid.parse(lines,
+                                         linesplit_fn=lambda line: line.split(),
+                                         value_fn=int)
+
+        assert(board.width == 5 and board.height == 5)
+
+        self._nums = {val: c
+                      for c, val in board.items()}
         self._seen = set()
-
-        assert(len(rows[0]) == 5)
-        assert(len(rows) == 5)
-
-        for x in range(5):
-            for y in range(5):
-                self._nums[rows[x][y]] = (x, y)
 
     def mark(self, n):
         coord = self._nums.get(n)

@@ -1,18 +1,5 @@
-import itertools
-
 import lib.aoc
-
-def parse(s):
-    return {(x,y): val
-            for y, row in enumerate(s.splitlines())
-            for x, val in enumerate(map(int, row))}
-
-def neighbors(c):
-    x, y = c
-    for n in itertools.product((x-1, x, x+1),
-                               (y-1, y, y+1)):
-        if n != c:
-            yield n
+import lib.grid
 
 def iterate(grid):
     flashed = set()
@@ -24,9 +11,9 @@ def iterate(grid):
 
     to_handle = list(flashed)
     while to_handle:
-        c = to_handle.pop(0)
-        for n in neighbors(c):
-            if n not in grid or n in flashed:
+        x, y = to_handle.pop(0)
+        for n in grid.neighbors(x, y, diagonals=True):
+            if n in flashed:
                 continue
             grid[n] += 1
             if grid[n] > 9:
@@ -39,7 +26,7 @@ def iterate(grid):
     return len(flashed)
 
 def part1(s):
-    grid = parse(s)
+    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
 
     answer = sum(iterate(grid)
                  for _ in range(100))
@@ -47,10 +34,10 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    grid = parse(s)
+    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
 
     answer = 1
-    while iterate(grid) != len(grid):
+    while iterate(grid) != grid.area:
         answer += 1
 
     print(f'The answer to part two is {answer}')

@@ -1,61 +1,45 @@
 import lib.aoc
-
-def parse(s):
-    grid = {}
-    for y,row in enumerate(s.splitlines()):
-        for x,val in enumerate(map(int, row)):
-            grid[x,y] = val
-    return grid
-
-def neighbors(c):
-    x, y = c
-    yield x-1, y
-    yield x+1, y
-    yield x, y-1
-    yield x, y+1
+import lib.grid
 
 def part1(s):
-    grid = parse(s)
+    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
 
     answer = 0
 
     for c, val in grid.items():
-        if all(grid.get(n, 9) > val
-               for n in neighbors(c)):
+        x, y = c
+        if all(grid[n] > val
+               for n in grid.neighbors(x, y)):
             answer += val+1
 
     print(f'The answer to part one is {answer}')
 
 def count_basin_size(grid, c):
-    basin = set()
+    basin = {c}
     to_handle = [c]
 
     while to_handle:
-        c = to_handle[0]
-        to_handle = to_handle[1:]
-        if c in basin:
-            continue
+        x, y = to_handle.pop(0)
 
-        val = grid[c]
-        if val == 9:
-            continue
-
-        basin.add(c)
-
-        for n in neighbors(c):
-            if grid.get(n, -5) > val:
+        for n in grid.neighbors(x, y):
+            if n in basin:
+                continue
+            nval = grid[n]
+            if nval != 9:
+                basin.add(n)
                 to_handle.append(n)
 
     return len(basin)
 
 def part2(s):
-    grid = parse(s)
+    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
 
     basin_sizes = []
 
     for c, val in grid.items():
-        if all(grid.get(n, 9) > val
-               for n in neighbors(c)):
+        x, y = c
+        if all(grid[n] > val
+               for n in grid.neighbors(x, y)):
             basin_sizes.append(count_basin_size(grid, c))
 
     a, b, c = sorted(basin_sizes)[-3:]
