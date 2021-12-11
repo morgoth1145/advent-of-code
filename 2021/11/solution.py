@@ -1,3 +1,5 @@
+import itertools
+
 import lib.aoc
 
 def parse(s):
@@ -7,11 +9,10 @@ def parse(s):
 
 def neighbors(c):
     x, y = c
-    for nx in (x-1, x, x+1):
-        for ny in (y-1, y, y+1):
-            if nx == x and ny == y:
-                continue
-            yield nx, ny
+    for n in itertools.product((x-1, x, x+1),
+                               (y-1, y, y+1)):
+        if n != c:
+            yield n
 
 def iterate(grid):
     flashed = set()
@@ -23,8 +24,7 @@ def iterate(grid):
 
     to_handle = list(flashed)
     while to_handle:
-        c = to_handle[0]
-        to_handle = to_handle[1:]
+        c = to_handle.pop(0)
         for n in neighbors(c):
             if n not in grid or n in flashed:
                 continue
