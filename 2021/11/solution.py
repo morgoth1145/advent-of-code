@@ -47,7 +47,13 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    grid = parse(s)
+
+    answer = 1
+    while iterate(grid) != len(grid):
+        answer += 1
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 11)
 part1(INPUT)
