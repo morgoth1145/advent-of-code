@@ -1,4 +1,5 @@
 import lib.aoc
+import lib.grid
 
 def parse(s):
     groups = s.split('\n\n')
@@ -39,7 +40,7 @@ def do_fold(dots, fold):
                 assert(y > n)
                 diff = y-n
                 new_y = n-diff
-                new_dots.add((y, new_y))
+                new_dots.add((x, new_y))
         return new_dots
     else:
         assert(False)
@@ -58,7 +59,23 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    pairs, folds = parse(s)
+
+    dots = set()
+    for x, y in pairs:
+        dots.add((x,y))
+
+    for fold in folds:
+        dots = do_fold(dots, fold)
+
+    dots = {c:'#' for c in dots}
+
+    grid = lib.grid.FixedGrid.from_dict(dots, missing='.')
+    grid.print('')
+
+    answer = input('What are the letters? ')
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 13)
 part1(INPUT)
