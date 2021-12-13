@@ -1,6 +1,5 @@
 import lib.aoc
-import lib.grid
-import lib.special_characters as chars
+import lib.ocr
 
 def parse(s):
     groups = s.split('\n\n')
@@ -43,12 +42,7 @@ def part2(s):
     for fold in folds:
         dots = do_fold(dots, fold)
 
-    dots = {c:chars.FULL_BLOCK for c in dots}
-
-    grid = lib.grid.FixedGrid.from_dict(dots, missing=' ')
-    grid.print('')
-
-    answer = input('What are the letters? ')
+    answer = lib.ocr.parse_coord_set(dots)
 
     print(f'The answer to part two is {answer}')
 

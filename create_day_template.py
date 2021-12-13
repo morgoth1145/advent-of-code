@@ -44,6 +44,7 @@ import lib.aoc
 import lib.graph
 import lib.grid
 import lib.math
+import lib.ocr
 import lib.parsing
 
 {part_1_template()}
