@@ -1,5 +1,4 @@
 import collections
-import functools
 
 import lib.aoc
 
@@ -12,23 +11,24 @@ def solve(s, iterations):
         left, right = line.split(' -> ')
         rules[left] = right
 
-    @functools.cache
-    def figure_counts(pair, iterations):
-        if iterations == 0:
-            return collections.Counter(pair)
+    counts = {pair: collections.Counter(pair)
+              for pair in rules.keys()}
 
-        a, b = pair
-        insert = rules[pair]
+    for _ in range(iterations):
+        new_counts = {}
 
-        c = collections.Counter()
-        c += figure_counts(a+insert, iterations-1)
-        c += figure_counts(insert+b, iterations-1)
-        c[insert] -= 1 # Eliminate double-counts
-        return c
+        for pair, insert in rules.items():
+            a, b = pair
+
+            c = counts[a+insert] + counts[insert+b]
+            c[insert] -= 1
+
+            new_counts[pair] = c
+        counts = new_counts
 
     c = collections.Counter()
     for i in range(len(s)-1):
-        c += figure_counts(s[i:i+2], iterations)
+        c += counts[s[i:i+2]]
     c -= collections.Counter(s[1:-1]) # Eliminate double-counts
 
     most = c.most_common()[0]
