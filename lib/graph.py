@@ -72,7 +72,7 @@ def dijkstra_length(graph, start, end):
     '''Returns the length of the path from start to end in the graph.
     Return -1 if no path is found.
     graph[node] must return a list of (neighbor, distance) pairs'''
-    sen = set()
+    seen = set()
     queue = [(start, 0)]
     while len(queue) > 0:
         current_node, current_dist = queue.pop(0)
@@ -84,9 +84,9 @@ def dijkstra_length(graph, start, end):
         seen.add(current_node)
 
         for neighbor_node, neighbor_dist in graph[current_node]:
-            queue.append((neighbor_node, current_dist +  neighbor_dist))
+            queue.append((neighbor_node, current_dist + neighbor_dist))
 
         # TODO: Priority queue
-        queue = sorted(queue, key=lambda n,d: d)
+        queue = sorted(queue, key=lambda item: item[1])
 
     return -1
