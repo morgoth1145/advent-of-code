@@ -2,63 +2,46 @@ import lib.aoc
 import lib.graph
 import lib.grid
 
-def part1(s):
-    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
-
+def solve(grid):
     graph = {}
 
     for c, val in grid.items():
         x, y = c
-        links = []
-        for n in grid.neighbors(x, y):
-            val = grid[n]
-            links.append((n, val))
-        graph[c] = links
+        graph[c] = [(n, grid[n])
+                    for n in grid.neighbors(x, y)]
 
     X = grid.width-1
     Y = grid.height-1
 
-    answer = lib.graph.dijkstra_length(graph, (0, 0), (X, Y))
+    return lib.graph.dijkstra_length(graph, (0, 0), (X, Y))
+
+def part1(s):
+    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
+    answer = solve(grid)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
     grid = lib.grid.FixedGrid.parse(s, value_fn=int)
 
+    # TODO: Is there a way to do this less horribly? This feels so hacky!
     d = grid.to_dict()
-
     for xadj in range(5):
         for yadj in range(5):
             adj = xadj + yadj
             if adj == 0:
                 continue
+
             xshift = grid.width * xadj
             yshift = grid.height * yadj
 
             for c, val in grid.items():
                 x, y = c
                 newc = x + xshift, y + yshift
-                val += adj
-                while val > 9:
-                    val -= 9
-                d[newc] = val
-
+                d[newc] = (val + adj - 1) % 9 + 1
     grid = lib.grid.FixedGrid.from_dict(d)
 
-    graph = {}
-
-    for c, val in grid.items():
-        x, y = c
-        links = []
-        for n in grid.neighbors(x, y):
-            val = grid[n]
-            links.append((n, val))
-        graph[c] = links
-
-    X = grid.width-1
-    Y = grid.height-1
-
-    answer = lib.graph.dijkstra_length(graph, (0, 0), (X, Y))
+    answer = solve(grid)
 
     print(f'The answer to part two is {answer}')
 

@@ -1,3 +1,5 @@
+import heapq
+
 def topological_sort(graph):
     '''Outputs graph nodes in topological order, going from the leaf to the root
     NOTE: THIS DOES NOT WORK FOR CYCLIC GRAPHS!'''
@@ -68,14 +70,21 @@ def all_reachable(graph, start):
         # TODO: Priority queue
         queue = sorted(queue, key=lambda n,d: d)
 
-def dijkstra_length(graph, start, end):
+def dijkstra_length(graph, start, end, heuristic=None):
     '''Returns the length of the path from start to end in the graph.
     Return -1 if no path is found.
-    graph[node] must return a list of (neighbor, distance) pairs'''
+    graph[node] must return a list of (neighbor, distance) pairs
+
+    Arguments:
+    heuristic - If supplied, provides an estimate of the remaining distance
+    from a given node to the end
+    '''
+    if heuristic is None:
+        heuristic = lambda n: 0
     seen = set()
-    queue = [(start, 0)]
+    queue = [(heuristic(start), 0, start)]
     while len(queue) > 0:
-        current_node, current_dist = queue.pop(0)
+        _, current_dist, current_node = heapq.heappop(queue)
         if current_node == end:
             return current_dist
 
@@ -84,9 +93,9 @@ def dijkstra_length(graph, start, end):
         seen.add(current_node)
 
         for neighbor_node, neighbor_dist in graph[current_node]:
-            queue.append((neighbor_node, current_dist + neighbor_dist))
-
-        # TODO: Priority queue
-        queue = sorted(queue, key=lambda item: item[1])
+            new_dist = current_dist + neighbor_dist
+            heapq.heappush(queue, (heuristic(neighbor_node) + new_dist,
+                                   new_dist,
+                                   neighbor_node))
 
     return -1
