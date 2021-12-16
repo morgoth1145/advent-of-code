@@ -69,8 +69,36 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
+def eval_packet(p):
+    t = p[1]
+    if t == 4:
+        # Literal
+        return p[2]
+
+    sub = p[4]
+    vals = list(map(eval_packet, sub))
+    if t == 0:
+        return sum(vals)
+    if t == 1:
+        out = 1
+        for p in sub:
+            out *= eval_packet(p)
+        return out
+    if t == 2:
+        return min(vals)
+    if t == 3:
+        return max(vals)
+    if t == 5:
+        return 1 if vals[0] > vals[1] else 0
+    if t == 6:
+        return 1 if vals[0] < vals[1] else 0
+    if t == 7:
+        return 1 if vals[0] == vals[1] else 0
+
 def part2(s):
-    pass
+    answer = eval_packet(parse(s))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 16)
 part1(INPUT)
