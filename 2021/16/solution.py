@@ -1,99 +1,81 @@
+import functools
+import operator
+
 import lib.aoc
 
-def parse_impl(bits):
-    v = bits[:3]
-    bits = bits[3:]
-    v = int(v, base=2)
-    t = bits[:3]
-    bits = bits[3:]
-    t = int(t, base=2)
+def parse_bits_impl(bits):
+    def pull_raw_bits(n):
+        nonlocal bits
+        val = bits[:n]
+        bits = bits[n:]
+        return val
+    def pull_bits(n):
+        return int(pull_raw_bits(n), 2)
+
+    v = pull_bits(3)
+    t = pull_bits(3)
     if t == 4:
         # Literal
-        parts = ''
+        payload = 0
         while True:
-            p = bits[:5]
-            bits = bits[5:]
-            parts += p[1:]
-            if p[0] == '0':
+            n = pull_bits(5)
+            payload = (payload << 4) + (n & 0xF)
+            if not n & 0x10:
                 break
-        n = int(parts, base=2)
-        packet = (v, t, n)
-        return packet, bits
-    i = bits[0]
-    bits = bits[1:]
-    if i == '0':
-        l = bits[:15]
-        bits = bits[15:]
-        sub_len = int(l, 2)
-        sub = []
-        sub_bits = bits[:sub_len]
-        bits = bits[sub_len:]
-        while sub_bits:
-            s, sub_bits = parse_impl(sub_bits)
-            sub.append(s)
     else:
-        l = bits[:11]
-        bits = bits[11:]
-        sub = []
-        for _ in range(int(l, base=2)):
-            s, bits = parse_impl(bits)
-            sub.append(s)
+        # Operator
+        payload = []
 
-    packet = (v, t, i, l, sub)
+        if pull_bits(1):
+            count = pull_bits(11)
+
+            for _ in range(count):
+                s, bits = parse_bits_impl(bits)
+                payload.append(s)
+        else:
+            sub_len = pull_bits(15)
+            sub_bits = pull_raw_bits(sub_len)
+
+            while sub_bits:
+                s, sub_bits = parse_bits_impl(sub_bits)
+                payload.append(s)
+
+    packet = (v, t, payload)
     return packet, bits
 
 def parse(s):
-    bits = []
-    for n in [int(n, base=16) for n in s]:
-        b = bin(n)[2:]
-        while len(b) < 4:
-            b = '0' + b
-        bits.extend(list(b))
-    bits = ''.join(bits)
-    return parse_impl(bits)[0]
+    bits = ''.join(f'{int(c, 16):04b}'
+                   for c in s)
+    packet, _ = parse_bits_impl(bits)
+    return packet
+
+def sum_versions(packet):
+    v, t, payload = packet
+    if t != 4:
+        v += sum(map(sum_versions, payload))
+    return v
 
 def part1(s):
-    packet = parse(s)
-
-    to_handle = [packet]
-
-    answer = 0
-
-    while to_handle:
-        p = to_handle.pop(0)
-        answer += p[0]
-        if p[1] == 4:
-            # Literal
-            continue
-        to_handle.extend(p[4])
+    answer = sum_versions(parse(s))
 
     print(f'The answer to part one is {answer}')
 
-def eval_packet(p):
-    t = p[1]
-    if t == 4:
-        # Literal
-        return p[2]
+OPERATORS = [
+    sum,
+    lambda vals: functools.reduce(operator.mul, vals),
+    min,
+    max,
+    lambda val: val,
+    lambda vals: 1 if vals[0] > vals[1] else 0,
+    lambda vals: 1 if vals[0] < vals[1] else 0,
+    lambda vals: 1 if vals[0] == vals[1] else 0,
+]
 
-    sub = p[4]
-    vals = list(map(eval_packet, sub))
-    if t == 0:
-        return sum(vals)
-    if t == 1:
-        out = 1
-        for p in sub:
-            out *= eval_packet(p)
-        return out
-    if t == 2:
-        return min(vals)
-    if t == 3:
-        return max(vals)
-    if t == 5:
-        return 1 if vals[0] > vals[1] else 0
-    if t == 6:
-        return 1 if vals[0] < vals[1] else 0
-    if t == 7:
-        return 1 if vals[0] == vals[1] else 0
+def eval_packet(p):
+    _, t, payload = p
+    if isinstance(payload, list):
+        payload = list(map(eval_packet, payload))
+    return OPERATORS[t](payload)
 
 def part2(s):
     answer = eval_packet(parse(s))
