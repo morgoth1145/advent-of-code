@@ -54,10 +54,10 @@ def longest_path_length(graph, start):
 def all_reachable(graph, start):
     '''Returns (node, distance) pairs of all reachable nodes in the graph.
     graph[node] must return a list of (neighbor, distance) pairs'''
-    seen = []
-    queue = [(start, 0)]
+    seen = set()
+    queue = [(0, start)]
     while len(queue) > 0:
-        current_node, current_dist = queue.pop(0)
+        current_dist, current_node = heapq.heappop(queue)
         if current_node in seen:
             continue
         seen.add(current_node)
@@ -66,10 +66,10 @@ def all_reachable(graph, start):
             yield current_node, current_dist
 
         for neighbor_node, neighbor_dist in graph[current_node]:
-            queue.append((neighbor_node, current_dist +  neighbor_dist))
-
-        # TODO: Priority queue
-        queue = sorted(queue, key=lambda n,d: d)
+            if neighbor_node in seen:
+                continue
+            heapq.heappush(queue, (current_dist + neighbor_dist,
+                                   neighbor_node))
 
 def dijkstra_length(graph, start, end, heuristic=None):
     '''Returns the length of the path from start to end in the graph.
