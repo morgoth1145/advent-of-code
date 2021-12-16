@@ -1,3 +1,4 @@
+import collections
 import heapq
 
 def topological_sort(graph):
@@ -85,6 +86,7 @@ def dijkstra_length(graph, start, end, heuristic=None):
     queue = [(heuristic(start), 0, start)]
     while len(queue) > 0:
         _, current_dist, current_node = heapq.heappop(queue)
+
         if current_node == end:
             return current_dist
 
@@ -93,9 +95,24 @@ def dijkstra_length(graph, start, end, heuristic=None):
         seen.add(current_node)
 
         for neighbor_node, neighbor_dist in graph[current_node]:
+            if neighbor_node in seen:
+                continue
             new_dist = current_dist + neighbor_dist
             heapq.heappush(queue, (heuristic(neighbor_node) + new_dist,
                                    new_dist,
                                    neighbor_node))
 
     return -1
+
+class _LazyGraph(collections.defaultdict):
+    def __init__(self, neighbor_fn):
+        super().__init__()
+        self._neighbor_fn = neighbor_fn
+
+    def __missing__(self, key):
+        neighbors = self._neighbor_fn(key)
+        self[key] = neighbors
+        return neighbors
+
+def make_lazy_graph(neighbor_fn):
+    return _LazyGraph(neighbor_fn)
