@@ -1,5 +1,34 @@
 import lib.aoc
 
+def parse_ranges(s):
+    _, _, x, y = s.split()
+    x0, x1 = x[2:-1].split('..')
+    y0, y1 = y[2:].split('..')
+    xrange = range(int(x0), int(x1)+1)
+    yrange = range(int(y0), int(y1)+1)
+    return xrange, yrange
+
+def run(xv, yv, xrange, yrange):
+    x, y = 0, 0
+    maxy = 0
+    while True:
+        x, xv = x+xv, max(xv-1, 0)
+        y, yv = y+yv, yv-1
+        maxy = max(maxy, y)
+        if x in xrange and y in yrange:
+            return maxy
+        if x > xrange[-1] or y < yrange[0]:
+            return None
+
+def solutions_brute(s):
+    xrange, yrange = parse_ranges(s)
+
+    for xv in range(xrange[-1]+1):
+        for yv in range(yrange[0], abs(yrange[0])):
+            y = run(xv, yv, xrange, yrange)
+            if y is not None:
+                yield xv, yv
+
 def tri(n):
     return n * (n+1) // 2
 
@@ -48,11 +77,7 @@ def y_vel_cands(yrange):
             yield base_yv, good_steps
 
 def solutions(s):
-    _, _, x, y = s.split()
-    x0, x1 = x[2:-1].split('..')
-    y0, y1 = y[2:].split('..')
-    xrange = range(int(x0), int(x1)+1)
-    yrange = range(int(y0), int(y1)+1)
+    xrange, yrange = parse_ranges(s)
 
     x_cands = list(x_vel_cands(xrange))
     y_cands = list(y_vel_cands(yrange))
@@ -69,7 +94,7 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    answer = len(set(solutions(s)))
+    answer = len(list(solutions(s)))
 
     print(f'The answer to part two is {answer}')
 
