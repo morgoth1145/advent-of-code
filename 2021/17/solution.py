@@ -1,111 +1,75 @@
 import lib.aoc
 
-def parse(s):
-    _, _, x, y = s.split()
-    x = x[2:-1]
-    y = y[2:]
-    x0, x1 = x.split('..')
-    y0, y1 = y.split('..')
-    return int(x0), int(x1), int(y0), int(y1)
-
 def tri(n):
     return n * (n+1) // 2
 
 def x_vel_cands(xrange):
-    x = 0
-    while tri(x) < xrange[0]:
-        x += 1
-    yield x
-    x += 1
-    while x <= xrange[-1]:
-        if any(tri(x) - tri(lowx)
-               for lowx in range(x)):
-            yield x
-        x += 1
+    def range_checker(min_steps, max_steps):
+        def impl(steps):
+            if steps < min_steps:
+                return False
+            if max_steps is not None and steps > max_steps:
+                return False
+            return True
+        return impl
 
-def cand_steps_x(xv, xrange):
-    x = 0
-    steps = 0
-    min_steps = None
-    max_steps = None
-    while True:
-        x += xv
-        xv = max(xv-1, 0)
-        steps += 1
-        if x in xrange:
-            if min_steps is None:
-                min_steps = steps
-        if x > xrange[-1]:
-            return min_steps, steps-1
-        if xv == 0:
-            # Probably no :(
-            return min_steps, None
+    for base_xv in range(xrange[-1]+1):
+        if tri(base_xv) < xrange[0]:
+            continue
 
-def y_helper(yv, yrange, min_steps, max_steps):
-    y = 0
-    best_y = 0
-    last_y = 0
+        x, xv = 0, base_xv
+        min_steps, max_steps = None, None
 
-    for step in range(1, max_steps+1):
-        last_y = y
-        y += yv
-        yv -= 1
-        best_y = max(best_y, y)
-        if y in yrange and step >= min_steps:
-            return best_y
-        if last_y > yrange[-1] and y < yrange[0]:
-            return None
+        for step in range(xv):
+            x, xv = x+xv, xv-1
 
-    return None
+            if x in xrange and min_steps is None:
+                min_steps = step+1
+            elif x > xrange[-1]:
+                max_steps = step
+                break
 
-def search_y(yrange, xv, xrange):
-    min_steps, max_steps = cand_steps_x(xv, xrange)
-    if min_steps is None:
-        return 0
+        if min_steps is not None:
+            yield base_xv, range_checker(min_steps, max_steps)
 
-    if max_steps is None:
-        max_steps = 2*abs(yrange[0])
+def y_vel_cands(yrange):
+    for base_yv in range(yrange[0], abs(yrange[0])):
+        good_steps = []
 
-    reported = set()
+        y, yv, step = 0, base_yv, 0
 
-    cand_steps = range(min_steps, max_steps+1)
+        while y > yrange[0]:
+            y, yv, step = y+yv, yv-1, step+1
 
-    for steps in cand_steps:
-        yv = yrange[0]-1
-        while yv <= abs(yrange[0]):
-            yv += 1
-            if yv in reported:
-                continue
-            y = y_helper(yv, yrange, min_steps, steps)
-            if y is not None:
-                reported.add(yv)
-                yield y
+            if y in yrange:
+                good_steps.append(step)
+
+        if good_steps:
+            yield base_yv, good_steps
+
+def solutions(s):
+    _, _, x, y = s.split()
+    x0, x1 = x[2:-1].split('..')
+    y0, y1 = y[2:].split('..')
+    xrange = range(int(x0), int(x1)+1)
+    yrange = range(int(y0), int(y1)+1)
+
+    x_cands = list(x_vel_cands(xrange))
+    y_cands = list(y_vel_cands(yrange))
+
+    for xv, x_step_check in x_cands:
+        for yv, y_steps in y_cands:
+            if any(map(x_step_check, y_steps)):
+                yield xv, yv
 
 def part1(s):
-    x0, x1, y0, y1 = parse(s)
-    xrange = range(x0, x1+1)
-    yrange = range(y0, y1+1)
-
-    best_y = 0
-
-    for xv in x_vel_cands(xrange):
-        for y in search_y(yrange, xv, xrange):
-            best_y = max(y, best_y)
-
-    answer = best_y
+    answer = max(tri(yv)
+                 for xv, yv in solutions(s))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    x0, x1, y0, y1 = parse(s)
-    xrange = range(x0, x1+1)
-    yrange = range(y0, y1+1)
-
-    answer = 0
-
-    for xv in x_vel_cands(xrange):
-        for y in search_y(yrange, xv, xrange):
-            answer += 1
+    answer = len(set(solutions(s)))
 
     print(f'The answer to part two is {answer}')
 
