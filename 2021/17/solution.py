@@ -17,7 +17,7 @@ def x_vel_cands(xrange):
         x += 1
     yield x
     x += 1
-    while x < xrange[-1]:
+    while x <= xrange[-1]:
         if any(tri(x) - tri(lowx)
                for lowx in range(x)):
             yield x
@@ -41,21 +41,21 @@ def cand_steps_x(xv, xrange):
             # Probably no :(
             return min_steps, None
 
-def y_helper(yv, yrange, max_steps):
+def y_helper(yv, yrange, min_steps, max_steps):
     y = 0
     best_y = 0
     last_y = 0
-    for _ in range(max_steps):
+
+    for step in range(1, max_steps+1):
         last_y = y
         y += yv
         yv -= 1
         best_y = max(best_y, y)
-        if y in yrange:
+        if y in yrange and step >= min_steps:
             return best_y
         if last_y > yrange[-1] and y < yrange[0]:
-            return False
-    if y > yrange[-1]:
-        return False
+            return None
+
     return None
 
 def search_y(yrange, xv, xrange):
@@ -66,29 +66,20 @@ def search_y(yrange, xv, xrange):
     if max_steps is None:
         max_steps = 2*abs(yrange[0])
 
+    reported = set()
+
     cand_steps = range(min_steps, max_steps+1)
 
-    yv = 1
-    best_y = 0
     for steps in cand_steps:
-        yv = 0
+        yv = yrange[0]-1
         while yv <= abs(yrange[0]):
             yv += 1
-            y = y_helper(yv, yrange, steps)
-            if y is None:
+            if yv in reported:
                 continue
-            best_y = max(y, best_y)
-
-    return best_y
-
-def y_vel_cands(yrange, max_steps):
-    yv = 1
-    while True:
-        y = y_helper(yv, max_steps)
-        if y > yrange[-1]:
-            # Didn't even enter
-            return
-        yield y
+            y = y_helper(yv, yrange, min_steps, steps)
+            if y is not None:
+                reported.add(yv)
+                yield y
 
 def part1(s):
     x0, x1, y0, y1 = parse(s)
@@ -98,15 +89,25 @@ def part1(s):
     best_y = 0
 
     for xv in x_vel_cands(xrange):
-        y = search_y(yrange, xv, xrange)
-        best_y = max(y, best_y)
+        for y in search_y(yrange, xv, xrange):
+            best_y = max(y, best_y)
 
     answer = best_y
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    x0, x1, y0, y1 = parse(s)
+    xrange = range(x0, x1+1)
+    yrange = range(y0, y1+1)
+
+    answer = 0
+
+    for xv in x_vel_cands(xrange):
+        for y in search_y(yrange, xv, xrange):
+            answer += 1
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 17)
 part1(INPUT)
