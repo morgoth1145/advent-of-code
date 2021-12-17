@@ -44,8 +44,7 @@ def parse_bits_impl(bits):
     return packet, bits
 
 def parse(s):
-    bits = ''.join(f'{int(c, 16):04b}'
-                   for c in s)
+    bits = bin(int(s, 16))[2:].zfill(len(s)*4)
     packet, _ = parse_bits_impl(bits)
     return packet
 
