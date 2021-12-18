@@ -1,110 +1,102 @@
 import lib.aoc
 
-def add(a, b):
-    return [a, b]
-
-DIGITS = '0123456789'
-
-def try_explode(num):
-    num_str = str(num).replace(' ', '')
-    depth = 0
-    for idx, c in enumerate(num_str):
-        if c == '[':
-            depth += 1
-            if depth == 5:
-                # Explode!
-                end_idx = num_str.find(']', idx)
-                a, b = list(map(int, num_str[idx+1:end_idx].split(',')))
-                left = num_str[:idx]
-                for lidx in range(len(left)-1, -1, -1):
-                    c = left[lidx]
-                    if c in DIGITS:
-                        term = max(i for i in range(lidx)
-                                   if left[i] not in DIGITS)
-                        val = int(left[term+1:lidx+1])
-                        val += a
-                        left = left[:term+1] + str(val) + left[lidx+1:]
-                        break
-                mid = '0'
-                right = num_str[end_idx+1:]
-                for ridx, c in enumerate(right):
-                    if c in DIGITS:
-                        term = min(i for i in range(ridx+1, len(right))
-                                   if right[i] not in DIGITS)
-                        val = int(right[ridx:term])
-                        val += b
-                        right = right[:ridx] + str(val) + right[term:]
-                        break
-                return eval(left + mid + right)
-        elif c == ']':
-            depth -= 1
-    return None
-
-def try_split(num):
-    if isinstance(num, list):
+def explode_num(num):
+    def add_to_leftmost(num, val):
+        if isinstance(num, int):
+            return num + val
         a, b = num
-        new_a = try_split(a)
-        if new_a is not None:
-            return [new_a, b]
-        new_b = try_split(b)
-        if new_b is not None:
-            return [a, new_b]
+        return [add_to_leftmost(a, val), b]
+
+    def add_to_rightmost(num, val):
+        if isinstance(num, int):
+            return num + val
+        a, b = num
+        return [a, add_to_rightmost(b, val)]
+
+    # Returns exploded, left_exp, new_num, right_exp
+    def impl(num, depth):
+        if isinstance(num, int):
+            return False, None, num, None
+
+        a, b = num
+        if depth == 4:
+            return True, a, 0, b
+
+        exploded, left_exp, a, right_exp = impl(a, depth+1)
+        if exploded:
+            if right_exp is not None:
+                b = add_to_leftmost(b, right_exp)
+                right_exp = None
+        else:
+            exploded, left_exp, b, right_exp = impl(b, depth+1)
+
+            if left_exp is not None:
+                a = add_to_rightmost(a, left_exp)
+                left_exp = None
+
+        return exploded, left_exp, [a, b], right_exp
+
+    exploded, _, new_num, _ = impl(num, 0)
+    return new_num if exploded else None
+
+def split_num(num):
+    if isinstance(num, int):
+        if num > 9:
+            d, m = divmod(num, 2)
+            return [d, d + m]
         return None
-    if num > 9:
-        d, m = divmod(num, 2)
-        return [d, d + m]
+
+    a, b = num
+
+    new_a = split_num(a)
+    if new_a is not None:
+        return [new_a, b]
+
+    new_b = split_num(b)
+    if new_b is not None:
+        return [a, new_b]
+
     return None
 
-def reduce(num):
+def reduce_num(num):
     while True:
-        new_num = try_explode(num)
+        new_num = explode_num(num)
         if new_num is not None:
             num = new_num
             continue
-        new_num = try_split(num)
+
+        new_num = split_num(num)
         if new_num is not None:
             num = new_num
             continue
+
         return num
 
 def magnitude(num):
-    if isinstance(num, list):
-        a, b = num
-        a = magnitude(a)
-        b = magnitude(b)
-        return 3*a + 2*b
-    return num
+    if isinstance(num, int):
+        return num
+
+    a, b = num
+    return 3*magnitude(a) + 2*magnitude(b)
 
 def part1(s):
-    lines = s.splitlines()
-    fake_nums = list(map(eval, lines))
+    nums = list(map(reduce_num, map(eval, s.splitlines())))
 
-    num = fake_nums[0]
+    n = nums[0]
+    for item in nums[1:]:
+        n = reduce_num([n, item])
 
-    for item in fake_nums[1:]:
-        item = reduce(item)
-        num = reduce(add(num, item))
-
-    answer = magnitude(num)
+    answer = magnitude(n)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    lines = s.splitlines()
-    fake_nums = list(map(eval, lines))
+    nums = list(map(reduce_num, map(eval, s.splitlines())))
 
-    fake_nums = list(map(reduce, fake_nums))
-
-    best = 0
-    for ia, a in enumerate(fake_nums):
-        for ib, b in enumerate(fake_nums):
-            if ia == ib:
-                continue
-
-            mag = magnitude(reduce(add(a, b)))
-            best = max(best, mag)
-
-    answer = best
+    answer = max(magnitude(reduce_num([a, b]))
+                 for ia, a in enumerate(nums)
+                 for ib, b in enumerate(nums)
+                 if ia != ib)
 
     print(f'The answer to part two is {answer}')
 
