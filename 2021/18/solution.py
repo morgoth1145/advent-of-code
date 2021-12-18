@@ -90,7 +90,23 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    lines = s.splitlines()
+    fake_nums = list(map(eval, lines))
+
+    fake_nums = list(map(reduce, fake_nums))
+
+    best = 0
+    for ia, a in enumerate(fake_nums):
+        for ib, b in enumerate(fake_nums):
+            if ia == ib:
+                continue
+
+            mag = magnitude(reduce(add(a, b)))
+            best = max(best, mag)
+
+    answer = best
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 18)
 part1(INPUT)
