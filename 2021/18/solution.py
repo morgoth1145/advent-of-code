@@ -1,43 +1,32 @@
+import json
+
 import lib.aoc
 
 def explode_num(num):
-    def add_to_leftmost(num, val):
-        if isinstance(num, int):
-            return num + val
-        a, b = num
-        return [add_to_leftmost(a, val), b]
-
     def add_to_rightmost(num, val):
         if isinstance(num, int):
             return num + val
         a, b = num
         return [a, add_to_rightmost(b, val)]
 
-    # Returns exploded, left_exp, new_num, right_exp
-    def impl(num, depth):
+    # Returns left_val, new_num, right_val
+    def impl(num, depth, right_val):
         if isinstance(num, int):
-            return False, None, num, None
+            return 0, num+right_val, 0
 
         a, b = num
         if depth == 4:
-            return True, a, 0, b
+            return a+right_val, 0, b
 
-        exploded, left_exp, a, right_exp = impl(a, depth+1)
-        if exploded:
-            if right_exp is not None:
-                b = add_to_leftmost(b, right_exp)
-                right_exp = None
-        else:
-            exploded, left_exp, b, right_exp = impl(b, depth+1)
+        left_val, a, right_val = impl(a, depth+1, right_val)
+        left_val_b, b, right_val = impl(b, depth+1, right_val)
+        if left_val_b > 0:
+            a = add_to_rightmost(a, left_val_b)
 
-            if left_exp is not None:
-                a = add_to_rightmost(a, left_exp)
-                left_exp = None
+        return left_val, [a, b], right_val
 
-        return exploded, left_exp, [a, b], right_exp
-
-    exploded, _, new_num, _ = impl(num, 0)
-    return new_num if exploded else None
+    _, new_num, _ = impl(num, 0, 0)
+    return new_num
 
 def split_num(num):
     if isinstance(num, int):
@@ -60,17 +49,12 @@ def split_num(num):
 
 def reduce_num(num):
     while True:
-        new_num = explode_num(num)
-        if new_num is not None:
-            num = new_num
-            continue
-
+        num = explode_num(num)
         new_num = split_num(num)
-        if new_num is not None:
-            num = new_num
-            continue
+        if new_num is None:
+            return num
 
-        return num
+        num = new_num
 
 def magnitude(num):
     if isinstance(num, int):
@@ -80,7 +64,7 @@ def magnitude(num):
     return 3*magnitude(a) + 2*magnitude(b)
 
 def part1(s):
-    nums = list(map(reduce_num, map(eval, s.splitlines())))
+    nums = list(map(reduce_num, map(json.loads, s.splitlines())))
 
     n = nums[0]
     for item in nums[1:]:
@@ -91,7 +75,7 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    nums = list(map(reduce_num, map(eval, s.splitlines())))
+    nums = list(map(reduce_num, map(json.loads, s.splitlines())))
 
     answer = max(magnitude(reduce_num([a, b]))
                  for ia, a in enumerate(nums)
