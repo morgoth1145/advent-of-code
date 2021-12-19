@@ -87,7 +87,7 @@ def find_scanner_match(known, scanners):
                                         for x,y,z in o.coords]
                         o.coords = set(match_coords)
                         del scanners[s.num]
-                        return o
+                        return o, (xoff,yoff,zoff)
     assert(False)
 
 def part1(s):
@@ -99,7 +99,7 @@ def part1(s):
 
     while len(scanners):
         print(len(scanners), 'left')
-        match = find_scanner_match(known, scanners)
+        match, offset = find_scanner_match(known, scanners)
         known.coords |= match.coords
 
     answer = len(known.coords)
@@ -107,7 +107,28 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    scanners = {scan.num:scan
+                for scan in parse_scans(s)}
+
+    known = scanners[0]
+    del scanners[0]
+
+    offsets = [(0,0,0)]
+
+    while len(scanners):
+        print(len(scanners), 'left')
+        match, offset = find_scanner_match(known, scanners)
+        known.coords |= match.coords
+        offsets.append(offset)
+
+    answer = 0
+
+    for o0 in offsets:
+        for o1 in offsets:
+            dist = sum(abs(a-b) for a,b in zip(o0, o1))
+            answer = max(answer, dist)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 19)
 part1(INPUT)
