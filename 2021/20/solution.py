@@ -1,10 +1,22 @@
 import lib.aoc
 import lib.grid
 
-def run(s, num_steps):
+def run(s, iterations):
     s = s.translate(str.maketrans('.#', '01'))
 
     algo, im = s.split('\n\n')
+
+    if algo[0] == '1' == algo[511]:
+        # Once the infinite void turns on it stays on! Oh no!
+        if iterations > 0:
+            return 'infinity'
+        # We must not be running any iterations...carry on
+    elif algo[0] == '1' and algo[511] == '0':
+        # The infinite void blinks. If we run an odd number of iterations
+        # then it'll be on and we'll have an infinite number of lights on!
+        if iterations % 2 == 1:
+            return 'infinity'
+
     im = lib.grid.FixedGrid.parse(im)
     xrange = range(im.width)
     yrange = range(im.height)
@@ -13,7 +25,7 @@ def run(s, num_steps):
     # The infinite void starts out off
     default = '0'
 
-    for _ in range(num_steps):
+    for _ in range(iterations):
         new_im = {}
 
         xrange = range(xrange[0]-1, xrange[-1]+2)
@@ -31,9 +43,7 @@ def run(s, num_steps):
 
         im = new_im
 
-    # Not exercised in the problem, but I want to handle it anyway
-    if default == '1':
-        return 'infinity'
+    assert(default == '0')
 
     return sum(map(int, im.values()))
 
