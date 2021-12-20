@@ -46,7 +46,18 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    algo, image, width, height = parse_input(s)
+    xrange = range(width)
+    yrange = range(height)
+
+    default = '.'
+
+    for _ in range(50):
+        image, xrange, yrange, default = step(algo, image, xrange, yrange, default)
+
+    answer = sum(1 for c in image.values() if c == '#')
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 20)
 part1(INPUT)
