@@ -10,66 +10,75 @@ for x in [X_AXIS, -X_AXIS, Y_AXIS, -Y_AXIS, Z_AXIS, -Z_AXIS]:
             continue
         ROTATIONS.append(Mat3D(x, y))
 
+def manhattan_distance(a, b):
+    return sum(map(abs, a - b))
+
 class Scanner:
     def __init__(self, beacons):
         self.beacons = beacons
-        self._alt_orients = None
+        self.position = Point3D(0, 0, 0)
 
-    def beacon_orientations(self):
-        if self._alt_orients is None:
-            self._alt_orients = [[rot * p for p in self.beacons]
-                                 for rot in ROTATIONS]
-        return self._alt_orients
+        self._beacon_dist_counts = collections.Counter()
 
-def parse_scans(s):
-    groups = s.split('\n\n')
-    for idx, scanner in enumerate(groups):
-        lines = scanner.splitlines()
-        beacons = []
-        for line in lines[1:]:
-            x, y, z = tuple(map(int, line.split(',')))
-            beacons.append(Point3D(x, y, z))
-        yield Scanner(beacons)
+        for i, a in enumerate(self.beacons):
+            for j, b in enumerate(self.beacons[i+1:]):
+                dist = manhattan_distance(a, b)
+                # Count for both a->b and b->a
+                self._beacon_dist_counts[dist] += 2
 
-def find_scanner_matches(known, scanners):
-    failed = []
+    def align(self, base):
+        # Counter intersection: Takes the minimum
+        shared_dists = self._beacon_dist_counts & base._beacon_dist_counts
+        matches = sum(shared_dists.values())
 
-    for s in scanners:
-        matched = False
-        for beacon_orient in s.beacon_orientations():
+        # If the two beacons line up then there must be at least 12 beacons
+        # that will align in some orientation. For each of those 12 beacons,
+        # the manhattan distance to the other 11 beacons will match. If we
+        # do not see that many matches then these two scanners can't align!
+        if sum(shared_dists.values()) < 12*11:
+            return None
+
+        for rot in ROTATIONS:
+            cand_beacons = [rot * p for p in self.beacons]
+
             offset_matches = collections.Counter([base_c - test_c
-                                                  for base_c in known.beacons
-                                                  for test_c in beacon_orient])
+                                                  for base_c in base.beacons
+                                                  for test_c in cand_beacons])
             offset, count = offset_matches.most_common(1)[0]
             if count < 12:
                 # No match :(
                 continue
 
-            yield Scanner([p + offset for p in beacon_orient]), offset
-            matched = True
-            break
-        if not matched:
-            failed.append(s)
+            # Apply the alignment
+            self.beacons = [p + offset for p in cand_beacons]
+            self.position = offset
+            return True
 
-    del scanners[:]
-    scanners.extend(failed)
+        return False
 
 def solve(s):
-    unmatched_scanners = list(parse_scans(s))
+    to_align = [Scanner([Point3D(*tuple(map(int, line.split(','))))
+                         for line in group.splitlines()[1:]])
+                for group in s.split('\n\n')]
 
-    to_handle = [unmatched_scanners[0]]
-    beacons = set(unmatched_scanners[0].beacons)
-    del unmatched_scanners[0]
-    scanners = [Point3D(0, 0, 0)]
+    scanners = [to_align.pop(0)]
 
-    while to_handle:
-        base = to_handle.pop(-1)
-        for match, offset in find_scanner_matches(base, unmatched_scanners):
-            beacons.update(match.beacons)
-            scanners.append(offset)
-            to_handle.append(match)
+    for base in scanners:
+        failed = []
 
-    assert(len(unmatched_scanners) == 0)
+        for s in to_align:
+            if s.align(base):
+                scanners.append(s)
+            else:
+                failed.append(s)
+
+        to_align = failed
+
+    assert(len(to_align) == 0)
+
+    beacons = set()
+    for s in scanners:
+        beacons.update(s.beacons)
 
     return beacons, scanners
 
@@ -81,8 +90,7 @@ def part1(s):
 
 def part2(s):
     beacons, scanners = solve(s)
-    # Maximum Manhattan distance between scanners
-    answer = max(sum(map(abs, (s0 - s1)))
+    answer = max(manhattan_distance(s0.position, s1.position)
                  for s0 in scanners
                  for s1 in scanners)
 
