@@ -42,6 +42,7 @@ import re
 
 import lib.aoc
 import lib.graph
+from lib.graphics import *
 import lib.grid
 import lib.math
 import lib.ocr

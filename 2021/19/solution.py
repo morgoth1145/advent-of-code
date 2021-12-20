@@ -1,132 +1,90 @@
-import lib.aoc
+import collections
 
-ROTATIONS = [
-    ((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
-    ((-1, 0, 0), (0, 0, -1), (0, -1, 0)),
-    ((-1, 0, 0), (0, 0, 1), (0, 1, 0)),
-    ((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
-    ((0, -1, 0), (-1, 0, 0), (0, 0, -1)),
-    ((0, -1, 0), (0, 0, -1), (1, 0, 0)),
-    ((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
-    ((0, -1, 0), (1, 0, 0), (0, 0, 1)),
-    ((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
-    ((0, 0, -1), (0, -1, 0), (-1, 0, 0)),
-    ((0, 0, -1), (0, 1, 0), (1, 0, 0)),
-    ((0, 0, -1), (1, 0, 0), (0, -1, 0)),
-    ((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
-    ((0, 0, 1), (0, -1, 0), (1, 0, 0)),
-    ((0, 0, 1), (0, 1, 0), (-1, 0, 0)),
-    ((0, 0, 1), (1, 0, 0), (0, 1, 0)),
-    ((0, 1, 0), (-1, 0, 0), (0, 0, 1)),
-    ((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
-    ((0, 1, 0), (0, 0, 1), (1, 0, 0)),
-    ((0, 1, 0), (1, 0, 0), (0, 0, -1)),
-    ((1, 0, 0), (0, -1, 0), (0, 0, -1)),
-    ((1, 0, 0), (0, 0, -1), (0, 1, 0)),
-    ((1, 0, 0), (0, 0, 1), (0, -1, 0)),
-    ((1, 0, 0), (0, 1, 0), (0, 0, 1)),
-]
+import lib.aoc
+from lib.graphics import *
+
+ROTATIONS = []
+for x in [X_AXIS, -X_AXIS, Y_AXIS, -Y_AXIS, Z_AXIS, -Z_AXIS]:
+    for y in [X_AXIS, -X_AXIS, Y_AXIS, -Y_AXIS, Z_AXIS, -Z_AXIS]:
+        if x.dot(y) != 0:
+            continue
+        ROTATIONS.append(Mat3D(x, y))
 
 class Scanner:
-    def __init__(self, num, coords):
-        self.num = num
-        self.coords = coords
+    def __init__(self, beacons):
+        self.beacons = beacons
+        self._alt_orients = None
 
-    def print(self):
-        print(f'--- scanner {self.num} ---')
-        for c in self.coords:
-            print(','.join(map(str, c)))
-
-    def gen_alt_orientations(self):
-        def do_rotation(xrot, yrot, zrot):
-            new_coords = []
-            for c in self.coords:
-                nx = sum(a*b for a,b in zip(c, xrot))
-                ny = sum(a*b for a,b in zip(c, yrot))
-                nz = sum(a*b for a,b in zip(c, zrot))
-                new_coords.append((nx, ny, nz))
-            return Scanner(self.num, new_coords)
-
-        for rot in ROTATIONS:
-            yield do_rotation(*rot)
+    def beacon_orientations(self):
+        if self._alt_orients is None:
+            self._alt_orients = [[rot * p for p in self.beacons]
+                                 for rot in ROTATIONS]
+        return self._alt_orients
 
 def parse_scans(s):
     groups = s.split('\n\n')
     for idx, scanner in enumerate(groups):
         lines = scanner.splitlines()
-        coords = []
+        beacons = []
         for line in lines[1:]:
-            coords.append(tuple(map(int, line.split(','))))
-        yield Scanner(idx, set(coords))
+            x, y, z = tuple(map(int, line.split(',')))
+            beacons.append(Point3D(x, y, z))
+        yield Scanner(beacons)
 
-def find_scanner_match(known, scanners):
-    for s in scanners.values():
-        for o in s.gen_alt_orientations():
-            test_coords = list(o.coords)
-            for idx, base_c in enumerate(known.coords):
-                # TODO: Why doesn't this work? Maybe I'm not thinking things through?
-##                if idx+11 >= len(known.coords):
-##                    # Not enough left to find a match
-##                    break
-                for idx2, test_c in enumerate(o.coords):
-                    if idx2+11 >= len(test_coords):
-                        # Not enough left to find a match
-                        break
-                    xoff, yoff, zoff = (a-b for a, b in zip(base_c, test_c))
-                    x,y,z = test_c
-                    c = (x+xoff, y+yoff, z+zoff)
-                    matches = 1
-                    for c in test_coords[idx2+1:]:
-                        x,y,z = c
-                        c2 = (x+xoff, y+yoff, z+zoff)
-                        if c2 in known.coords:
-                            matches += 1
-                    if matches >= 12:
-                        # We match!
-                        match_coords = [(x+xoff, y+yoff, z+zoff)
-                                        for x,y,z in o.coords]
-                        o.coords = set(match_coords)
-                        del scanners[s.num]
-                        return o, (xoff,yoff,zoff)
-    assert(False)
+def find_scanner_matches(known, scanners):
+    failed = []
+
+    for s in scanners:
+        matched = False
+        for beacon_orient in s.beacon_orientations():
+            offset_matches = collections.Counter([base_c - test_c
+                                                  for base_c in known.beacons
+                                                  for test_c in beacon_orient])
+            offset, count = offset_matches.most_common(1)[0]
+            if count < 12:
+                # No match :(
+                continue
+
+            yield Scanner([p + offset for p in beacon_orient]), offset
+            matched = True
+            break
+        if not matched:
+            failed.append(s)
+
+    del scanners[:]
+    scanners.extend(failed)
+
+def solve(s):
+    unmatched_scanners = list(parse_scans(s))
+
+    to_handle = [unmatched_scanners[0]]
+    beacons = set(unmatched_scanners[0].beacons)
+    del unmatched_scanners[0]
+    scanners = [Point3D(0, 0, 0)]
+
+    while to_handle:
+        base = to_handle.pop(-1)
+        for match, offset in find_scanner_matches(base, unmatched_scanners):
+            beacons.update(match.beacons)
+            scanners.append(offset)
+            to_handle.append(match)
+
+    assert(len(unmatched_scanners) == 0)
+
+    return beacons, scanners
 
 def part1(s):
-    scanners = {scan.num:scan
-                for scan in parse_scans(s)}
-
-    known = scanners[0]
-    del scanners[0]
-
-    while len(scanners):
-        print(len(scanners), 'left')
-        match, offset = find_scanner_match(known, scanners)
-        known.coords |= match.coords
-
-    answer = len(known.coords)
+    beacons, scanners = solve(s)
+    answer = len(beacons)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    scanners = {scan.num:scan
-                for scan in parse_scans(s)}
-
-    known = scanners[0]
-    del scanners[0]
-
-    offsets = [(0,0,0)]
-
-    while len(scanners):
-        print(len(scanners), 'left')
-        match, offset = find_scanner_match(known, scanners)
-        known.coords |= match.coords
-        offsets.append(offset)
-
-    answer = 0
-
-    for o0 in offsets:
-        for o1 in offsets:
-            dist = sum(abs(a-b) for a,b in zip(o0, o1))
-            answer = max(answer, dist)
+    beacons, scanners = solve(s)
+    # Maximum Manhattan distance between scanners
+    answer = max(sum(map(abs, (s0 - s1)))
+                 for s0 in scanners
+                 for s1 in scanners)
 
     print(f'The answer to part two is {answer}')
 
