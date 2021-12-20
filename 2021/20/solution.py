@@ -1,62 +1,48 @@
 import lib.aoc
 import lib.grid
 
-def parse_input(s):
-    algo, image = s.split('\n\n')
-    image = lib.grid.FixedGrid.parse(image)
-    return algo, image.to_dict(), image.width, image.height
+def run(s, num_steps):
+    s = s.translate(str.maketrans('.#', '01'))
 
-def neighbors(x, y):
-    for ay in (-1, 0, 1):
-        for ax in (-1, 0, 1):
-            yield (x+ax, y+ay)
+    algo, im = s.split('\n\n')
+    im = lib.grid.FixedGrid.parse(im)
+    xrange = range(im.width)
+    yrange = range(im.height)
+    im = im.to_dict()
 
-def step(algo, image, xrange, yrange, default):
-    new_im = {}
-    xrange = range(xrange[0]-1, xrange[-1]+2)
-    yrange = range(yrange[0]-1, yrange[-1]+2)
-    for x in xrange:
-        for y in yrange:
-            section = [image.get(n, default)
-                       for n in neighbors(x,y)]
-            section = ''.join(section)
-            section = section.replace('.', '0')
-            section = section.replace('#', '1')
-            idx = int(section, 2)
-            new_im[x,y] = algo[idx]
+    # The infinite void starts out off
+    default = '0'
 
-    # Figure out new out of bounds default
-    section = (default*9).replace('.', '0').replace('#', '1')
-    default = algo[int(section, 2)]
+    for _ in range(num_steps):
+        new_im = {}
 
-    return new_im, xrange, yrange, default
+        xrange = range(xrange[0]-1, xrange[-1]+2)
+        yrange = range(yrange[0]-1, yrange[-1]+2)
+        for x in xrange:
+            for y in yrange:
+                idx = ''.join(im.get((x+dx, y+dy), default)
+                              for dy in (-1, 0, 1)
+                              for dx in (-1, 0, 1))
+                idx = int(idx, 2)
+                new_im[x,y] = algo[idx]
+
+        # Figure out new out of bounds default
+        default = algo[int(default * 9, 2)]
+
+        im = new_im
+
+    # Not exercised in the problem, but I want to handle it anyway
+    if default == '1':
+        return 'infinity'
+
+    return sum(map(int, im.values()))
 
 def part1(s):
-    algo, image, width, height = parse_input(s)
-    xrange = range(width)
-    yrange = range(height)
-
-    default = '.'
-
-    for _ in range(2):
-        image, xrange, yrange, default = step(algo, image, xrange, yrange, default)
-
-    answer = sum(1 for c in image.values() if c == '#')
-
+    answer = run(s, 2)
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    algo, image, width, height = parse_input(s)
-    xrange = range(width)
-    yrange = range(height)
-
-    default = '.'
-
-    for _ in range(50):
-        image, xrange, yrange, default = step(algo, image, xrange, yrange, default)
-
-    answer = sum(1 for c in image.values() if c == '#')
-
+    answer = run(s, 50)
     print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 20)
