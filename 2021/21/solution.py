@@ -1,45 +1,38 @@
+import collections
 import functools
+import itertools
 
 import lib.aoc
 
-def parse_input(s):
+def parse_gamestate(s):
     p1, p2 = s.splitlines()
-    p1 = int(p1.split()[4])
-    p2 = int(p2.split()[4])
 
-    return p1, p2
-
-def gen_die():
-    while True:
-        for n in range(1, 101):
-            yield n
-
-def step(player, score, die):
-    r1 = next(die)
-    r2 = next(die)
-    r3 = next(die)
-    player += r1 + r2 + r3
-    while player > 10:
-        player -= 10
-    score += player
-
-    return player, score
+    return int(p1.split()[4]), int(p2.split()[4])
 
 def part1(s):
-    p1, p2 = parse_input(s)
+    p1, p2 = parse_gamestate(s)
     s1, s2 = 0, 0
 
-    die = gen_die()
-
+    die = 1
     rolls = 0
 
-    while True:
-        p1, s1 = step(p1, s1, die)
+    def play(player):
+        nonlocal die
+        nonlocal rolls
         rolls += 3
+        player = (player + 3 * die + 2) % 10 + 1
+        # The board is only 10 long, a 10 sided die and 100 sided die
+        # are equivalent for the game
+        die = (die + 3) % 10
+        return player
+
+    while True:
+        p1 = play(p1)
+        s1 += p1
         if s1 >= 1000:
             break
-        p2, s2 = step(p2, s2, die)
-        rolls += 3
+        p2 = play(p2)
+        s2 += p2
         if s2 >= 1000:
             break
 
@@ -48,42 +41,40 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    p1, p2 = parse_input(s)
+    p1, p2 = parse_gamestate(s)
+
+    # Precompute the moves for *marginally* faster runtime
+    QUANTUM_MOVES = collections.Counter(map(sum,
+                                            itertools.product((1, 2, 3),
+                                                              repeat=3)))
 
     @functools.cache
-    def impl(p1, p2, s1=0, s2=0, active_player=1):
-        p1_wins = 0
-        p2_wins = 0
-        for r1 in (1, 2, 3):
-            for r2 in (1, 2, 3):
-                for r3 in (1, 2, 3):
-                    if active_player == 1:
-                        new_p1 = p1 + r1 + r2 + r3
-                        while new_p1 > 10:
-                            new_p1 -= 10
-                        new_s1 = s1 + new_p1
-                        if new_s1 >= 21:
-                            p1_wins += 1
-                        else:
-                            sub_p1_wins, sub_p2_wins = impl(new_p1, p2, new_s1, s2, 2)
-                            p1_wins += sub_p1_wins
-                            p2_wins += sub_p2_wins
-                    else:
-                        new_p2 = p2 + r1 + r2 + r3
-                        while new_p2 > 10:
-                            new_p2 -= 10
-                        new_s2 = s2 + new_p2
-                        if new_s2 >= 21:
-                            p2_wins += 1
-                        else:
-                            sub_p1_wins, sub_p2_wins = impl(p1, new_p2, s1, new_s2, 1)
-                            p1_wins += sub_p1_wins
-                            p2_wins += sub_p2_wins
-        return p1_wins, p2_wins
+    def count_wins(positions, scores, active_player=0):
+        positions = list(positions)
+        scores = list(scores)
+        wins = [0] * len(positions)
 
-    p1_wins, p2_wins = impl(p1, p2)
+        orig_pos = positions[active_player]
+        orig_score = scores[active_player]
 
-    answer = max(p1_wins, p2_wins)
+        for move, universes in QUANTUM_MOVES.items():
+            positions[active_player] = (orig_pos + move - 1) % 10 + 1
+            scores[active_player] = orig_score + positions[active_player]
+            if scores[active_player] >= 21:
+                wins[active_player] += universes
+            else:
+                sub_wins = count_wins(tuple(positions),
+                                      tuple(scores),
+                                      (active_player+1) % len(positions))
+                for idx, count in enumerate(sub_wins):
+                    wins[idx] += universes * count
+
+        return wins
+
+    positions = (p1, p2)
+    scores = (0, 0)
+
+    answer = max(count_wins(positions, scores))
 
     print(f'The answer to part two is {answer}')
 
