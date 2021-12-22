@@ -41,8 +41,43 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
+def count_uninterrupted(item, rest):
+    _, xr, yr, zr = item
+    total = len(xr) * len(yr) * len(zr)
+
+    conflicts = []
+    ref_val = 0
+
+    for item in rest:
+        state, xr2, yr2, zr2 = item
+
+        cxr = get_subrange(xr2, xr[0], xr[-1])
+        cyr = get_subrange(yr2, yr[0], yr[-1])
+        czr = get_subrange(zr2, zr[0], zr[-1])
+
+        if len(cxr) == 0 or len(cyr) == 0 or len(czr) == 0:
+            continue
+
+        conflicts.append((state, cxr, cyr, czr))
+        ref_val += len(cxr) * len(cyr) * len(czr)
+
+    for idx, item in enumerate(conflicts):
+        total -= count_uninterrupted(item, conflicts[idx+1:])
+
+    return total
+
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    answer = 0
+
+    for idx, item in enumerate(data):
+        state, xr, yr, zr = item
+        if state == 'off':
+            continue
+        answer += count_uninterrupted(item, data[idx+1:])
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 22)
 part1(INPUT)
