@@ -1,81 +1,66 @@
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
-        state, rest = line.split()
-        x, y, z = rest.split(',')
-        x0, x1 = x[2:].split('..')
-        xrange = range(int(x0), int(x1)+1)
-        y0, y1 = y[2:].split('..')
-        yrange = range(int(y0), int(y1)+1)
-        z0, z1 = z[2:].split('..')
-        zrange = range(int(z0), int(z1)+1)
+def clip_range(base, clip):
+    if base.stop <= clip.start or base.start >= clip.stop:
+        return range(0)
+    return range(max(base.start, clip.start), min(base.stop, clip.stop))
 
-        yield state, xrange, yrange, zrange
-
-def get_subrange(crange, low, high):
-    c0 = crange[0]
-    c1 = crange[-1]
-    if c1 < low:
-        return []
-    elif c0 > high:
-        return []
-    c0 = max(c0, low)
-    c1 = max(c1, low)
-    c0 = min(c0, high)
-    c1 = min(c1, high)
-    return range(c0, c1+1)
-
-def part1(s):
-    data = list(parse_input(s))
-
-    cubes = {}
-    for idx, item in enumerate(data):
-        state, xr, yr, zr = item
-        for x in get_subrange(xr, -50, 50):
-            for y in get_subrange(yr, -50, 50):
-                for z in get_subrange(zr, -50, 50):
-                    cubes[x,y,z] = state
-
-    answer = sum(1 for s in cubes.values() if s == 'on')
-
-    print(f'The answer to part one is {answer}')
-
-def count_uninterrupted(item, rest):
-    _, xr, yr, zr = item
-    total = len(xr) * len(yr) * len(zr)
+def count_uninterrupted(step, rest):
+    _, xr, yr, zr = step
 
     conflicts = []
-    ref_val = 0
 
-    for item in rest:
-        state, xr2, yr2, zr2 = item
+    for step in rest:
+        state, xr2, yr2, zr2 = step
 
-        cxr = get_subrange(xr2, xr[0], xr[-1])
-        cyr = get_subrange(yr2, yr[0], yr[-1])
-        czr = get_subrange(zr2, zr[0], zr[-1])
+        xr2 = clip_range(xr2, xr)
+        yr2 = clip_range(yr2, yr)
+        zr2 = clip_range(zr2, zr)
 
-        if len(cxr) == 0 or len(cyr) == 0 or len(czr) == 0:
+        if len(xr2) == 0 or len(yr2) == 0 or len(zr2) == 0:
             continue
 
-        conflicts.append((state, cxr, cyr, czr))
-        ref_val += len(cxr) * len(cyr) * len(czr)
+        conflicts.append((state, xr2, yr2, zr2))
 
-    for idx, item in enumerate(conflicts):
-        total -= count_uninterrupted(item, conflicts[idx+1:])
+    total = len(xr) * len(yr) * len(zr)
+    for idx, step in enumerate(conflicts):
+        total -= count_uninterrupted(step, conflicts[idx+1:])
 
     return total
 
-def part2(s):
-    data = list(parse_input(s))
+def parse_range(s, window):
+    c0, c1 = s[2:].split('..')
+    r = range(int(c0), int(c1)+1)
+    if window is not None:
+        r = clip_range(r, window)
+    return r
 
-    answer = 0
+def solve(s, xwindow=None, ywindow=None, zwindow=None):
+    steps = []
+    for line in s.splitlines():
+        state, rest = line.split()
+        x, y, z = rest.split(',')
+        steps.append((state,
+                      parse_range(x, xwindow),
+                      parse_range(y, ywindow),
+                      parse_range(z, zwindow)))
 
-    for idx, item in enumerate(data):
-        state, xr, yr, zr = item
-        if state == 'off':
+    total = 0
+
+    for idx, step in enumerate(steps):
+        if step[0] == 'off':
             continue
-        answer += count_uninterrupted(item, data[idx+1:])
+        total += count_uninterrupted(step, steps[idx+1:])
+
+    return total
+
+def part1(s):
+    answer = solve(s, range(-50, 51), range(-50, 51), range(-50, 51))
+
+    print(f'The answer to part one is {answer}')
+
+def part2(s):
+    answer = solve(s)
 
     print(f'The answer to part two is {answer}')
 
