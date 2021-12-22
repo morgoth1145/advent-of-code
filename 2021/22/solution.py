@@ -1,61 +1,49 @@
 import lib.aoc
 
-def clip_range(base, clip):
-    if base.stop <= clip.start or base.start >= clip.stop:
-        return range(0)
-    return range(max(base.start, clip.start), min(base.stop, clip.stop))
+def cuboid_intersect(base, other):
+    return tuple(range(max(b.start, o.start),
+                       min(b.stop, o.stop))
+                 for b, o in zip(base, other))
 
-def count_uninterrupted(step, rest):
-    _, xr, yr, zr = step
+def cuboid_volume(cuboid):
+    x, y, z = tuple(map(len, cuboid))
+    return x * y * z
 
+def unique_cuboid_volume(cuboid, rest):
     conflicts = []
 
-    for step in rest:
-        state, xr2, yr2, zr2 = step
-
-        xr2 = clip_range(xr2, xr)
-        yr2 = clip_range(yr2, yr)
-        zr2 = clip_range(zr2, zr)
-
-        if len(xr2) == 0 or len(yr2) == 0 or len(zr2) == 0:
+    for act, other in rest:
+        intersection = cuboid_intersect(cuboid, other)
+        if cuboid_volume(intersection) == 0:
             continue
 
-        conflicts.append((state, xr2, yr2, zr2))
+        conflicts.append((act, intersection))
 
-    total = len(xr) * len(yr) * len(zr)
-    for idx, step in enumerate(conflicts):
-        total -= count_uninterrupted(step, conflicts[idx+1:])
+    volume = cuboid_volume(cuboid)
+    volume -= sum(unique_cuboid_volume(conflict, conflicts[idx+1:])
+                  for idx, (_, conflict) in enumerate(conflicts))
 
-    return total
+    return volume
 
-def parse_range(s, window):
+def parse_range(s):
     c0, c1 = s[2:].split('..')
-    r = range(int(c0), int(c1)+1)
-    if window is not None:
-        r = clip_range(r, window)
-    return r
+    return range(int(c0), int(c1)+1)
 
-def solve(s, xwindow=None, ywindow=None, zwindow=None):
+def solve(s, area_of_interest=None):
     steps = []
     for line in s.splitlines():
-        state, rest = line.split()
-        x, y, z = rest.split(',')
-        steps.append((state,
-                      parse_range(x, xwindow),
-                      parse_range(y, ywindow),
-                      parse_range(z, zwindow)))
+        act, cuboid = line.split()
+        cuboid = tuple(map(parse_range, cuboid.split(',')))
+        if area_of_interest is not None:
+            cuboid = cuboid_intersect(cuboid, area_of_interest)
+        steps.append((act, cuboid))
 
-    total = 0
-
-    for idx, step in enumerate(steps):
-        if step[0] == 'off':
-            continue
-        total += count_uninterrupted(step, steps[idx+1:])
-
-    return total
+    return sum(unique_cuboid_volume(cuboid, steps[idx+1:])
+               for idx, (act, cuboid) in enumerate(steps)
+               if act == 'on')
 
 def part1(s):
-    answer = solve(s, range(-50, 51), range(-50, 51), range(-50, 51))
+    answer = solve(s, (range(-50, 51), range(-50, 51), range(-50, 51)))
 
     print(f'The answer to part one is {answer}')
 
