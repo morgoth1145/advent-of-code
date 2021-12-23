@@ -156,7 +156,121 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    lines = s.splitlines()
+    target_len = max(map(len, lines))
+    lines = [l + ' ' * (target_len - len(l))
+             for l in lines]
+    lines = lines[:3] + [
+        '  #D#C#B#A#  ',
+        '  #D#B#A#C#  '
+        ] + lines[3:]
+    s = '\n'.join(lines)
+    grid = lib.grid.FixedGrid.parse(s)
+
+    OUTSIDE_ROOM = [(3,1), (5,1), (7,1), (9,1)]
+
+    ROOMS = [(3,2), (5,2), (7,2), (9,2),
+             (3,3), (5,3), (7,3), (9,3),
+             (3,4), (5,4), (7,4), (9,4),
+             (3,5), (5,5), (7,5), (9,5)]
+
+    TARGET = 'ABCDABCDABCDABCD'
+    CURRENT = ''.join(grid[c] for c in ROOMS)
+
+    START = [(CURRENT[i], ROOMS[i])
+             for i in range(len(ROOMS))]
+    START = tuple(sorted(START))
+    END = [(TARGET[i], ROOMS[i])
+           for i in range(len(ROOMS))]
+    END = tuple(sorted(END))
+
+    TYPES = 'ABCD'
+    MOVE_COSTS = (1, 10, 100, 1000)
+
+    WALLS = set()
+    for c, val in grid.items():
+        if val == '#':
+            WALLS.add(c)
+
+    TARGET_COLUMN = {
+        'A':3,
+        'B':5,
+        'C':7,
+        'D':9,
+    }
+
+    ROOM_ROWS = (3, 4, 5, 6)
+
+    def neighbors(key):
+        lookup = {pos:pod for pod, pos in key}
+
+        def is_free(x, y):
+            return (x, y) not in lookup and (x, y) not in WALLS
+
+        options = []
+
+        for idx, (pod, (x, y)) in enumerate(key):
+            moves = 0
+            move_cost = MOVE_COSTS[TYPES.index(pod)]
+
+            if y == 1:
+                # It's in the hallway, it will only move into its room
+                target_col = TARGET_COLUMN.get(pod)
+                if any(lookup.get((target_col, ry), pod) != pod
+                       for ry in ROOM_ROWS):
+                    # It refuses to move
+                    continue
+                dx = (target_col-x) // abs(target_col-x)
+                failed = False
+                while x != target_col:
+                    moves += 1
+                    x += dx
+                    if (x, y) in lookup:
+                        # Can't pass
+                        failed = True
+                        break
+                if failed:
+                    continue
+                while is_free(x, y+1):
+                    y += 1
+                    moves += 1
+
+                new_state = tuple(sorted(key[:idx] + ((pod, (x, y)),) + key[idx+1:]))
+                options.append((new_state, move_cost * moves))
+                continue
+
+            # It must be in a room right now
+            failed = False
+            while y > 1:
+                moves += 1
+                y -= 1
+                if (x, y) in lookup:
+                    # Can't pass
+                    failed = True
+                    break
+            if failed:
+                continue
+
+            for dx in (-1, 1):
+                new_x = x
+                new_moves = moves
+                while is_free(new_x, y):
+                    new_x += dx
+                    new_moves += 1
+                    if not is_free(new_x, y):
+                        break
+                    if new_x not in (3, 5, 7, 9):
+                        # Not in front of a room right now!
+                        new_state = tuple(sorted(key[:idx] + ((pod, (new_x, y)),) + key[idx+1:]))
+                        options.append((new_state, move_cost * new_moves))
+
+        return options
+
+    graph = lib.graph.make_lazy_graph(neighbors)
+
+    answer = lib.graph.dijkstra_length(graph, START, END)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2021, 23)
 part1(INPUT)
