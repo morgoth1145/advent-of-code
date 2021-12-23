@@ -1,242 +1,85 @@
 import lib.aoc
 import lib.graph
-import lib.grid
 
-def part1(s):
-    lines = s.splitlines()
-    target_len = max(map(len, lines))
-    lines = [l + ' ' * (target_len - len(l))
-             for l in lines]
-    s = '\n'.join(lines)
-    grid = lib.grid.FixedGrid.parse(s)
-
-    OUTSIDE_ROOM = [(3,1), (5,1), (7,1), (9,1)]
-
-    ROOMS = [(3,2), (5,2), (7,2), (9,2),
-             (3,3), (5,3), (7,3), (9,3)]
-    ROOM_TO_BASE = {
-        (3,2): (3,3),
-        (5,2): (5,3),
-        (7,2): (7,3),
-        (9,2): (9,3),
-    }
-
-    TARGET = 'ABCDABCD'
-    CURRENT = ''.join(grid[c] for c in ROOMS)
-
-    START = [(CURRENT[i], ROOMS[i])
-             for i in range(len(ROOMS))]
-    START_ROOMS = tuple(sorted(START))
-    START = (START_ROOMS, 0)
-    END = [(TARGET[i], ROOMS[i])
-           for i in range(len(ROOMS))]
-    END_ROOMS = tuple(sorted(END))
-    END = (END_ROOMS, 0)
-
-    TYPES = 'ABCD'
-    MOVE_COSTS = (1, 10, 100, 1000)
-
-    def was_progress(old_state, pod, pos, new_state):
-        if (pod, pos) not in END_ROOMS:
-            return False
-        base = ROOM_TO_BASE.get(pos)
-        if base is None:
-            # Definite progress!
-            return True
-        if (pod, base) not in old_state:
-            # It's not progress if the lower room isn't filled!
-            return False
-        if (pod, base) not in new_state:
-            # This is regressing!
-            return False
-
-##        print(old_state)
-##        print(pod, pos)
-##        print(new_state)
-##        assert(False)
-        
-        return True
-
-    def neighbors(key):
-        key, moves_since_progress = key
-        if moves_since_progress >= 5:
-            # We've stalled!
-            return []
-
-        occupied = set(pos for _,pos in key)
-
-        options = []
-
-        for idx, (pod, c) in enumerate(key):
-            move_cost = MOVE_COSTS[TYPES.index(pod)]
-            for n in grid.neighbors(*c):
-                if n in occupied:
-                    continue
-                if grid[n] == '#':
-                    continue
-
-                if n in OUTSIDE_ROOM:
-                    # We have to move again!
-                    for n2 in grid.neighbors(*n):
-                        if n2 in occupied:
-                            continue
-                        if grid[n2] == '#':
-                            continue
-
-                        new_state = tuple(sorted(key[:idx] + ((pod, n2),) + key[idx+1:]))
-
-                        new_moves_since_progress = moves_since_progress + 1
-                        if was_progress(key, pod, n2, new_state):
-                            new_moves_since_progress = 0
-                        new_moves_since_progress = 0
-
-                        options.append(((new_state, new_moves_since_progress), 2*move_cost))
-                else:
-                    new_state = tuple(sorted(key[:idx] + ((pod, n),) + key[idx+1:]))
-
-                    new_moves_since_progress = moves_since_progress + 1
-                    if was_progress(key, pod, n, new_state):
-                        new_moves_since_progress = 0
-                    new_moves_since_progress = 0
-
-                    options.append(((new_state, new_moves_since_progress), move_cost))
-
-##        print('\n'.join(map(str, key)))
-##        print()
-##
-##        for (o, new_moves), cost in options:
-##            print(cost, new_moves)
-##            print('\n'.join(map(str, o)))
-##            print()
-##            assert(new_moves != 0)
-##
-##        print('-'*75)
-
-##        assert(False)
-
-##        print('\n'.join(map(str, options)))
-
-        return options
-
-    graph = lib.graph.make_lazy_graph(neighbors)
-
-    TARGET_COLUMN = {
-        'A':3,
-        'B':5,
-        'C':7,
-        'D':9,
-    }
-
-    def heuristic(key):
-        key, _ = key
-
-        pods_in_base = set()
-
-        est_cost = 0
-        for pod, (x, y) in key:
-            cost_per_tile = MOVE_COSTS[TYPES.index(pod)]
-            target_col = TARGET_COLUMN[pod]
-            if x == target_col:
-                if y == 3:
-                    pods_in_base.add(pod)
-                    continue
-            tiles_to_move = abs(x - target_col)
-            if x != target_col:
-                tiles_to_move += y
-            est_cost += cost_per_tile * tiles_to_move
-        for pod in 'ABCD':
-            # And move them to the base if necessary
-            cost_per_tile = MOVE_COSTS[TYPES.index(pod)]
-            if pod not in pods_in_base:
-                est_cost += cost_per_tile
-        return est_cost
-
-    answer = lib.graph.dijkstra_length(graph, START, END, heuristic)
-
-    print(f'The answer to part one is {answer}')
-
-def part2(s):
-    lines = s.splitlines()
-    target_len = max(map(len, lines))
-    lines = [l + ' ' * (target_len - len(l))
-             for l in lines]
-    lines = lines[:3] + [
-        '  #D#C#B#A#  ',
-        '  #D#B#A#C#  '
-        ] + lines[3:]
-    s = '\n'.join(lines)
-    grid = lib.grid.FixedGrid.parse(s)
-
-    OUTSIDE_ROOM = [(3,1), (5,1), (7,1), (9,1)]
-
-    ROOMS = [(3,2), (5,2), (7,2), (9,2),
-             (3,3), (5,3), (7,3), (9,3),
-             (3,4), (5,4), (7,4), (9,4),
-             (3,5), (5,5), (7,5), (9,5)]
-
-    TARGET = 'ABCDABCDABCDABCD'
-    CURRENT = ''.join(grid[c] for c in ROOMS)
-
-    START = [(CURRENT[i], ROOMS[i])
-             for i in range(len(ROOMS))]
-    START = tuple(sorted(START))
-    END = [(TARGET[i], ROOMS[i])
-           for i in range(len(ROOMS))]
-    END = tuple(sorted(END))
-
-    TYPES = 'ABCD'
-    MOVE_COSTS = (1, 10, 100, 1000)
-
+def solve(s):
+    AMIPHIPODS = set()
+    ROOM_X = set()
     WALLS = set()
-    for c, val in grid.items():
-        if val == '#':
-            WALLS.add(c)
 
-    TARGET_COLUMN = {
-        'A':3,
-        'B':5,
-        'C':7,
-        'D':9,
-    }
+    start = []
+    grid = {}
 
-    ROOM_ROWS = (3, 4, 5, 6)
+    for y, row in enumerate(s.splitlines()):
+        for x, c in enumerate(row):
+            if c == '#':
+                WALLS.add((x, y))
+            elif c not in ' .':
+                AMIPHIPODS.add(c)
+                ROOM_X.add(x)
+                start.append((c, (x, y)))
 
-    def neighbors(key):
-        lookup = {pos:pod for pod, pos in key}
+    AMIPHIPODS = ''.join(sorted(AMIPHIPODS))
+    MOVE_COSTS = tuple(10 ** n for n in range(len(AMIPHIPODS)))
+    ROOM_X = tuple(sorted(ROOM_X))
+    start = tuple(sorted(start))
+
+    ROOM_HEIGHT = len(start) // 4
+    assert(len(start) == 4 * ROOM_HEIGHT)
+
+    ROOM_ROWS = tuple(range(2, 2+ROOM_HEIGHT))
+
+    end = []
+    for x, c in zip(ROOM_X, AMIPHIPODS):
+        for y in ROOM_ROWS:
+            end.append((c, (x, y)))
+    end = tuple(end)
+
+    def neighbors(state):
+        lookup = {pos:pod for pod, pos in state}
+
+        def new_state(idx, pod, pos):
+            new_state = state[:idx] + state[idx+1:]
+            new_state += ((pod, pos),)
+            return tuple(sorted(new_state))
 
         def is_free(x, y):
             return (x, y) not in lookup and (x, y) not in WALLS
 
         options = []
 
-        for idx, (pod, (x, y)) in enumerate(key):
+        for idx, (pod, (x, y)) in enumerate(state):
+            pod_idx = AMIPHIPODS.index(pod)
+
             moves = 0
-            move_cost = MOVE_COSTS[TYPES.index(pod)]
+            move_cost = MOVE_COSTS[pod_idx]
 
             if y == 1:
                 # It's in the hallway, it will only move into its room
-                target_col = TARGET_COLUMN.get(pod)
-                if any(lookup.get((target_col, ry), pod) != pod
+                target_x = ROOM_X[pod_idx]
+                if any(lookup.get((target_x, ry), pod) != pod
                        for ry in ROOM_ROWS):
-                    # It refuses to move
+                    # It refuses to move when others are in the room!
                     continue
-                dx = (target_col-x) // abs(target_col-x)
+
+                dx = -1 if target_x < x else 1
                 failed = False
-                while x != target_col:
+                while x != target_x:
                     moves += 1
                     x += dx
                     if (x, y) in lookup:
-                        # Can't pass
+                        # Can't pass whatever is here
                         failed = True
                         break
+
                 if failed:
                     continue
+
                 while is_free(x, y+1):
                     y += 1
                     moves += 1
 
-                new_state = tuple(sorted(key[:idx] + ((pod, (x, y)),) + key[idx+1:]))
-                options.append((new_state, move_cost * moves))
+                options.append((new_state(idx, pod, (x, y)),
+                                move_cost * moves))
                 continue
 
             # It must be in a room right now
@@ -245,12 +88,14 @@ def part2(s):
                 moves += 1
                 y -= 1
                 if (x, y) in lookup:
-                    # Can't pass
+                    # Can't pass whatever is here
                     failed = True
                     break
+
             if failed:
                 continue
 
+            # Try moving both ways
             for dx in (-1, 1):
                 new_x = x
                 new_moves = moves
@@ -259,16 +104,29 @@ def part2(s):
                     new_moves += 1
                     if not is_free(new_x, y):
                         break
-                    if new_x not in (3, 5, 7, 9):
-                        # Not in front of a room right now!
-                        new_state = tuple(sorted(key[:idx] + ((pod, (new_x, y)),) + key[idx+1:]))
-                        options.append((new_state, move_cost * new_moves))
+                    if new_x not in ROOM_X:
+                        options.append((new_state(idx, pod, (new_x, y)),
+                                        move_cost * new_moves))
 
         return options
 
-    graph = lib.graph.make_lazy_graph(neighbors)
+    return lib.graph.dijkstra_length(lib.graph.make_lazy_graph(neighbors),
+                                     start, end)
 
-    answer = lib.graph.dijkstra_length(graph, START, END)
+def part1(s):
+    answer = solve(s)
+
+    print(f'The answer to part one is {answer}')
+
+def part2(s):
+    lines = s.splitlines()
+    lines = lines[:3] + [
+        '  #D#C#B#A#',
+        '  #D#B#A#C#'
+        ] + lines[3:]
+    s = '\n'.join(lines)
+
+    answer = solve(s)
 
     print(f'The answer to part two is {answer}')
 
