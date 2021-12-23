@@ -82,6 +82,12 @@ def dijkstra_length(graph, start, end, heuristic=None):
     '''
     if heuristic is None:
         heuristic = lambda n: 0
+
+    # Verify that end is a valid node. I ran into dumb bugs when refactoring
+    # when passing in a list that should have been a tuple!
+    hash(end)
+    assert(heuristic(end) == 0)
+
     seen = set()
     queue = [(heuristic(start), 0, start)]
     while len(queue) > 0:
@@ -110,7 +116,7 @@ class _LazyGraph(collections.defaultdict):
         self._neighbor_fn = neighbor_fn
 
     def __missing__(self, key):
-        neighbors = self._neighbor_fn(key)
+        neighbors = list(self._neighbor_fn(key))
         self[key] = neighbors
         return neighbors
 

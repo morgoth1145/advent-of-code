@@ -26,11 +26,11 @@ def solve(s):
     ROOM_HEIGHT = len(start) // 4
     assert(len(start) == 4 * ROOM_HEIGHT)
 
-    ROOM_ROWS = tuple(range(2, 2+ROOM_HEIGHT))
+    ROOM_Y = tuple(range(2, 2+ROOM_HEIGHT))
 
     end = []
     for x, c in zip(ROOM_X, AMIPHIPODS):
-        for y in ROOM_ROWS:
+        for y in ROOM_Y:
             end.append((c, (x, y)))
     end = tuple(end)
 
@@ -45,19 +45,17 @@ def solve(s):
         def is_free(x, y):
             return (x, y) not in lookup and (x, y) not in WALLS
 
-        options = []
-
         for idx, (pod, (x, y)) in enumerate(state):
             pod_idx = AMIPHIPODS.index(pod)
 
             moves = 0
             move_cost = MOVE_COSTS[pod_idx]
+            target_x = ROOM_X[pod_idx]
 
             if y == 1:
                 # It's in the hallway, it will only move into its room
-                target_x = ROOM_X[pod_idx]
                 if any(lookup.get((target_x, ry), pod) != pod
-                       for ry in ROOM_ROWS):
+                       for ry in ROOM_Y):
                     # It refuses to move when others are in the room!
                     continue
 
@@ -78,11 +76,19 @@ def solve(s):
                     y += 1
                     moves += 1
 
-                options.append((new_state(idx, pod, (x, y)),
-                                move_cost * moves))
+                yield new_state(idx, pod, (x, y)), move_cost * moves
                 continue
 
             # It must be in a room right now
+            if x == target_x:
+                # It's in it's target room!
+                if all(lookup.get((x, oy), pod) == pod
+                       for oy in ROOM_Y
+                       if oy > y):
+                    # There's no reason to leave, no amiphipod further in
+                    # the room needs to leave!
+                    continue
+
             failed = False
             while y > 1:
                 moves += 1
@@ -105,10 +111,8 @@ def solve(s):
                     if not is_free(new_x, y):
                         break
                     if new_x not in ROOM_X:
-                        options.append((new_state(idx, pod, (new_x, y)),
-                                        move_cost * new_moves))
-
-        return options
+                        yield (new_state(idx, pod, (new_x, y)),
+                               move_cost * new_moves)
 
     return lib.graph.dijkstra_length(lib.graph.make_lazy_graph(neighbors),
                                      start, end)
