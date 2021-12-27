@@ -14,7 +14,18 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    floor = 0
+
+    for idx, c in enumerate(s):
+        if c == '(':
+            floor += 1
+        else:
+            floor -= 1
+        if floor < 0:
+            answer = idx+1
+            break
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 1)
 part1(INPUT)
