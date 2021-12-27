@@ -1,15 +1,7 @@
 import lib.aoc
 
 def part1(s):
-    floor = 0
-
-    for c in s:
-        if c == '(':
-            floor += 1
-        else:
-            floor -= 1
-
-    answer = floor
+    answer = s.count('(') - s.count(')')
 
     print(f'The answer to part one is {answer}')
 
