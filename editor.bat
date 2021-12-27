@@ -1,1 +1,1 @@
-"%HOMEDRIVE%%HOMEPATH%\Envs\advent-of-code\Scripts\python" -m idlelib
+virtualenv_python.bat -m idlelib %*
