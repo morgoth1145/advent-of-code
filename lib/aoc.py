@@ -233,6 +233,7 @@ def submit_answer(year, day, part, answer):
             with open(trial_path, 'w+') as f:
                 f.write(json.dumps(trial))
 
+            good_answer_line = f'Time: {delta}'
             print(f'It took {delta} to finish {year} Day {day} Part {part}')
 
         if day == 25 and part == 1:
