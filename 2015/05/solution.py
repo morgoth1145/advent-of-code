@@ -1,49 +1,40 @@
-import collections
-
 import lib.aoc
 
-def is_nice(s):
-    for bad in ('ab', 'cd', 'pq', 'xy'):
-        if bad in s:
-            return False
-    repeat = False
-    for l in 'abcdefghijklmnopqrstuvwxyz':
-        if 2*l in s:
-            repeat = True
-            break
-    if not repeat:
-        return False
-    vowels = collections.Counter(s)
-    if vowels['a'] + vowels['e'] + vowels['i'] + vowels['o'] + vowels['u'] >= 3:
-        return True
-    return False
+def count_matching(s, *rules):
+    answer = 0
+    for line in s.splitlines():
+        if all(r(line) for r in rules):
+            answer += 1
+    return answer
+
+def rule1(s):
+    return sum(1
+               for c in s
+               if c in 'aeiou') >= 3
+
+def rule2(s):
+    return any(s[i-1] == s[i]
+               for i in range(1, len(s)))
+
+def rule3(s):
+    return not any(bad in s
+                   for bad in ('ab', 'cd', 'pq', 'xy'))
 
 def part1(s):
-    answer = sum(1 for line in s.splitlines()
-                 if is_nice(line))
+    answer = count_matching(s, rule1, rule2, rule3)
 
     print(f'The answer to part one is {answer}')
 
-def is_nice2(s):
-    check1 = False
-    last1, last2 = None, None
-    for c in s:
-        if last2 == c:
-            check1 = True
-            break
-        last2, last1 = last1, c
-    if not check1:
-        return False
+def rule4(s):
+    return any(s[idx-1:idx+1] in s[idx+1:]
+               for idx in range(1, len(s)))
 
-    for idx in range(1, len(s)):
-        if s[idx-1:idx+1] in s[idx+1:]:
-            return True
-
-    return False
+def rule5(s):
+    return any(s[i-2] == s[i]
+               for i in range(2, len(s)))
 
 def part2(s):
-    answer = sum(1 for line in s.splitlines()
-                 if is_nice2(line))
+    answer = count_matching(s, rule4, rule5)
 
     print(f'The answer to part two is {answer}')
 
