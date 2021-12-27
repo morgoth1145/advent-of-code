@@ -10,7 +10,11 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = 0
+    while hashlib.md5((s + str(answer)).encode()).hexdigest()[:6] != '0' * 6:
+        answer += 1
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 4)
 part1(INPUT)
