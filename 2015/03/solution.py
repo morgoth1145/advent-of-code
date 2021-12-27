@@ -1,48 +1,34 @@
 import lib.aoc
 
-def part1(s):
-    seen = {(0, 0)}
+MOVES = {
+    '>': 1,
+    '<': -1,
+    '^': 1j,
+    'v': -1j
+}
 
-    x, y = 0, 0
+def part1(s):
+    seen = {0}
+
+    p = 0
 
     for c in s:
-        if c == '>':
-            x += 1
-        elif c == '<':
-            x -= 1
-        elif c == '^':
-            y -= 1
-        elif c == 'v':
-            y += 1
-        else:
-            assert(False)
-        seen.add((x, y))
+        p += MOVES[c]
+        seen.add(p)
 
     answer = len(seen)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    seen = {(0, 0)}
+    seen = {0}
 
-    santas = [(0, 0), (0, 0)]
-    current = 0
+    a, b = 0, 0
 
     for c in s:
-        x,y = santas[current]
-        if c == '>':
-            x += 1
-        elif c == '<':
-            x -= 1
-        elif c == '^':
-            y -= 1
-        elif c == 'v':
-            y += 1
-        else:
-            assert(False)
-        seen.add((x, y))
-        santas[current] = (x,y)
-        current = (current+1)%2
+        a += MOVES[c]
+        seen.add(a)
+        a, b = b, a
 
     answer = len(seen)
 
