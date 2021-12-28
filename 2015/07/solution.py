@@ -52,7 +52,12 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    wires = parse_input(s)
+    wires['b'] = [evaluate_wires(wires, 'a')]
+
+    answer = evaluate_wires(wires, 'a')
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 7)
 part1(INPUT)
