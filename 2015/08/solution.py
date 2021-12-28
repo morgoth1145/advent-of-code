@@ -35,8 +35,21 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
+def encode(line):
+    out = []
+
+    for c in line:
+        if c in '"\\':
+            out.append('\\')
+        out.append(c)
+
+    return '"' + ''.join(out) + '"'
+
 def part2(s):
-    pass
+    lines = s.splitlines()
+    answer = sum(map(len, map(encode, lines))) - sum(map(len, lines))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 8)
 part1(INPUT)
