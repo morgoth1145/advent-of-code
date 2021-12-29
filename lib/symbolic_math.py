@@ -51,9 +51,26 @@ class Symbol:
         self.name = name
         self.domain = domain
 
+    def _to_expression(self):
+        return Expression([(1, [(self, 1)])])
+
     def __neg__(self):
-        # Needed for Expression() - Symbol()!
-        return Expression([(-1, [(self, 1)])])
+        return -self._to_expression()
+
+    def __add__(self, other):
+        return self._to_expression() + other
+
+    def __sub__(self, other):
+        return self._to_expression() - other
+
+    def __mul__(self, other):
+        return self._to_expression() * other
+
+    def __floordiv__(self, other):
+        return self._to_expression() // other
+
+    def __mod__(self, other):
+        return self._to_expression() % other
 
     def __str__(self):
         return self.name
@@ -139,6 +156,9 @@ class Expression:
     def __mul__(self, other):
         if isinstance(other, int):
             return Expression([(factor * other, symbols)
+                               for factor, symbols in self._terms])
+        if isinstance(other, Symbol):
+            return Expression([(factor, symbols + ((other, 1),))
                                for factor, symbols in self._terms])
         if isinstance(other, Expression):
             other_domain = other.get_domain()
