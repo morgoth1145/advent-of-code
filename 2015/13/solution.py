@@ -48,7 +48,16 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    graph = parse_input(s)
+
+    assert('me' not in graph.keys())
+    for person in list(graph.keys()):
+        graph['me'].append((person, 0))
+        graph[person].append(('me', 0))
+
+    answer = best_path(graph)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 13)
 part1(INPUT)
