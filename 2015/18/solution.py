@@ -31,7 +31,24 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+    grid[0,0] = '#'
+    grid[0,grid.height-1] = '#'
+    grid[grid.width-1,grid.height-1] = '#'
+    grid[grid.width-1,0] = '#'
+
+    for _ in range(100):
+        grid = step(grid)
+        grid[0,0] = '#'
+        grid[0,grid.height-1] = '#'
+        grid[grid.width-1,grid.height-1] = '#'
+        grid[grid.width-1,0] = '#'
+
+    answer = sum(1
+                 for _, val in grid.items()
+                 if val == '#')
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 18)
 part1(INPUT)
