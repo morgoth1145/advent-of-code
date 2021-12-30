@@ -43,7 +43,35 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    for sue, bits in parse_input(s):
+        bits = dict(bits)
+
+        matches = True
+        for key, expected in [('children', 3),
+                              ('samoyeds', 2),
+                              ('akitas', 0),
+                              ('vizslas', 0),
+                              ('cars', 2),
+                              ('perfumes', 1)]:
+            if bits.get(key, expected) != expected:
+                matches = False
+                break
+        for key, expected in [('cats', 7),
+                              ('trees', 3)]:
+            if bits.get(key, expected+1) <= expected:
+                matches = False
+                break
+        for key, expected in [('pomeranians', 3),
+                              ('goldfish', 5)]:
+            if bits.get(key, expected-1) >= expected:
+                matches = False
+                break
+
+        if matches:
+            answer = sue
+            break
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 16)
 part1(INPUT)
