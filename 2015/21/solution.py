@@ -75,7 +75,14 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    boss_stats = parse_input(s)
+
+    for cost, damage, armor in sorted(item_combos(), reverse=True):
+        if not can_win(boss_stats, (100, damage, armor)):
+            answer = cost
+            break
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 21)
 part1(INPUT)
