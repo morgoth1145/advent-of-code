@@ -1,3 +1,5 @@
+import collections
+
 import lib.aoc
 import lib.symbolic_math
 
@@ -59,20 +61,36 @@ def run_alu(s, inputs, target_var, target_val):
     yield from impl(s.splitlines(), state, inputs)
 
 def find_solution(constraints, inputs, digit_search_order):
-    if 0 == len(inputs):
-        return ''
+    symbol_to_constraint_indices = collections.defaultdict(set)
 
-    s, rest = inputs[0], inputs[1:]
+    for idx, c in enumerate(constraints):
+        for s in c.symbols:
+            symbol_to_constraint_indices[s].add(idx)
 
-    for d in digit_search_order:
-        new_constraints = [c.substitute(s, d)
-                           for c in constraints]
-        new_constraints = [c for c in new_constraints
-                           if not c.forced]
-        if all(c.satisfiable for c in new_constraints):
-            solution = find_solution(new_constraints, rest, digit_search_order)
+    def impl(constraints, inputs):
+        if 0 == len(inputs):
+            return ''
+
+        s, rest = inputs[0], inputs[1:]
+
+        new_constraints = list(constraints)
+        affected_constraints = symbol_to_constraint_indices[s]
+
+        for d in digit_search_order:
+            failed = False
+            for idx in affected_constraints:
+                nc = constraints[idx].substitute(s, d)
+                if not nc.satisfiable:
+                    failed = True
+                    break
+                new_constraints[idx] = nc
+            if failed:
+                continue
+
+            solution = impl(new_constraints, rest)
             if solution is not None:
                 return str(d) + solution
+    return impl(constraints, inputs)
 
 def solve(s, digit_search_order, optimize_fn):
     input_domain = lib.symbolic_math.IntegerDomain(1, 9)

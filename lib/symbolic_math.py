@@ -113,6 +113,16 @@ class Expression:
                        for symbols, factor in term_factors.items()
                        if factor != 0]
 
+    @property
+    def symbols(self):
+        seen = set()
+
+        for _, symbols in self._terms:
+            for s, _ in symbols:
+                seen.add(s)
+
+        return sorted(seen)
+
     def substitute(self, symbol_to_replace, value):
         new_terms = []
 
@@ -238,6 +248,10 @@ class Equality:
         self.expr_domain = self.expr.get_domain()
 
     @property
+    def symbols(self):
+        return self.expr.symbols
+
+    @property
     def satisfiable(self):
         return 0 in self.expr_domain
 
@@ -255,6 +269,10 @@ class Inequality:
     def __init__(self, left, right):
         self.expr = left - right
         self.expr_domain = self.expr.get_domain()
+
+    @property
+    def symbols(self):
+        return self.expr.symbols
 
     @property
     def satisfiable(self):
