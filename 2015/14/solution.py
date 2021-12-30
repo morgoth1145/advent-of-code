@@ -22,8 +22,34 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
+def run_scored_race(all_deer, total_time):
+    dists = [0] * len(all_deer)
+    scores = [0] * len(all_deer)
+    cycle_time = [0] * len(all_deer)
+
+    for _ in range(total_time):
+        best = None
+        best_i = []
+        for i, (name, speed, duration, rest) in enumerate(all_deer):
+            if cycle_time[i] < duration:
+                dists[i] += speed
+            cycle_time[i] = (cycle_time[i] + 1) % (duration + rest)
+
+            if best is None or best < dists[i]:
+                best = dists[i]
+                best_i = [i]
+            elif best == dists[i]:
+                best_i.append(i)
+
+        for i in best_i:
+            scores[i] += 1
+
+    return scores
+
 def part2(s):
-    pass
+    answer = max(run_scored_race(list(parse_input(s)), 2503))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 14)
 part1(INPUT)
