@@ -1,69 +1,40 @@
 import lib.aoc
 
-letters = 'abcdefghijklmnopqrstuvwxyz'
+LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+BAD_CHARS = [LETTERS.index(c) for c in 'iol']
 
-def password_to_n(s):
-    n = 0
-    for c in s:
-        n *= 26
-        n += letters.index(c)
-    return n
+def next_legal_password(s):
+    nums = list(map(LETTERS.index, s))
 
-def n_to_password(n):
-    out = []
-    while n:
-        c = letters[n % 26]
-        n //= 26
-        out.append(c)
-    return ''.join(out[::-1])
-
-def next_password(s):
-    char_nums = [letters.index(c) for c in n_to_password(password_to_n(s)+1)]
-    for c in 'iol':
-        for idx in range(len(char_nums)):
-            if char_nums[idx] == letters.index(c):
-                char_nums[idx] += 1
-                for j in range(idx+1, len(char_nums)):
-                    char_nums[j] = 0
+    while True:
+        for i in range(len(s)-1, -1, -1):
+            nums[i] += 1
+            if nums[i] == 26:
+                nums[i] = 0
+            else:
                 break
-    
-    return ''.join(letters[i] for i in char_nums)
 
-def check_password(s):
-    if any(c in s
-           for c in 'iol'):
-        return False
+        if any(c in nums for c in BAD_CHARS):
+            continue
 
-    char_nums = [letters.index(c) for c in s]
+        if all(nums[i]+1 != nums[i+1] or nums[i]+2 != nums[i+2]
+               for i in range(len(nums)-2)):
+            continue
 
-    if all(char_nums[i]+1 != char_nums[i+1] or char_nums[i]+2 != char_nums[i+2]
-           for i in range(len(char_nums)-2)):
-        return False
-
-    for i in range(len(s)-1):
-        if s[i] == s[i+1]:
-            for j in range(i+2, len(s)-1):
-                if s[j] == s[j+1]:
-                    return True
-
-    return False
+        for i in range(len(nums)-3):
+            if nums[i] == nums[i+1]:
+                for j in range(i+2, len(nums)-1):
+                    if nums[j] == nums[j+1]:
+                        return ''.join(LETTERS[n] for n in nums)
+                break
 
 def part1(s):
-    while not check_password(s):
-        s = next_password(s)
-
-    answer = s
+    answer = next_legal_password(s)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    while not check_password(s):
-        s = next_password(s)
-    s = next_password(s)
-    while not check_password(s):
-        s = next_password(s)
-
-    answer = s
+    answer = next_legal_password(next_legal_password(s))
 
     print(f'The answer to part two is {answer}')
 
