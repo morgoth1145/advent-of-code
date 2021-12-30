@@ -21,7 +21,7 @@ def get_possible_sums(target, nums):
             options.append((n,) + opt)
     return options
 
-def optimize(s, teaspoons):
+def optimize(s, teaspoons, calorie_requirement=None):
     capacities = []
     durabilities = []
     flavors = []
@@ -38,12 +38,15 @@ def optimize(s, teaspoons):
     best = 0
 
     for weights in get_possible_sums(teaspoons, len(capacities)):
-        cap, dur, flavor, texture = 0, 0, 0, 0
+        cap, dur, flavor, texture, cal = 0, 0, 0, 0, 0
         for i, w in enumerate(weights):
             cap += capacities[i][w]
             dur += durabilities[i][w]
             flavor += flavors[i][w]
             texture += textures[i][w]
+            cal += calories[i][w]
+        if calorie_requirement is not None and cal != calorie_requirement:
+            continue
         score = max(cap, 0) * max(dur, 0) * max(flavor, 0) * max(texture, 0)
         best = max(score, best)
 
@@ -55,7 +58,9 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = optimize(s, 100, 500)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 15)
 part1(INPUT)
