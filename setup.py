@@ -18,6 +18,12 @@ def open_editor(path):
                      shell=True)
 
 def get_template(year, day):
+    parse_template = '''def parse_input(s):
+    for line in s.splitlines():
+        pass
+
+    pass'''
+
     part_1_template = f'''def part1(s):
 ##    nums = list(map(lambda r:r[0], parse.findall('{{:d}}', s)))
 ##    lines = s.splitlines()
@@ -26,6 +32,7 @@ def get_template(year, day):
 ##    grid = lib.grid.FixedGrid.parse(s,
 ##                                    linesplit_fn=lambda line: line.split(),
 ##                                    value_fn=int)
+##    data = parse_input(s)
 
     print(f'The answer to part one is {{answer}}')
     if input('Submit answer? ').lower() in ('y', 'yes', '1'):
@@ -55,6 +62,8 @@ import lib.grid
 import lib.math
 import lib.ocr
 import lib.parsing
+
+{parse_template}
 
 {part_1_template}
 
