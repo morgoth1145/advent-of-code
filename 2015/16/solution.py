@@ -1,75 +1,60 @@
 import lib.aoc
 
-def parse_input(s):
+def find_match(s, *checks):
     for line in s.splitlines():
         _, n, a, ac, b, bc, c, cc = line.split()
 
-        left, right = line.split(': ', maxsplit=1)
-        _, n = left.split()
-        n = int(n)
+        num, info = line.split(': ', maxsplit=1)
 
-        bits = []
-        for thing in right.split(', '):
+        things = {}
+        for thing in info.split(', '):
             name, count = thing.split(': ')
-            count = int(count)
-            bits.append((name, count))
+            things[name] = int(count)
 
-        yield n, bits
+        if all(check(things)
+               for check in checks):
+            return int(num.split()[1])
 
+EXPECTED_EQ = [('children', 3),
+               ('samoyeds', 2),
+               ('akitas', 0),
+               ('vizslas', 0),
+               ('cars', 2),
+               ('perfumes', 1)]
+EXPECTED_GT = [('cats', 7),
+               ('trees', 3)]
+EXPECTED_LT = [('pomeranians', 3),
+               ('goldfish', 5)]
+
+def make_eq_check(expectations):
+    def impl(things):
+        return all(things.get(key, expected) == expected
+                   for key, expected in expectations)
+    return impl
 
 def part1(s):
-    for sue, bits in parse_input(s):
-        bits = dict(bits)
-
-        matches = True
-        for key, expected in [('children', 3),
-                              ('cats', 7),
-                              ('samoyeds', 2),
-                              ('pomeranians', 3),
-                              ('akitas', 0),
-                              ('vizslas', 0),
-                              ('goldfish', 5),
-                              ('trees', 3),
-                              ('cars', 2),
-                              ('perfumes', 1)]:
-            if bits.get(key, expected) != expected:
-                matches = False
-                break
-
-        if matches:
-            answer = sue
-            break
+    answer = find_match(s,
+                        make_eq_check(EXPECTED_EQ + EXPECTED_GT + EXPECTED_LT))
 
     print(f'The answer to part one is {answer}')
 
+def make_gt_check(expectations):
+    def impl(things):
+        return all(things.get(key, expected+1) > expected
+                   for key, expected in expectations)
+    return impl
+
+def make_lt_check(expectations):
+    def impl(things):
+        return all(things.get(key, expected-1) < expected
+                   for key, expected in expectations)
+    return impl
+
 def part2(s):
-    for sue, bits in parse_input(s):
-        bits = dict(bits)
-
-        matches = True
-        for key, expected in [('children', 3),
-                              ('samoyeds', 2),
-                              ('akitas', 0),
-                              ('vizslas', 0),
-                              ('cars', 2),
-                              ('perfumes', 1)]:
-            if bits.get(key, expected) != expected:
-                matches = False
-                break
-        for key, expected in [('cats', 7),
-                              ('trees', 3)]:
-            if bits.get(key, expected+1) <= expected:
-                matches = False
-                break
-        for key, expected in [('pomeranians', 3),
-                              ('goldfish', 5)]:
-            if bits.get(key, expected-1) >= expected:
-                matches = False
-                break
-
-        if matches:
-            answer = sue
-            break
+    answer = find_match(s,
+                        make_eq_check(EXPECTED_EQ),
+                        make_gt_check(EXPECTED_GT),
+                        make_lt_check(EXPECTED_LT))
 
     print(f'The answer to part two is {answer}')
 
