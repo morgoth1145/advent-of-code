@@ -2,28 +2,26 @@ import itertools
 
 import lib.aoc
 
+def count_matching_combinations(containers, n):
+    return sum(1
+               for combo in itertools.combinations(containers, n)
+               if sum(combo) == 150)
+
 def part1(s):
-    nums = list(map(int, s.splitlines()))
+    containers = list(map(int, s.splitlines()))
 
-    answer = 0
-
-    for l in range(len(nums)):
-        for combo in itertools.combinations(nums, l):
-            if sum(combo) == 150:
-                answer += 1
+    answer = sum(count_matching_combinations(containers, n)
+                 for n in range(len(containers)))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    nums = list(map(int, s.splitlines()))
+    containers = list(map(int, s.splitlines()))
 
-    answer = 0
-
-    for l in range(len(nums)):
-        for combo in itertools.combinations(nums, l):
-            if sum(combo) == 150:
-                answer += 1
-        if answer > 0:
+    for n in range(len(containers)):
+        answer = count_matching_combinations(containers, n)
+        if answer != 0:
+            # This is the minimum number of containers required!
             break
 
     print(f'The answer to part two is {answer}')
