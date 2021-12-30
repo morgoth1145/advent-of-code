@@ -33,7 +33,14 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    n = list(map(int, s))
+
+    for _ in range(50):
+        n = expand(n)
+
+    answer = len(n)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 10)
 part1(INPUT)
