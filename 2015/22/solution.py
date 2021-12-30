@@ -8,9 +8,9 @@ def parse_input(s):
     return int(hp.split()[2]), int(dmg.split()[1])
 
 Effects = collections.namedtuple('Effects',
-                                 ('shield', 'poison', 'recharge'))
+                                 ('shield', 'poison', 'recharge', 'hard'))
 
-def iter_effects(boss_hp, mana, effects):
+def iter_effects(boss_hp, self_hp, mana, effects):
     armor = 0
     if effects.shield:
         armor += 7
@@ -21,12 +21,17 @@ def iter_effects(boss_hp, mana, effects):
     if effects.recharge:
         mana += 101
         effects = effects._replace(recharge=effects.recharge-1)
+    if effects.hard:
+        self_hp -= 1
 
-    return boss_hp, mana, armor, effects
+    return boss_hp, self_hp, mana, armor, effects
 
 @functools.cache
 def boss_turn(boss_hp, boss_dmg, self_hp, mana, effects):
-    boss_hp, mana, armor, effects = iter_effects(boss_hp, mana, effects)
+    boss_hp, self_hp, mana, armor, effects = iter_effects(boss_hp, self_hp, mana, effects)
+
+    if self_hp <= 0:
+        return None
 
     if boss_hp <= 0:
         return 0
@@ -39,7 +44,10 @@ def boss_turn(boss_hp, boss_dmg, self_hp, mana, effects):
 
 @functools.cache
 def player_turn(boss_hp, boss_dmg, self_hp, mana, effects):
-    boss_hp, mana, armor, effects = iter_effects(boss_hp, mana, effects)
+    boss_hp, self_hp, mana, armor, effects = iter_effects(boss_hp, self_hp, mana, effects)
+
+    if self_hp <= 0:
+        return None
 
     if boss_hp <= 0:
         return 0
@@ -89,12 +97,16 @@ def player_turn(boss_hp, boss_dmg, self_hp, mana, effects):
 def part1(s):
     boss_hp, boss_dmg = parse_input(s)
 
-    answer = player_turn(boss_hp, boss_dmg, 50, 500, Effects(0, 0, 0))
+    answer = player_turn(boss_hp, boss_dmg, 50, 500, Effects(0, 0, 0, hard=False))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    boss_hp, boss_dmg = parse_input(s)
+
+    answer = player_turn(boss_hp, boss_dmg, 50, 500, Effects(0, 0, 0, hard=True))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 22)
 part1(INPUT)
