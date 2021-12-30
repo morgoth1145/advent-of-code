@@ -57,7 +57,15 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    while not check_password(s):
+        s = next_password(s)
+    s = next_password(s)
+    while not check_password(s):
+        s = next_password(s)
+
+    answer = s
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 11)
 part1(INPUT)
