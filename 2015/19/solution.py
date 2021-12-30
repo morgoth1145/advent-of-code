@@ -34,7 +34,22 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    rules, molecule = parse_input(s)
+
+    steps = 0
+
+    # Each key takes one step to add
+    for key in rules.keys():
+        steps += molecule.count(key)
+
+    # Except for those in __Rn__Y__Ar, each Y gets us one for free
+    steps -= molecule.count('Y')
+
+    steps -= 1 # We start with one element
+
+    answer = steps
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 19)
 part1(INPUT)
