@@ -1,52 +1,63 @@
+import collections
+
 import lib.aoc
 import lib.grid
 
-def step(grid):
-    new_state = {}
+def parse_grid(s):
+    width = len(s.splitlines()[0])
+    height = len(s.splitlines())
 
-    for (x, y), val in grid.items():
-        count = 0
-        for n in grid.neighbors(x, y, diagonals=True):
-            if grid[n] == '#':
-                count += 1
-        if val == '#' and count in (2, 3):
-            new_state[x,y] = '#'
-        elif val == '.' and count == 3:
-            new_state[x,y] = '#'
-        else:
-            new_state[x,y] = '.'
+    on = set()
 
-    return lib.grid.FixedGrid.from_dict(new_state)
+    for y, line in enumerate(s.splitlines()):
+        for x, cell in enumerate(line):
+            if cell == '#':
+                on.add((x,y))
+
+    return on, width, height
+
+def step(on_cells, width, height):
+    counts = collections.Counter()
+
+    for x,y in on_cells:
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == dy == 0:
+                    continue
+                counts[x+dx,y+dy] += 1
+
+    new_on = set()
+
+    for (x,y), count in counts.items():
+        if 0 <= x < width and 0 <= y < height:
+            if count == 3 or (count == 2 and (x,y) in on_cells):
+                new_on.add((x,y))
+
+    return new_on
 
 def part1(s):
-    grid = lib.grid.FixedGrid.parse(s)
+    cells, width, height = parse_grid(s)
 
     for _ in range(100):
-        grid = step(grid)
+        cells = step(cells, width, height)
 
-    answer = sum(1
-                 for _, val in grid.items()
-                 if val == '#')
+    answer = len(cells)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    grid = lib.grid.FixedGrid.parse(s)
-    grid[0,0] = '#'
-    grid[0,grid.height-1] = '#'
-    grid[grid.width-1,grid.height-1] = '#'
-    grid[grid.width-1,0] = '#'
+    cells, width, height = parse_grid(s)
+
+    always_on = {(0,0),
+                 (0,height-1),
+                 (width-1,height-1),
+                 (width-1,0)}
+    cells |= always_on
 
     for _ in range(100):
-        grid = step(grid)
-        grid[0,0] = '#'
-        grid[0,grid.height-1] = '#'
-        grid[grid.width-1,grid.height-1] = '#'
-        grid[grid.width-1,0] = '#'
+        cells = step(cells, width, height) | always_on
 
-    answer = sum(1
-                 for _, val in grid.items()
-                 if val == '#')
+    answer = len(cells)
 
     print(f'The answer to part two is {answer}')
 
