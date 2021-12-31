@@ -27,7 +27,17 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    packages = list(map(int, s.splitlines()))
+
+    take = 0
+    while True:
+        take += 1
+        options = list(good_groupings(packages, sum(packages)//4, take))
+        if options:
+            answer = min(map(entanglement, options))
+            break
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 24)
 part1(INPUT)
