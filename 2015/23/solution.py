@@ -56,7 +56,9 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    _, answer = run(s, 1, 0)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2015, 23)
 part1(INPUT)
