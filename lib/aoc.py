@@ -41,11 +41,6 @@ def _load_session_cookie():
 
     _s.cookies['session'] = cookie_cache_file.read_text().rstrip('\n')
 
-def _download_file(url, file_path):
-    r = _s.get(url)
-    r.raise_for_status()
-    file_path.write_bytes(r.content)
-
 def _get_input_cache_file(year, day):
     return _get_cache_directory() / str(year) / f'day-{day}.txt'
 
@@ -103,20 +98,27 @@ login issues and premature inputs
     url = f'https://adventofcode.com/{year}/day/{day}/input'
     _load_session_cookie()
 
-    _download_file(url, input_file_path)
+    r = _s.get(url)
+    if r.status_code != 400:
+        # There isn't a client error so we *should* be logged in?
+        r.raise_for_status()
+        input_file_path.write_bytes(r.content)
 
-    contents = input_file_path.read_text().rstrip('\n')
-    if contents != notLoggedInFile:
-        # The contents are good! (I think)
-        return contents
+        contents = input_file_path.read_text().rstrip('\n')
+        if contents != notLoggedInFile:
+            # The contents are good! (I think)
+            return contents
 
     # The session cookie may be invalid?
-    input_file_path.unlink()
+    input_file_path.unlink(missing_ok=True)
     _forget_session_cookie()
     _load_session_cookie()
 
     # Last try
-    _download_file(url, input_file_path)
+    r = _s.get(url)
+    r.raise_for_status()
+    input_file_path.write_bytes(r.content)
+
     return input_file_path.read_text().rstrip('\n')
 
 def download_input_when_live(year, day):
