@@ -1,20 +1,24 @@
 import lib.aoc
 
-def part1(s):
-    answer = 0
+def count_possible_triangles(tris):
+    count = 0
 
-    for line in s.splitlines():
-        a, b, c = list(map(int, line.split()))
-
-        tot_len = a+b+c
+    for a, b, c in tris:
         maxlen = max(a, b, c)
-        rest_len = tot_len - maxlen
-        if rest_len > maxlen:
-            answer += 1
+        if a+b+c - maxlen > maxlen:
+            count += 1
+
+    return count
+
+def part1(s):
+    tris = [list(map(int, line.split()))
+            for line in s.splitlines()]
+
+    answer = count_possible_triangles(tris)
 
     print(f'The answer to part one is {answer}')
 
-def gen_real_tris(s):
+def column_tris(s):
     lines = s.splitlines()
     while lines:
         a = lines.pop(0).split()
@@ -26,15 +30,7 @@ def gen_real_tris(s):
         yield int(a.pop(0)), int(b.pop(0)), int(c.pop(0))
 
 def part2(s):
-    answer = 0
-
-    for a, b, c in gen_real_tris(s):
-
-        tot_len = a+b+c
-        maxlen = max(a, b, c)
-        rest_len = tot_len - maxlen
-        if rest_len > maxlen:
-            answer += 1
+    answer = count_possible_triangles(column_tris(s))
 
     print(f'The answer to part two is {answer}')
 
