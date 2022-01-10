@@ -1,18 +1,8 @@
+import string
+
 import lib.aoc
 
-KEYS = {
-    (0, 0): 1,
-    (1, 0): 2,
-    (2, 0): 3,
-    (0, 1): 4,
-    (1, 1): 5,
-    (2, 1): 6,
-    (0, 2): 7,
-    (1, 2): 8,
-    (2, 2): 9,
-}
-
-def interpret(directions):
+def map_key(directions):
     x, y = 1, 1
 
     for d in directions:
@@ -25,50 +15,43 @@ def interpret(directions):
         elif d == 'R':
             x = min(x+1, 2)
 
-    return str(KEYS[x,y])
+    return str(3*y + x + 1)
 
 def part1(s):
-    answer = int(''.join(map(interpret, s.splitlines())))
+    answer = int(''.join(map(map_key, s.splitlines())))
 
     print(f'The answer to part one is {answer}')
 
-INDICES = {
-    (0, -2): 1,
-    (-1, -1): 2,
-    (0, -1): 3,
-    (1, -1): 4,
-    (-2, 0): 5,
-    (-1, 0): 6,
-    (0, 0): 7,
-    (1, 0): 8,
-    (2, 0): 9,
-    (-1, 1): 10,
-    (0, 1): 11,
-    (1, 1): 12,
-    (0, 2): 13,
-}
+KEYLIST = string.digits + string.ascii_uppercase
 
-def interpret2(directions):
-    p = -2
+def map_diamond_key(directions):
+    x, y = -2, 0 # Start on 5
 
     for d in directions:
         if d == 'U':
-            np = p - 1j
+            nx, ny = x, y-1
         elif d == 'D':
-            np = p + 1j
+            nx, ny = x, y+1
         elif d == 'L':
-            np = p - 1
+            nx, ny = x-1, y
         elif d == 'R':
-            np = p + 1
+            nx, ny = x+1, y
 
-        man_dist = int(abs(np.real) + abs(np.imag))
-        if man_dist <= 2:
-            p = np
+        if abs(nx) + abs(ny) <= 2:
+            x, y = nx, ny
 
-    return '123456789ABCD'[INDICES[int(p.real), int(p.imag)]-1]
+    offset = 1
+    for skipped_y in range(-2, y):
+        num_in_row = 2 * (2 - abs(skipped_y)) + 1
+        offset += num_in_row
+
+    max_x_for_row = (2 - abs(y))
+    offset += x + max_x_for_row
+
+    return KEYLIST[offset]
 
 def part2(s):
-    answer = ''.join(map(interpret2, s.splitlines()))
+    answer = ''.join(map(map_diamond_key, s.splitlines()))
 
     print(f'The answer to part two is {answer}')
 
