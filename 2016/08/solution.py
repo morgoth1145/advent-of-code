@@ -1,4 +1,5 @@
 import lib.aoc
+import lib.ocr
 
 def apply_instructions(s):
     on_pixels = set()
@@ -40,7 +41,9 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = lib.ocr.parse_coord_set(apply_instructions(s))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 8)
 part1(INPUT)
