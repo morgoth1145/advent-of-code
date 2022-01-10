@@ -1,3 +1,5 @@
+import functools
+
 import lib.aoc
 
 def decompress(s):
@@ -33,8 +35,40 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
+@functools.cache
+def decompress_2_length(s):
+    length = 0
+
+    while s:
+        idx = s.find('(')
+        if idx == -1:
+            assert(')' not in s)
+            length += len(s)
+            s = ''
+            continue
+
+        end_idx = s.find(')')
+        assert(end_idx > idx)
+
+        length += idx
+        marker = s[idx+1:end_idx]
+        s = s[end_idx+1:]
+
+        l, c = marker.split('x')
+        l = int(l)
+        c = int(c)
+
+        take = s[:l]
+        s = s[l:]
+
+        length += c * decompress_2_length(take)
+
+    return length
+
 def part2(s):
-    pass
+    answer = decompress_2_length(s)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 9)
 part1(INPUT)
