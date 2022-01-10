@@ -48,7 +48,36 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    bots, instructions = parse_input(s)
+    outputs = {}
+
+    while True:
+        done = True
+        for bot, values in bots.items():
+            if len(values) == 2:
+                done = False
+                break
+
+        if done:
+            break
+
+        low, high = min(values), max(values)
+
+        del bots[bot]
+        low_out, low_target, high_out, high_target = instructions[bot].pop(0)
+
+        if low_out:
+            outputs[low_target] = low
+        else:
+            bots[low_target].append(low)
+        if high_out:
+            outputs[high_target] = high
+        else:
+            bots[high_target].append(high)
+
+    answer = outputs[0] * outputs[1] * outputs[2]
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 10)
 part1(INPUT)
