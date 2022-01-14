@@ -1,3 +1,5 @@
+import collections
+import itertools
 import re
 
 import lib.aoc
@@ -26,95 +28,84 @@ def parse_input(s):
 
     return floors, types
 
-def conflicts(generators, microchips):
-    return generators and microchips - (microchips & generators)
-
 def neighbor_states(state):
     elevator, floors = state
     generators, microchips = floors[elevator]
 
-    cand_micros = [1 << idx
-                   for idx, c in enumerate(bin(microchips)[2:][::-1])
-                   if c == '1']
-    cand_gens = [1 << idx
-                 for idx, c in enumerate(bin(generators)[2:][::-1])
-                 if c == '1']
+    # Vectors of things we can move
+    move_cands = []
 
-    neighbor_floors = []
-    if elevator > 0:
-        neighbor_floors.append(elevator-1)
-    if elevator < len(floors)-1:
-        neighbor_floors.append(elevator+1)
+    for idx, c in enumerate(bin(generators)[:1:-1]):
+        if c == '1':
+            move_cands.append((1 << idx, 0))
+    for idx, c in enumerate(bin(microchips)[:1:-1]):
+        if c == '1':
+            move_cands.append((0, 1 << idx))
 
-    for target_floor in neighbor_floors:
+    def gen_moves_to_floor(target_floor, items_to_move):
         target_gens, target_micros = floors[target_floor]
-        for micro_a in cand_micros:
-            # Move 2 microchips
-            for micro_b in cand_micros:
-                if micro_a == micro_b:
-                    continue
-                left_micros = microchips - micro_a - micro_b
-                if conflicts(generators, left_micros):
-                    continue
-                new_micros = target_micros + micro_a + micro_b
-                if conflicts(target_gens, new_micros):
-                    continue
-                new_floors = list(floors)
-                new_floors[elevator] = (generators, left_micros)
-                new_floors[target_floor] = (target_gens, new_micros)
-                yield target_floor, tuple(new_floors)
-            # Move microchip and generator
-            for gen_a in cand_gens:
-                left_micros = microchips - micro_a
-                left_gens = generators - gen_a
-                if conflicts(left_gens, left_micros):
-                    continue
-                new_micros = target_micros + micro_a
-                new_gens = target_gens + gen_a
-                if conflicts(new_gens, new_micros):
-                    continue
-                new_floors = list(floors)
-                new_floors[elevator] = (left_gens, left_micros)
-                new_floors[target_floor] = (new_gens, new_micros)
-                yield target_floor, tuple(new_floors)
-            # Just move a microchip
-            left_micros = microchips - micro_a
-            if conflicts(generators, left_micros):
+
+        states = []
+        for moving in itertools.combinations(move_cands, items_to_move):
+            move_gens = 0
+            move_micros = 0
+            for g, m in moving:
+                move_gens += g
+                move_micros += m
+            left_gens = generators - move_gens
+            left_micros = microchips - move_micros
+            if left_gens and left_micros - (left_micros & left_gens):
                 continue
-            new_micros = target_micros + micro_a
-            if conflicts(target_gens, new_micros):
+            new_gens = target_gens + move_gens
+            new_micros = target_micros + move_micros
+            if new_gens and new_micros - (new_micros & new_gens):
                 continue
             new_floors = list(floors)
-            new_floors[elevator] = (generators, left_micros)
-            new_floors[target_floor] = (target_gens, new_micros)
-            yield target_floor, tuple(new_floors)
-        # Move no microchips
-        for gen_a in cand_gens:
-            # Move 2 generators
-            for gen_b in cand_gens:
-                if gen_a == gen_b:
-                    continue
-                left_gens = generators - gen_a - gen_b
-                if conflicts(left_gens, microchips):
-                    continue
-                new_gens = target_gens + gen_a + gen_b
-                if conflicts(new_gens, target_micros):
-                    continue
-                new_floors = list(floors)
-                new_floors[elevator] = (left_gens, microchips)
-                new_floors[target_floor] = (new_gens, target_micros)
-                yield target_floor, tuple(new_floors)
-            # Just move a generator
-            left_gens = generators - gen_a
-            if conflicts(left_gens, microchips):
-                continue
-            new_gens = target_gens + gen_a
-            if conflicts(new_gens, target_micros):
-                continue
-            new_floors = list(floors)
-            new_floors[elevator] = (left_gens, microchips)
-            new_floors[target_floor] = (new_gens, target_micros)
-            yield target_floor, tuple(new_floors)
+            new_floors[elevator] = (left_gens, left_micros)
+            new_floors[target_floor] = (new_gens, new_micros)
+            if elevator == 0 and left_gens == 0 == left_micros:
+                # We're moving the last of the items on the ground floor
+                # No need to go down here again!
+                states.append((0, tuple(new_floors[1:])))
+            else:
+                states.append((target_floor, tuple(new_floors)))
+
+        return states
+
+    if elevator > 0:
+        for items_to_move in (1, 2):
+            states = gen_moves_to_floor(elevator-1, items_to_move)
+            if states:
+                yield from states
+                break # Move as little as possible downstairs
+    if elevator < len(floors)-1:
+        for items_to_move in (2, 1):
+            states = gen_moves_to_floor(elevator+1, items_to_move)
+            if states:
+                yield from states
+                break # Move as much as we can upstairs
+
+# Two states are interchangeable if the pairings between floors match up
+# It doesn't matter if Generator and Microchip A are on floor 1 or 2
+# if Generator and Microchip B are on the other floor! They don't really
+# interact beyond stranded microchips being fried by random generators!
+def get_state_key(state):
+    elevator, floors = state
+
+    pairs = collections.defaultdict(list)
+
+    for idx, (gens, micros) in enumerate(floors):
+        for g, c in enumerate(bin(gens)[:1:-1]):
+            if c == '1':
+                pairs[g].append(idx)
+        for m, c in enumerate(bin(micros)[:1:-1]):
+            if c == '1':
+                pairs[m].append(idx)
+
+    pair_keys = tuple(sorted(((a, b)
+                              for a, b in pairs.values())))
+
+    return elevator, len(floors), pair_keys
 
 def min_moves(floors):
     states = [(0, tuple(floors))]
@@ -125,17 +116,17 @@ def min_moves(floors):
     while True:
         steps += 1
 
-        new_states = set()
+        new_states = []
+
         for state in states:
-            new_states.update(neighbor_states(state))
-
-        for _, floors in new_states:
-            if all(gens == 0 and micros == 0
-                   for gens, micros in floors[:-1]):
-                return steps
-
-        new_states -= seen
-        seen.update(new_states)
+            for new_state in neighbor_states(state):
+                if len(new_state[1]) == 1:
+                    return steps # Everything is on the top floor!
+                key = get_state_key(new_state)
+                if key in seen:
+                    continue
+                seen.add(key)
+                new_states.append(new_state)
 
         states = new_states
 
