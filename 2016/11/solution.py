@@ -116,9 +116,7 @@ def neighbor_states(state):
             new_floors[target_floor] = (new_gens, target_micros)
             yield target_floor, tuple(new_floors)
 
-def part1(s):
-    floors, types = parse_input(s)
-
+def min_moves(floors):
     states = [(0, tuple(floors))]
 
     seen = set(states)
@@ -131,26 +129,41 @@ def part1(s):
         for state in states:
             new_states.update(neighbor_states(state))
 
-        done = False
         for _, floors in new_states:
             if all(gens == 0 and micros == 0
                    for gens, micros in floors[:-1]):
-                done = True
-                break
-
-        if done:
-            answer = steps
-            break
+                return steps
 
         new_states -= seen
         seen.update(new_states)
 
         states = new_states
 
+def part1(s):
+    floors, types = parse_input(s)
+    answer = min_moves(floors)
+
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    floors, types = parse_input(s)
+
+    # Add the extra parts
+    elerium_idx = len(types)
+    types.append('elerium')
+    dilithium_idx = len(types)
+    types.append('dilithium')
+
+    add_mask = (1 << elerium_idx) + (1 << dilithium_idx)
+
+    floors = list(floors)
+    gens, micros = floors[0]
+    floors[0] = (gens + add_mask, micros + add_mask)
+    floors = tuple(floors)
+
+    answer = min_moves(floors)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 11)
 part1(INPUT)
