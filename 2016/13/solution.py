@@ -41,7 +41,24 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    graph = lib.graph.make_lazy_graph(make_grid_neighbor_fn(s))
+
+    seen = {(1, 1)}
+    queue = [(1, 1)]
+
+    for _ in range(50):
+        next_queue = []
+        for c in queue:
+            for neighbor, dist in graph[c]:
+                if neighbor in seen:
+                    continue
+                seen.add(neighbor)
+                next_queue.append(neighbor)
+        queue = next_queue
+
+    answer = len(seen)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 13)
 part1(INPUT)
