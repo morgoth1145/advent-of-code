@@ -1,22 +1,16 @@
-import collections
-
 import lib.aoc
 import lib.graph
+import lib.lazy_dict
 
-def make_grid_neighbor_fn(s):
+def parse_graph(s):
     n = int(s)
-    class LazyGrid(collections.defaultdict):
-        def __missing__(self, key):
-            x, y = key
-            ones = bin(x*x + 3*x + 2*x*y + y + y*y + n).count('1')
-            if ones % 2 == 0:
-                val = True
-            else:
-                val = False
-            self[key] = val
-            return val
 
-    grid = LazyGrid()
+    def grid_cell_fn(coord):
+        x, y = coord
+        ones = bin(x*x + 3*x + 2*x*y + y + y*y + n).count('1')
+        return ones % 2 == 0
+
+    grid = lib.lazy_dict.make_lazy_dict(grid_cell_fn)
 
     def neighbor_fn(c):
         x, y = c
@@ -29,10 +23,10 @@ def make_grid_neighbor_fn(s):
         if grid[x, y+1]:
             yield (x, y+1), 1
 
-    return neighbor_fn
+    return lib.graph.make_lazy_graph(neighbor_fn)
 
 def part1(s):
-    graph = lib.graph.make_lazy_graph(make_grid_neighbor_fn(s))
+    graph = parse_graph(s)
 
     answer = lib.graph.dijkstra_length(graph,
                                        (1, 1),
@@ -41,22 +35,10 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    graph = lib.graph.make_lazy_graph(make_grid_neighbor_fn(s))
+    graph = parse_graph(s)
 
-    seen = {(1, 1)}
-    queue = [(1, 1)]
-
-    for _ in range(50):
-        next_queue = []
-        for c in queue:
-            for neighbor, dist in graph[c]:
-                if neighbor in seen:
-                    continue
-                seen.add(neighbor)
-                next_queue.append(neighbor)
-        queue = next_queue
-
-    answer = len(seen)
+    answer = len(list(lib.graph.all_reachable(graph, (1, 1), 50)))
+    answer += 1 # all_reachable excludes the start location
 
     print(f'The answer to part two is {answer}')
 

@@ -59,6 +59,7 @@ import lib.aoc
 import lib.graph
 from lib.graphics import *
 import lib.grid
+import lib.lazy_dict
 import lib.math
 import lib.ocr
 import lib.parsing

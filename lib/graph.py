@@ -1,5 +1,6 @@
-import collections
 import heapq
+
+import lib.lazy_dict
 
 def topological_sort(graph):
     '''Outputs graph nodes in topological order, going from the leaf to the root
@@ -51,14 +52,18 @@ def longest_path_length(graph, start):
         queue = new_queue
     return steps
 
-def all_reachable(graph, start):
+def all_reachable(graph, start, max_dist=None):
     '''Returns (node, distance) pairs of all reachable nodes in the graph.
-    graph[node] must return a list of (neighbor, distance) pairs'''
+    graph[node] must return a list of (neighbor, distance) pairs
+
+    If supplied, max_dist caps the allowed distance when reaching nodes'''
     seen = set()
     queue = [(0, start)]
     while len(queue) > 0:
         current_dist, current_node = heapq.heappop(queue)
         if current_node in seen:
+            continue
+        if max_dist is not None and max_dist < current_dist:
             continue
         seen.add(current_node)
 
@@ -110,15 +115,7 @@ def dijkstra_length(graph, start, end, heuristic=None):
 
     return -1
 
-class _LazyGraph(collections.defaultdict):
-    def __init__(self, neighbor_fn):
-        super().__init__()
-        self._neighbor_fn = neighbor_fn
-
-    def __missing__(self, key):
-        neighbors = list(self._neighbor_fn(key))
-        self[key] = neighbors
-        return neighbors
-
 def make_lazy_graph(neighbor_fn):
-    return _LazyGraph(neighbor_fn)
+    def fn(key):
+        return list(neighbor_fn(key))
+    return lib.lazy_dict.make_lazy_dict(fn)
