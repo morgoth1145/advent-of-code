@@ -12,12 +12,7 @@ def parse_instructions(s):
 
     return instructions
 
-def run_code(instructions):
-    registers = {
-        name: 0
-        for name in 'abcd'
-    }
-
+def run_code(instructions, registers):
     def get_val(val):
         if isinstance(val, str):
             val = registers[val]
@@ -47,15 +42,29 @@ def run_code(instructions):
     return registers
 
 def part1(s):
-    instructions = parse_instructions(s)
-    registers = run_code(instructions)
+    registers = {
+        name: 0
+        for name in 'abcd'
+    }
+
+    run_code(parse_instructions(s), registers)
 
     answer = registers['a']
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    registers = {
+        name: 0
+        for name in 'abd'
+    }
+    registers['c'] = 1
+
+    run_code(parse_instructions(s), registers)
+
+    answer = registers['a']
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 12)
 part1(INPUT)
