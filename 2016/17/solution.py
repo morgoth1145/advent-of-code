@@ -2,18 +2,9 @@ import hashlib
 
 import lib.aoc
 
-OPEN_DOOR = 'bcdef'
-
-def determine_doors(s, path):
-    h = hashlib.md5((s + path).encode()).hexdigest()
-    up, down, left, right = h[:4]
-    up = up in OPEN_DOOR
-    down = down in OPEN_DOOR
-    left = left in OPEN_DOOR
-    right = right in OPEN_DOOR
-    return up, down, left, right
-
 def generate_all_paths(s, width, height):
+    OPEN_DOOR = 'bcdef'
+
     states = [(1, 1, '')]
 
     while True:
@@ -24,14 +15,16 @@ def generate_all_paths(s, width, height):
                 yield path
                 continue
 
-            up, down, left, right = determine_doors(s, path)
-            if x > 1 and left:
+            h = hashlib.md5((s + path).encode()).hexdigest()
+            up, down, left, right = h[:4]
+
+            if x > 1 and left in OPEN_DOOR:
                 new_states.append((x-1, y, path+'L'))
-            if x < width and right:
+            if x < width and right in OPEN_DOOR:
                 new_states.append((x+1, y, path+'R'))
-            if y > 1 and up:
+            if y > 1 and up in OPEN_DOOR:
                 new_states.append((x, y-1, path+'U'))
-            if y < height and down:
+            if y < height and down in OPEN_DOOR:
                 new_states.append((x, y+1, path+'D'))
 
         states = new_states
@@ -40,7 +33,7 @@ def generate_all_paths(s, width, height):
             return
 
 def part1(s):
-    answer = next(generate_all_paths(s, 4, 4))
+    answer = min(generate_all_paths(s, 4, 4), key=len)
 
     print(f'The answer to part one is {answer}')
 
