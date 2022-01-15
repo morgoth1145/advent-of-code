@@ -23,7 +23,6 @@ def run_code(instructions, registers):
         inst = instructions[idx]
 
         if idx + 5 < len(instructions):
-            # TODO: Finish validation
             if (instructions[idx][0] == 'cpy' and
                 instructions[idx+1][0] == 'inc' and
                 instructions[idx+2][0] == 'dec' and
@@ -31,16 +30,23 @@ def run_code(instructions, registers):
                 instructions[idx+4][0] == 'dec' and
                 instructions[idx+5][0] == 'jnz' and
                 instructions[idx+3][2] == -2 and
-                instructions[idx+5][2] == -5):
-                a = instructions[idx+1][1]
-                b = instructions[idx][1]
-                c = instructions[idx+2][1]
-                d = instructions[idx+4][1]
-                registers[a] += get_val(b) * registers[d]
-                registers[c] = 0
-                registers[d] = 0
-                idx += 6
-                continue
+                instructions[idx+5][2] == -5 and
+                instructions[idx][2] == instructions[idx+2][1] and
+                instructions[idx][2] == instructions[idx+3][1] and
+                instructions[idx+4][1] == instructions[idx+5][1]):
+                # This *seems* to be a multiplication loop
+                dst = instructions[idx+1][1]
+                cpy_src = instructions[idx][1]
+                cpy_dst = instructions[idx+2][1]
+                factor = instructions[idx+4][1]
+                if (dst not in (cpy_src, cpy_dst, factor) and
+                    cpy_src not in (cpy_dst, factor) and
+                    cpy_dst != factor):
+                    registers[dst] += get_val(cpy_src) * registers[factor]
+                    registers[cpy_dst] = 0
+                    registers[factor] = 0
+                    idx += 6
+                    continue
 
         if inst[0] == 'jnz':
             if get_val(inst[1]) != 0:
@@ -79,29 +85,24 @@ def run_code(instructions, registers):
 
     return registers
 
-def part1(s):
+def solve(s, init_a):
     registers = {
         name: 0
         for name in 'abcd'
     }
-    registers['a'] = 7
+    registers['a'] = init_a
 
     run_code(parse_instructions(s), registers)
 
-    answer = registers['a']
+    return registers['a']
+
+def part1(s):
+    answer = solve(s, 7)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    registers = {
-        name: 0
-        for name in 'abcd'
-    }
-    registers['a'] = 12
-
-    run_code(parse_instructions(s), registers)
-
-    answer = registers['a']
+    answer = solve(s, 12)
 
     print(f'The answer to part two is {answer}')
 
