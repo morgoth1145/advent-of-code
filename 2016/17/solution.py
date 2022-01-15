@@ -13,7 +13,7 @@ def determine_doors(s, path):
     right = right in OPEN_DOOR
     return up, down, left, right
 
-def shortest_path(s, width, height):
+def generate_all_paths(s, width, height):
     states = [(1, 1, '')]
 
     while True:
@@ -21,7 +21,8 @@ def shortest_path(s, width, height):
 
         for x, y, path in states:
             if x == width and y == height:
-                return path
+                yield path
+                continue
 
             up, down, left, right = determine_doors(s, path)
             if x > 1 and left:
@@ -35,13 +36,18 @@ def shortest_path(s, width, height):
 
         states = new_states
 
+        if len(states) == 0:
+            return
+
 def part1(s):
-    answer = shortest_path(s, 4, 4)
+    answer = next(generate_all_paths(s, 4, 4))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = max(map(len, generate_all_paths(s, 4, 4)))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 17)
 part1(INPUT)
