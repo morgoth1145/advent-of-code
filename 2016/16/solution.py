@@ -30,7 +30,14 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    while len(s) < 35651584:
+        s = step(s)
+
+    s = s[:35651584]
+
+    answer = checksum(s)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 16)
 part1(INPUT)
