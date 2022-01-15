@@ -9,9 +9,7 @@ def gen_hashes(s):
         h = hashlib.md5((s + str(idx)).encode()).hexdigest()
         yield h
 
-def gen_keys(s):
-    hashes = gen_hashes(s)
-
+def gen_keys(hashes):
     window = []
 
     for _ in range(1000):
@@ -38,15 +36,29 @@ def gen_keys(s):
             yield h, idx
 
 def part1(s):
-    keys = gen_keys(s)
+    keys = gen_keys(gen_hashes(s))
 
     for _ in range(64):
         _, answer = next(keys)
 
     print(f'The answer to part one is {answer}')
 
+def gen_superhashes(s):
+    idx = 0
+    while True:
+        idx += 1
+        h = hashlib.md5((s + str(idx)).encode()).hexdigest()
+        for _ in range(2016):
+            h = hashlib.md5(h.encode()).hexdigest()
+        yield h
+
 def part2(s):
-    pass
+    keys = gen_keys(gen_superhashes(s))
+
+    for _ in range(64):
+        h, answer = next(keys)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 14)
 part1(INPUT)
