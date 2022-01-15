@@ -6,53 +6,41 @@ class Link:
         self.left = None
         self.right = None
 
-def part1(s):
+def solve(s, first_target, advance_fn):
     elves = list(map(Link, range(1, int(s)+1)))
 
     for left, right in zip(elves + [elves[0]], [elves[-1]] + elves):
         left.right = right
         right.left = left
 
-    current = elves[0]
-    while current.left != current:
-        new_left = current.left.left
-        current.left = new_left
-        new_left.right = current
-        current = new_left
+    remaining = len(elves)
+    current = elves[first_target]
 
-    answer = current.n
+    while remaining > 1:
+        current.left.right = current.right
+        current.right.left = current.left
+        current = advance_fn(current, remaining)
+        remaining -= 1
+
+    return current.n
+
+def part1(s):
+    def advance_fn(current, remaining):
+        return current.left.left
+
+    answer = solve(s, 1, advance_fn)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    elves = list(map(Link, range(1, int(s)+1)))
-
-    for left, right in zip(elves + [elves[0]], [elves[-1]] + elves):
-        left.right = right
-        right.left = left
-
-    # We don't care *who* steals, we care who is removed!
-    remaining = len(elves)
-    to_remove = remaining // 2
-
-    current_target = elves[to_remove]
-
-    while remaining > 1:
-        left = current_target.left
-        right = current_target.right
-        left.right = right
-        right.left = left
-
-        # Update current target
+    def advance_fn(current, remaining):
+        current = current.left
         if remaining % 2 == 1:
             # There was a tie, skip one
-            current_target = left.left
-        else:
-            current_target = left
+            current = current.left
+        return current
 
-        remaining -= 1
-
-    answer = current_target.n
+    answer = solve(s, int(s) // 2, advance_fn)
 
     print(f'The answer to part two is {answer}')
 
