@@ -1,41 +1,26 @@
 import lib.aoc
 
-def step(s):
-    a = s
-    b = s[::-1].translate(str.maketrans('01', '10'))
-    return a + '0' + b
+def solve(s, disk):
+    # Expand
+    while len(s) < disk:
+        s = s + '0' + s[::-1].translate(str.maketrans('01', '10'))
 
-def checksum(s):
-    if len(s) % 2 == 1:
-        return s
+    s = s[:disk]
 
-    out = []
+    # Checksum
+    while len(s) % 2 == 0:
+        s = ''.join('1' if a == b else '0'
+                    for a, b in zip(s[::2], s[1::2]))
 
-    for a, b in zip(s[::2], s[1::2]):
-        if a == b:
-            out.append('1')
-        else:
-            out.append('0')
-
-    return checksum(''.join(out))
+    return s
 
 def part1(s):
-    while len(s) < 272:
-        s = step(s)
-
-    s = s[:272]
-
-    answer = checksum(s)
+    answer = solve(s, 272)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    while len(s) < 35651584:
-        s = step(s)
-
-    s = s[:35651584]
-
-    answer = checksum(s)
+    answer = solve(s, 35651584)
 
     print(f'The answer to part two is {answer}')
 
