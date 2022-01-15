@@ -1,38 +1,44 @@
+import gmpy2
+
 import lib.aoc
 
-def next_row(row):
-    row = '.' + row + '.'
+def solve(s, total_rows):
+    row = 0
+    mask = 0
 
-    next_row = []
-    for left, center, right in zip(row, row[1:], row[2:]):
-        if left + center + right in ('^^.',
-                                     '.^^',
-                                     '^..',
-                                     '..^'):
-            # Trap
-            next_row.append('^')
-        else:
-            next_row.append('.')
+    # Convert the row into a binary number with 1's marking traps
+    for c in s:
+        row <<= 1
+        mask <<= 1
+        mask += 1
+        if c == '^':
+            row += 1
 
-    return ''.join(next_row)
-
-def make_map(first_row, total_rows):
-    rows = [first_row]
-    last_row = first_row
+    # Count trap tile bits
+    # TODO: Maybe row.bit_count() with Python 3.10?
+    trap_tiles = gmpy2.popcount(row)
 
     for _ in range(total_rows-1):
-        last_row = next_row(last_row)
-        rows.append(last_row)
+        # Each iteration only cares about how the left and right sides interact
+        # A tile is a trap iff the previous left and right tiles are opposites
+        # Since safe tiles are 0, this is a simple XOR operation on shifted
+        # rows, with a mask to limit the width of the rows
+        left = row >> 1
+        right = row << 1
+        row = (left ^ right) & mask
 
-    return '\n'.join(rows)
+        trap_tiles += gmpy2.popcount(row)
+
+    # We care about safe tiles :)
+    return len(s) * total_rows - trap_tiles
 
 def part1(s):
-    answer = make_map(s, 40).count('.')
+    answer = solve(s, 40)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    answer = make_map(s, 400000).count('.')
+    answer = solve(s, 400000)
 
     print(f'The answer to part two is {answer}')
 
