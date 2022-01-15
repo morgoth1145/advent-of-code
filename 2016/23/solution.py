@@ -22,6 +22,26 @@ def run_code(instructions, registers):
     while idx < len(instructions):
         inst = instructions[idx]
 
+        if idx + 5 < len(instructions):
+            # TODO: Finish validation
+            if (instructions[idx][0] == 'cpy' and
+                instructions[idx+1][0] == 'inc' and
+                instructions[idx+2][0] == 'dec' and
+                instructions[idx+3][0] == 'jnz' and
+                instructions[idx+4][0] == 'dec' and
+                instructions[idx+5][0] == 'jnz' and
+                instructions[idx+3][2] == -2 and
+                instructions[idx+5][2] == -5):
+                a = instructions[idx+1][1]
+                b = instructions[idx][1]
+                c = instructions[idx+2][1]
+                d = instructions[idx+4][1]
+                registers[a] += get_val(b) * registers[d]
+                registers[c] = 0
+                registers[d] = 0
+                idx += 6
+                continue
+
         if inst[0] == 'jnz':
             if get_val(inst[1]) != 0:
                 idx += get_val(inst[2])
@@ -73,7 +93,17 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    registers = {
+        name: 0
+        for name in 'abcd'
+    }
+    registers['a'] = 12
+
+    run_code(parse_instructions(s), registers)
+
+    answer = registers['a']
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 23)
 part1(INPUT)
