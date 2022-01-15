@@ -1,29 +1,20 @@
-import parse
-
 import lib.aoc
 import lib.math
 
-def parse_discs(s):
-    for line in s.splitlines():
-        _, positions, _, start = list(map(lambda r:r[0], parse.findall('{:d}', line)))
-        yield positions, start
+def parse_congruencies(s):
+    for idx, line in enumerate(s.splitlines()):
+        parts = line.split()
+        yield int(parts[3]), int(parts[11][:-1]) + idx + 1
 
 def part1(s):
-    congruencies = []
-    for idx, (positions, start) in enumerate(parse_discs(s)):
-        congruencies.append((positions, start+idx+1))
-
-    answer = lib.math.offset_chinese_remainder(congruencies)
+    answer = lib.math.offset_chinese_remainder(parse_congruencies(s))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    congruencies = []
-    for idx, (positions, start) in enumerate(parse_discs(s)):
-        congruencies.append((positions, start+idx+1))
-    congruencies.append((11, len(congruencies)+1))
+    s += '\nDisc n+1 has 11 positions; at time=0, it is at position 0.'
 
-    answer = lib.math.offset_chinese_remainder(congruencies)
+    answer = lib.math.offset_chinese_remainder(parse_congruencies(s))
 
     print(f'The answer to part two is {answer}')
 
