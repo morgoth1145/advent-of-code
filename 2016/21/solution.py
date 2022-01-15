@@ -1,133 +1,109 @@
 import lib.aoc
 
+def make_swap_letter_fn(x, y):
+    t = str.maketrans(x+y, y+x)
+    def impl(password):
+        return password.translate(t)
+    return impl
+
+def make_swap_pos_fn(x, y):
+    def impl(password):
+        password = list(password)
+        password[x], password[y] = password[y], password[x]
+        return ''.join(password)
+    return impl
+
+def rotate_left(password, x):
+    x %= len(password)
+    return password[x:] + password[:x]
+
+def make_rotate_based_fn(x):
+    def impl(password):
+        idx = password.index(x)
+        right_rotate = 1 + idx + (idx >= 4)
+        return rotate_left(password, -right_rotate)
+    return impl
+
+def make_rotate_based_inverse_fn(x):
+    known_inverses = {}
+    def impl(password):
+        inverses = known_inverses.get(len(password))
+        if inverses is None:
+            inverses = [[] for _ in range(len(password))]
+            for idx in range(len(password)):
+                right_rotate = 1 + idx + (idx >= 4)
+                target_idx = (idx + right_rotate) % len(password)
+                inverses[target_idx].append(right_rotate)
+            inverses = [i[0] if len(i) == 1 else None
+                        for i in inverses]
+            known_inverses[len(password)] = inverses
+        left_rot = inverses[password.index(x)]
+        assert(left_rot is not None)
+        return rotate_left(password, left_rot)
+    return impl
+
+def make_rotate_fn(direction, x):
+    if direction == 'right':
+        x = -x
+    def impl(password):
+        return rotate_left(password, x)
+    return impl
+
+def make_reverse_fn(x, y):
+    def impl(password):
+        return password[:x] + password[x:y+1][::-1] + password[y+1:]
+    return impl
+
+def make_move_fn(x, y):
+    def impl(password):
+        password = list(password)
+        c = password.pop(x)
+        password.insert(y, c)
+        return ''.join(password)
+    return impl
+
 def parse_instructions(s):
     for line in s.splitlines():
-        yield line.split()
-
-def scramble(password, instructions):
-    for inst in instructions:
-        op = inst[0]
-        if op == 'swap':
+        inst = line.split()
+        if inst[0] == 'swap':
             if inst[1] == 'letter':
-                a = inst[2]
-                b = inst[5]
-                password = password.translate(str.maketrans(a+b, b+a))
+                apply = make_swap_letter_fn(inst[2], inst[5])
+                yield apply, apply # Self-inverse
             else:
                 assert(inst[1] == 'position')
-                a = int(inst[2])
-                b = int(inst[5])
-                password = list(password)
-                password[a], password[b] = password[b], password[a]
-                password = ''.join(password)
-        elif op == 'rotate':
+                apply = make_swap_pos_fn(int(inst[2]), int(inst[5]))
+                yield apply, apply # Self-inverse
+        elif inst[0] == 'rotate':
             if inst[1] == 'based':
-                c = inst[6]
-                idx = password.index(c)
-                rotate_n = 1 + idx
-                if idx >= 4:
-                    rotate_n += 1
-                rotate_n %= len(password)
-                password = password[-rotate_n:] + password[:-rotate_n]
+                yield (make_rotate_based_fn(inst[6]),
+                       make_rotate_based_inverse_fn(inst[6]))
             else:
-                x = int(inst[2])
-                if inst[1] == 'left':
-                    password = password[x:] + password[:x]
-                else:
-                    assert(inst[1] == 'right')
-                    password = password[-x:] + password[:-x]
-        elif op == 'reverse':
-            x = int(inst[2])
-            y = int(inst[4])
-            password = password[:x] + password[x:y+1][::-1] + password[y+1:]
-        elif op == 'move':
-            x = int(inst[2])
-            y = int(inst[5])
-            password = list(password)
-            c = password.pop(x)
-            password.insert(y, c)
-            password = ''.join(password)
+                # The inverse is just rotating the other way
+                yield (make_rotate_fn(inst[1], int(inst[2])),
+                       make_rotate_fn(inst[1], -int(inst[2])))
+        elif inst[0] == 'reverse':
+            apply = make_reverse_fn(int(inst[2]), int(inst[4]))
+            yield apply, apply # Self-inverse
+        elif inst[0] == 'move':
+            # The inverse is just moving y to x
+            yield (make_move_fn(int(inst[2]), int(inst[5])),
+                   make_move_fn(int(inst[5]), int(inst[2])))
         else:
             assert(False)
 
-    return password
-
 def part1(s):
-    answer = scramble('abcdefgh', parse_instructions(s))
+    answer = 'abcdefgh'
+
+    for apply, inverse in parse_instructions(s):
+        answer = apply(answer)
 
     print(f'The answer to part one is {answer}')
 
-def undo(password, inst):
-    op = inst[0]
-    if op == 'swap':
-        if inst[1] == 'letter':
-            a = inst[2]
-            b = inst[5]
-            yield password.translate(str.maketrans(a+b, b+a))
-        else:
-            assert(inst[1] == 'position')
-            a = int(inst[2])
-            b = int(inst[5])
-            password = list(password)
-            password[a], password[b] = password[b], password[a]
-            yield ''.join(password)
-    elif op == 'rotate':
-        if inst[1] == 'based':
-            c = inst[6]
-            for idx in range(len(password)):
-                rotate_n = 1 + idx
-                if idx >= 4:
-                    rotate_n += 1
-                rotate_n %= len(password)
-
-                cand = password[rotate_n:] + password[:rotate_n]
-                if cand[idx] == c:
-                    yield cand
-        else:
-            x = int(inst[2])
-            if inst[1] == 'left':
-                # Rotate right as the inverse
-                yield password[-x:] + password[:-x]
-            else:
-                assert(inst[1] == 'right')
-                # Rotate left as the inverse
-                yield password[x:] + password[:x]
-    elif op == 'reverse':
-        x = int(inst[2])
-        y = int(inst[4])
-        yield password[:x] + password[x:y+1][::-1] + password[y+1:]
-    elif op == 'move':
-        x = int(inst[2])
-        y = int(inst[5])
-        password = list(password)
-        # Inverted
-        c = password.pop(y)
-        password.insert(x, c)
-        yield ''.join(password)
-    else:
-        assert(False)
-
-def unscramble(password, instructions):
-    candidates = {password}
-
-    instructions = list(instructions)[::-1]
-    for inst in instructions:
-        new_cands = set()
-
-        for p in candidates:
-            for c in undo(p, inst):
-                new_cands.add(c)
-
-        candidates = new_cands
-
-    candidates = list(candidates)
-    if len(candidates) > 1:
-        print(candidates)
-        assert(False)
-
-    return candidates[0]
-
 def part2(s):
-    answer = unscramble('fbgdceah', parse_instructions(s))
+    answer = 'fbgdceah'
+
+    for apply, inverse in list(parse_instructions(s))[::-1]:
+        answer = inverse(answer)
 
     print(f'The answer to part two is {answer}')
 
