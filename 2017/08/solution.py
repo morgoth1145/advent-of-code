@@ -34,7 +34,17 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    registers = {}
+
+    answer = 0
+
+    for var1, op, val, var2, cond, target in parse_input(s):
+        if CONDITIONS[cond](registers.get(var2, 0), target):
+            val = OPERATIONS[op](registers.get(var1, 0), val)
+            answer = max(answer, val)
+            registers[var1] = val
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 8)
 part1(INPUT)
