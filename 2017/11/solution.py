@@ -7,7 +7,7 @@ def part1(s):
     for d in s.split(','):
         pos = pos.move(d)
 
-    answer = pos.steps_from(lib.hex_coord.NSHexCoord())
+    answer = pos.steps_to(lib.hex_coord.NSHexCoord())
 
     print(f'The answer to part one is {answer}')
 
@@ -17,7 +17,7 @@ def part2(s):
 
     for d in s.split(','):
         pos = pos.move(d)
-        answer = max(answer, pos.steps_from(lib.hex_coord.NSHexCoord()))
+        answer = max(answer, pos.steps_to(lib.hex_coord.NSHexCoord()))
 
     print(f'The answer to part two is {answer}')
 

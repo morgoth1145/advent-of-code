@@ -47,9 +47,16 @@ class NSHexCoord(typing.NamedTuple):
             yield ydir
             y_dist -= dy
 
-    def steps_from(self, other):
+    def steps_to(self, other):
         assert(isinstance(other, NSHexCoord))
-        return (abs(self.x - other.x) + abs(self.y - other.y)) // 2
+        x_dist = abs(self.x - other.x)
+        y_dist = abs(self.y - other.y)
+        if x_dist > y_dist:
+            # We have to zig-zag to the destination
+            return x_dist
+        # x moves get us most of the way on the y direction, then we can
+        # move 2 at a time
+        return x_dist + (y_dist - x_dist) // 2
 
 # Moves as properties
 def _make_ns_hex_move_getter(dx, dy):
@@ -105,9 +112,16 @@ class EWHexCoord(typing.NamedTuple):
             yield xdir
             x_dist -= dx
 
-    def steps_from(self, other):
+    def steps_to(self, other):
         assert(isinstance(other, EWHexCoord))
-        return (abs(self.x - other.x) + abs(self.y - other.y)) // 2
+        x_dist = abs(self.x - other.x)
+        y_dist = abs(self.y - other.y)
+        if y_dist > x_dist:
+            # We have to zig-zag to the destination
+            return y_dist
+        # y moves get us most of the way on the x direction, then we can
+        # move 2 at a time
+        return y_dist + (x_dist - y_dist) // 2
 
 # Moves as properties
 def _make_ew_hex_move_getter(dx, dy):
