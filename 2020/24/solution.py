@@ -2,21 +2,14 @@ import collections
 import re
 
 import lib.aoc
+import lib.hex_coord
 
 def get_initially_active_tiles(move_list):
     active_tiles = set()
     for moves in move_list.splitlines():
-        x, y = 0, 0
+        pos = lib.hex_coord.EWHexCoord()
         for move in re.findall('e|w|se|sw|nw|ne', moves):
-            x, y = {
-                'e': (x+1, y),
-                'w': (x-1, y),
-                'sw': (x-1, y-1),
-                'se': (x, y-1),
-                'nw': (x, y+1),
-                'ne': (x+1, y+1)
-                }[move]
-        pos = (x, y)
+            pos = pos.move(move)
         if pos in active_tiles:
             active_tiles.remove(pos)
         else:
@@ -27,18 +20,10 @@ def part1(s):
     answer = len(get_initially_active_tiles(s))
     print(f'The answer to part one is {answer}')
 
-def all_neighbors(x, y):
-    return [(x+1, y),
-            (x-1, y),
-            (x-1, y-1),
-            (x, y-1),
-            (x, y+1),
-            (x+1, y+1)]
-
 def iterate(active_tiles):
     neighbor_counts = collections.defaultdict(int)
     for pos in active_tiles:
-        for n in all_neighbors(*pos):
+        for n in pos.neighbors:
             neighbor_counts[n] += 1
     new_active = {pos
                   for pos in active_tiles

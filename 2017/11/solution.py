@@ -1,48 +1,23 @@
 import lib.aoc
-
-def move(pos, d):
-    a, b = pos
-
-    if d == 'ne':
-        a += 2
-    elif d == 'n':
-        a += 1
-        b += 1
-    elif d == 'nw':
-        a -= 1
-        b += 1
-    elif d == 'sw':
-        a -= 2
-    elif d == 's':
-        a -= 1
-        b -= 1
-    elif d == 'se':
-        a += 1
-        b -= 1
-    else:
-        assert(False)
-
-    return a, b
+import lib.hex_coord
 
 def part1(s):
-    pos = (0, 0)
+    pos = lib.hex_coord.NSHexCoord()
 
     for d in s.split(','):
-        pos = move(pos, d)
-        assert(sum(map(abs, pos)) % 2 == 0)
+        pos = pos.move(d)
 
-    answer = sum(map(abs, pos)) // 2
+    answer = pos.steps_from(lib.hex_coord.NSHexCoord())
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
     answer = 0
-    pos = (0, 0)
+    pos = lib.hex_coord.NSHexCoord()
 
     for d in s.split(','):
-        pos = move(pos, d)
-        assert(sum(map(abs, pos)) % 2 == 0)
-        answer = max(answer, sum(map(abs, pos)) // 2)
+        pos = pos.move(d)
+        answer = max(answer, pos.steps_from(lib.hex_coord.NSHexCoord()))
 
     print(f'The answer to part two is {answer}')
 
