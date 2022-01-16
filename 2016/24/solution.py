@@ -59,7 +59,30 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    graph = get_point_of_interest_graph(s)
+
+    all_points_of_interest = tuple(sorted(graph.keys()))
+
+    queue = [(0, 0, (0,))]
+    handled = set()
+
+    while True:
+        current_dist, pos, seen = heapq.heappop(queue)
+
+        if seen == all_points_of_interest and pos == 0:
+            answer = current_dist
+            break
+
+        if (pos, seen) in handled:
+            continue
+
+        handled.add((pos, seen))
+
+        for neighbor, dist in graph[pos]:
+            new_seen = tuple(sorted(set(seen + (neighbor,))))
+            heapq.heappush(queue, (current_dist + dist, neighbor, new_seen))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2016, 24)
 part1(INPUT)
