@@ -2,48 +2,33 @@ import collections
 
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
-        bits = line.split(' -> ')
-        a, b = bits[0].split()
-        assert(b[0] == '(' and b[-1] == ')')
-        b = int(b[1:-1])
-        if len(bits) == 2:
-            rest = bits[1].split(', ')
-        else:
-            rest = []
-        yield a, b, rest
-
-def part1(s):
-    seen = set()
+def parse_tree(s):
+    tree = {}
     referenced = set()
 
-    for name, weight, held in parse_input(s):
-        seen.add(name)
+    for line in s.splitlines():
+        parts = line.split(' -> ')
+        name, weight = parts[0].split()
+        assert(weight[0] == '(' and weight[-1] == ')')
+        weight = int(weight[1:-1])
+        if len(parts) == 2:
+            held = parts[1].split(', ')
+        else:
+            held = []
+        tree[name] = (weight, held)
         referenced.update(held)
 
-    base = list(seen - referenced)
-    assert(len(base) == 1)
+    root = set(tree.keys()) - referenced
+    assert(len(root) == 1)
+    return list(root)[0], tree
 
-    answer = base[0]
+def part1(s):
+    answer, _ = parse_tree(s)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    seen = set()
-    referenced = set()
-
-    tree = {}
-
-    for name, weight, held in parse_input(s):
-        seen.add(name)
-        referenced.update(held)
-        tree[name] = (weight, held)
-
-    base = list(seen - referenced)
-    assert(len(base) == 1)
-
-    base = base[0]
+    root, tree = parse_tree(s)
 
     fixes = {}
 
@@ -70,7 +55,7 @@ def part2(s):
         this_weight = weight + sum(sub_weights)
         return this_weight
 
-    fix_recursive(base)
+    fix_recursive(root)
 
     assert(len(fixes) == 1)
 
