@@ -3,35 +3,30 @@ import lib.aoc
 def gen_coords():
     x, y = 0, 0
     dist = 1
-    val = 1
 
-    yield (x, y), val
+    yield x, y
 
     while True:
         for _ in range(dist):
             x += 1
-            val += 1
-            yield (x, y), val
+            yield x, y
         for _ in range(dist):
             y += 1
-            val += 1
-            yield (x, y), val
+            yield x, y
         dist += 1
         for _ in range(dist):
             x -= 1
-            val += 1
-            yield (x, y), val
+            yield x, y
         for _ in range(dist):
             y -= 1
-            val += 1
-            yield (x, y), val
+            yield x, y
         dist += 1
 
 def part1(s):
     n = int(s)
 
-    for (x, y), val in gen_coords():
-        if val == n:
+    for idx, (x, y) in enumerate(gen_coords()):
+        if idx+1 == n:
             answer = abs(x) + abs(y)
             break
 
@@ -44,11 +39,10 @@ def part2(s):
         (0, 0): 1
     }
 
-    for (x, y), _ in gen_coords():
-        val = 0
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                val += written.get((x+dx, y+dy), 0)
+    for x, y in gen_coords():
+        val = sum(written.get((x+dx, y+dy), 0)
+                  for dx in (-1, 0, 1)
+                  for dy in (-1, 0, 1))
         written[x, y] = val
         if val > n:
             answer = val
