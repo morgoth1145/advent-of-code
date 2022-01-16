@@ -38,7 +38,23 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    n = int(s)
+
+    written = {
+        (0, 0): 1
+    }
+
+    for (x, y), _ in gen_coords():
+        val = 0
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                val += written.get((x+dx, y+dy), 0)
+        written[x, y] = val
+        if val > n:
+            answer = val
+            break
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 3)
 part1(INPUT)
