@@ -1,55 +1,54 @@
-import json
-
 import lib.aoc
 
-def parse_input(s):
-    # Remove ignores
-    garbage_s = ''
-    while s:
-        idx = s.find('!')
-        if idx == -1:
-            garbage_s += s
-            s = ''
-        else:
-            garbage_s += s[:idx]
-            s = s[idx+2:]
+def solve(s):
+    assert(s[0] == '{' and s[-1] == '}')
 
+    score = 0
+    depth = 0
+
+    ignoring = False
+    garbage = False
     discarded = 0
 
-    clean_s = ''
-    # Remove garbage
-    while garbage_s:
-        idx = garbage_s.find('<')
-        if idx == -1:
-            clean_s += garbage_s
-            garbage_s = ''
-        else:
-            clean_s += garbage_s[:idx]
-            end_idx = garbage_s.find('>', idx)
-            discarded += end_idx - idx - 1
-            garbage_s = garbage_s[end_idx+1:]
+    for c in s:
+        if ignoring:
+            assert(garbage)
+            ignoring = False
+            continue
+        if garbage:
+            if c == '>':
+                garbage = False
+                continue
+            if c == '!':
+                ignoring = True
+                continue
+            discarded += 1
+            continue
+        if c == '<':
+            garbage = True
+            continue
+        if c == ',':
+            continue
+        if c == '{':
+            depth += 1
+            continue
+        if c == '}':
+            score += depth
+            depth -= 1
+            continue
+        assert(False)
 
-    assert(len(set(clean_s) - set('{},')) == 0)
+    assert(depth == 0)
 
-    s = clean_s.translate(str.maketrans('{}', '[]'))
-    while ',,' in s:
-        s = s.replace(',,', ',')
-    s = s.replace('[,', '[')
-    s = s.replace(',]', ']')
-    return json.loads(s), discarded
-
-def score(tree, parent_score=0):
-    self = parent_score + 1
-    return self + sum(score(child, self)
-                      for child in tree)
+    return score, discarded
 
 def part1(s):
-    answer = score(parse_input(s)[0])
+    answer, _ = solve(s)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    _, answer = parse_input(s)
+    _, answer = solve(s)
 
     print(f'The answer to part two is {answer}')
 
