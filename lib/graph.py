@@ -76,29 +76,26 @@ def all_reachable(graph, start, max_dist=None):
             heapq.heappush(queue, (current_dist + neighbor_dist,
                                    neighbor_node))
 
-def dijkstra_length(graph, start, end, heuristic=None):
-    '''Returns the length of the path from start to end in the graph.
-    Return -1 if no path is found.
+def dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic=None):
+    '''Returns the length of the shortest path from start to any end state
+    in the graph. Return -1 if no path is found.
     graph[node] must return a list of (neighbor, distance) pairs
 
     Arguments:
+    end_fn - Function accepting a state. Returns True if this is an end state
+    and False otherwise
     heuristic - If supplied, provides an estimate of the remaining distance
     from a given node to the end
     '''
     if heuristic is None:
         heuristic = lambda n: 0
 
-    # Verify that end is a valid node. I ran into dumb bugs when refactoring
-    # when passing in a list that should have been a tuple!
-    hash(end)
-    assert(heuristic(end) == 0)
-
     seen = set()
     queue = [(heuristic(start), 0, start)]
     while len(queue) > 0:
         _, current_dist, current_node = heapq.heappop(queue)
 
-        if current_node == end:
+        if end_fn(current_node):
             return current_dist
 
         if current_node in seen:
@@ -114,6 +111,26 @@ def dijkstra_length(graph, start, end, heuristic=None):
                                    neighbor_node))
 
     return -1
+
+def dijkstra_length(graph, start, end, heuristic=None):
+    '''Returns the length of the path from start to end in the graph.
+    Return -1 if no path is found.
+    graph[node] must return a list of (neighbor, distance) pairs
+
+    Arguments:
+    heuristic - If supplied, provides an estimate of the remaining distance
+    from a given node to the end
+    '''
+    def end_fn(state):
+        return state == end
+
+    # Verify that end is a valid node. I ran into dumb bugs when refactoring
+    # when passing in a list that should have been a tuple!
+    hash(end)
+    if heuristic is not None:
+        assert(heuristic(end) == 0)
+
+    return dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic)
 
 def make_lazy_graph(neighbor_fn):
     def fn(key):

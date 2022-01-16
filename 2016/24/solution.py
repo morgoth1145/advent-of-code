@@ -1,5 +1,3 @@
-import heapq
-
 import lib.aoc
 import lib.graph
 import lib.grid
@@ -32,55 +30,37 @@ def get_point_of_interest_graph(s):
 
     return poi_graph
 
+def solve(s, required_end_node=None):
+    poi_graph = get_point_of_interest_graph(s)
+
+    def neighbor_fn(state):
+        pos, seen = state
+        for neighbor, dist in poi_graph[pos]:
+            new_state = (neighbor, tuple(sorted(set(seen + (neighbor,)))))
+            yield new_state, dist
+
+    graph = lib.graph.make_lazy_graph(neighbor_fn)
+
+    ALL_POINTS_OF_INTEREST = tuple(sorted(poi_graph.keys()))
+
+    START = (0, (0,))
+    END = (0, ALL_POINTS_OF_INTEREST)
+
+    def end_fn(state):
+        pos, seen = state
+        if required_end_node is not None and required_end_node != pos:
+            return False
+        return seen == ALL_POINTS_OF_INTEREST
+
+    return lib.graph.dijkstra_length_fuzzy_end(graph, START, end_fn)
+
 def part1(s):
-    graph = get_point_of_interest_graph(s)
-
-    all_points_of_interest = tuple(sorted(graph.keys()))
-
-    queue = [(0, 0, (0,))]
-    handled = set()
-
-    while True:
-        current_dist, pos, seen = heapq.heappop(queue)
-
-        if seen == all_points_of_interest:
-            answer = current_dist
-            break
-
-        if (pos, seen) in handled:
-            continue
-
-        handled.add((pos, seen))
-
-        for neighbor, dist in graph[pos]:
-            new_seen = tuple(sorted(set(seen + (neighbor,))))
-            heapq.heappush(queue, (current_dist + dist, neighbor, new_seen))
+    answer = solve(s)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    graph = get_point_of_interest_graph(s)
-
-    all_points_of_interest = tuple(sorted(graph.keys()))
-
-    queue = [(0, 0, (0,))]
-    handled = set()
-
-    while True:
-        current_dist, pos, seen = heapq.heappop(queue)
-
-        if seen == all_points_of_interest and pos == 0:
-            answer = current_dist
-            break
-
-        if (pos, seen) in handled:
-            continue
-
-        handled.add((pos, seen))
-
-        for neighbor, dist in graph[pos]:
-            new_seen = tuple(sorted(set(seen + (neighbor,))))
-            heapq.heappush(queue, (current_dist + dist, neighbor, new_seen))
+    answer = solve(s, 0)
 
     print(f'The answer to part two is {answer}')
 
