@@ -14,7 +14,15 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = 0
+
+    for passphrase in parse_input(s):
+        passphrase = [tuple(sorted(part))
+                      for part in passphrase]
+        if len(passphrase) == len(set(passphrase)):
+            answer += 1
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 4)
 part1(INPUT)
