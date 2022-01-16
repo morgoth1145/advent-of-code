@@ -36,7 +36,15 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = 0
+    pos = (0, 0)
+
+    for d in s.split(','):
+        pos = move(pos, d)
+        assert(sum(map(abs, pos)) % 2 == 0)
+        answer = max(answer, sum(map(abs, pos)) // 2)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 11)
 part1(INPUT)
