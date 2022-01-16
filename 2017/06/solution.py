@@ -23,7 +23,20 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    nums = tuple(map(int, s.split()))
+
+    seen_steps = {
+        nums: 0
+    }
+
+    while True:
+        nums = step(nums)
+        if nums in seen_steps:
+            answer = len(seen_steps) - seen_steps[nums]
+            break
+        seen_steps[nums] = len(seen_steps)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 6)
 part1(INPUT)
