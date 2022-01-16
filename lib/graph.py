@@ -16,24 +16,7 @@ def topological_sort(graph):
     for key in graph.keys():
         yield from impl(key)
 
-def shortest_path(graph, start, end):
-    '''Searches for and returns the shortest path from start to end in the graph
-    Returns None on failure to find any path
-    Uses BFS'''
-    seen = set()
-    queue = [[start]]
-    while len(queue) > 0:
-        current = queue.pop(0)
-        pos = current[-1]
-        seen.add(pos)
-        if pos == end:
-            return current
-
-        for neighbor in graph[pos]:
-            if neighbor not in seen:
-                queue.append(current + [neighbor])
-    return None
-
+# TODO: Change to use the distance-based graph
 def longest_path_length(graph, start):
     '''Searches for and returns the length of the longest path from start to
     somewhere in the graph'''
@@ -136,3 +119,21 @@ def make_lazy_graph(neighbor_fn):
     def fn(key):
         return list(neighbor_fn(key))
     return lib.lazy_dict.make_lazy_dict(fn)
+
+def to_distance_graph(graph):
+    '''Some usages more naturally generate graphs without distance information.
+    Most utilities in this library expect a distance graph, so a converter
+    makes some usages much easier.
+    '''
+    def neighbor_fn(node):
+        for n in graph[node]:
+            yield n, 1
+    return make_lazy_graph(neighbor_fn)
+
+def node_dist_list_to_nodes(node_dist_list):
+    '''Some usages only care about the list of nodes, not the distances.
+    A converter from node-distance lists to a list of nodes can simplify such
+    usages.
+    '''
+    for node, dist in node_dist_list:
+        yield node
