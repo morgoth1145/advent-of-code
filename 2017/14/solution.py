@@ -44,7 +44,36 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    rows = [determine_row(f'{s}-{row_n}') for row_n in range(128)]
+
+    on_positions = set()
+
+    for y, row in enumerate(rows):
+        for x, c in enumerate(bin(row)[2:].zfill(128)):
+            if c == '1':
+                on_positions.add((x, y))
+
+    answer = 0
+    while on_positions:
+        answer += 1
+
+        to_process = [list(on_positions)[0]]
+        on_positions.remove(to_process[0])
+
+        while to_process:
+            x, y = to_process.pop(-1)
+            for dx in (-1, 1):
+                n = (x+dx, y)
+                if n in on_positions:
+                    on_positions.remove(n)
+                    to_process.append(n)
+            for dy in (-1, 1):
+                n = (x, y+dy)
+                if n in on_positions:
+                    on_positions.remove(n)
+                    to_process.append(n)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 14)
 part1(INPUT)
