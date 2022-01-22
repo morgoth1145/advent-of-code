@@ -1,43 +1,43 @@
-import parse
-
 import lib.aoc
 
-def gen_sequence(prev, fact, mod):
+def sequence_generator(val, fact, mod):
     while True:
-        val = (prev * fact) % mod
+        val = (val * fact) % mod
         yield val
-        prev = val
 
-def judge(a_seq, b_seq, to_check):
-    matched = 0
+def parse_sequences(s):
+    a, b = s.splitlines()
+    a = int(a.split()[-1])
+    b = int(b.split()[-1])
+
+    MOD = 2147483647
+
+    return sequence_generator(a, 16807, MOD), sequence_generator(b, 48271, MOD)
+
+def judge(a, b, to_check):
     BIT_MASK = 0xFFFF # 16 bits
 
+    matched = 0
+
     for _ in range(to_check):
-        if next(a_seq) & BIT_MASK == next(b_seq) & BIT_MASK:
+        if next(a) & BIT_MASK == next(b) & BIT_MASK:
             matched += 1
 
     return matched
 
 def part1(s):
-    a, b = list(map(lambda r:r[0], parse.findall('{:d}', s)))
-
-    a_seq = gen_sequence(a, 16807, 2147483647)
-    b_seq = gen_sequence(b, 48271, 2147483647)
-
-    answer = judge(a_seq, b_seq, 40000000)
+    a, b = parse_sequences(s)
+    answer = judge(a, b, 40000000)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    a, b = list(map(lambda r:r[0], parse.findall('{:d}', s)))
+    a, b = parse_sequences(s)
 
-    a_seq = gen_sequence(a, 16807, 2147483647)
-    b_seq = gen_sequence(b, 48271, 2147483647)
+    a = filter(lambda val: val % 4 == 0, a)
+    b = filter(lambda val: val % 8 == 0, b)
 
-    a_seq = filter(lambda val: val & 3 == 0, a_seq)
-    b_seq = filter(lambda val: val & 7 == 0, b_seq)
-
-    answer = judge(a_seq, b_seq, 5000000)
+    answer = judge(a, b, 5000000)
 
     print(f'The answer to part two is {answer}')
 
