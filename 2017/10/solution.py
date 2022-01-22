@@ -1,9 +1,11 @@
 import lib.aoc
 
-def knot_hash(nums, pos, skip, lengths):
-    nums = list(nums)
+def part1(s):
+    nums = list(range(256))
 
-    for l in lengths:
+    pos, skip = 0, 0
+
+    for l in map(int, s.split(',')):
         # Reverse
         to_rev = []
         for i in range(l):
@@ -14,37 +16,39 @@ def knot_hash(nums, pos, skip, lengths):
         pos = (pos + l + skip) % len(nums)
         skip += 1
 
-    return nums, pos, skip
-
-def part1(s):
-    nums = list(range(256))
-    lengths = list(map(int, s.split(',')))
-
-    nums, _, _ = knot_hash(nums, 0, 0, lengths)
-
     answer = nums[0] * nums[1]
 
     print(f'The answer to part one is {answer}')
 
-def part2(s):
+def knot_hash(s):
     nums = list(range(256))
     lengths = list(map(ord, s)) + [17, 31, 73, 47, 23]
 
     pos, skip = 0, 0
 
     for _ in range(64):
-        nums, pos, skip = knot_hash(nums, pos, skip, lengths)
+        for l in lengths:
+            # Reverse
+            to_rev = []
+            for i in range(l):
+                to_rev.append(nums[(pos + i) % len(nums)])
+            for i, v in enumerate(to_rev[::-1]):
+                nums[(pos + i) % len(nums)] = v
 
-    dense = []
+            pos = (pos + l + skip) % len(nums)
+            skip += 1
+
+    res = 0
     for i in range(0, 256, 16):
         val = 0
         for v in nums[i:i+16]:
             val = val ^ v
-        dense.append(val)
+        res = (res << 8) + val
 
-    answer = ''
-    for sect in dense:
-        answer += hex(sect)[2:].zfill(2)
+    return res
+
+def part2(s):
+    answer = hex(knot_hash(s))[2:].zfill(32)
 
     print(f'The answer to part two is {answer}')
 

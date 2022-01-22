@@ -1,41 +1,34 @@
 import lib.aoc
 
-def knot_hash(nums, pos, skip, lengths):
-    nums = list(nums)
-
-    for l in lengths:
-        # Reverse
-        to_rev = []
-        for i in range(l):
-            to_rev.append(nums[(pos + i) % len(nums)])
-        for i, v in enumerate(to_rev[::-1]):
-            nums[(pos + i) % len(nums)] = v
-
-        pos = (pos + l + skip) % len(nums)
-        skip += 1
-
-    return nums, pos, skip
-
-def determine_row(s):
+def knot_hash(s):
     nums = list(range(256))
     lengths = list(map(ord, s)) + [17, 31, 73, 47, 23]
 
     pos, skip = 0, 0
 
     for _ in range(64):
-        nums, pos, skip = knot_hash(nums, pos, skip, lengths)
+        for l in lengths:
+            # Reverse
+            to_rev = []
+            for i in range(l):
+                to_rev.append(nums[(pos + i) % len(nums)])
+            for i, v in enumerate(to_rev[::-1]):
+                nums[(pos + i) % len(nums)] = v
 
-    row = 0
+            pos = (pos + l + skip) % len(nums)
+            skip += 1
+
+    res = 0
     for i in range(0, 256, 16):
         val = 0
         for v in nums[i:i+16]:
             val = val ^ v
-        row = (row << 8) + val
+        res = (res << 8) + val
 
-    return row
+    return res
 
 def part1(s):
-    rows = [determine_row(f'{s}-{row_n}') for row_n in range(128)]
+    rows = [knot_hash(f'{s}-{row_n}') for row_n in range(128)]
 
     answer = 0
     for row in rows:
@@ -44,7 +37,7 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    rows = [determine_row(f'{s}-{row_n}') for row_n in range(128)]
+    rows = [knot_hash(f'{s}-{row_n}') for row_n in range(128)]
 
     on_positions = set()
 
@@ -62,13 +55,10 @@ def part2(s):
 
         while to_process:
             x, y = to_process.pop(-1)
-            for dx in (-1, 1):
-                n = (x+dx, y)
-                if n in on_positions:
-                    on_positions.remove(n)
-                    to_process.append(n)
-            for dy in (-1, 1):
-                n = (x, y+dy)
+            for n in [(x-1, y),
+                      (x+1, y),
+                      (x, y-1),
+                      (x, y+1)]:
                 if n in on_positions:
                     on_positions.remove(n)
                     to_process.append(n)
