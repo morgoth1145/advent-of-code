@@ -8,15 +8,18 @@ def knot_hash(s):
 
     for _ in range(64):
         for l in lengths:
-            # Reverse
-            to_rev = []
-            for i in range(l):
-                to_rev.append(nums[(pos + i) % len(nums)])
-            for i, v in enumerate(to_rev[::-1]):
-                nums[(pos + i) % len(nums)] = v
+            if pos+l < 256:
+                # Simple reverse
+                nums[pos:pos+l] = nums[pos:pos+l][::-1]
+            else:
+                # Complex reverse (loop around)
+                to_rev = nums[pos:] + nums[:(pos+l) & 0xFF]
+                to_rev = to_rev[::-1]
+                nums[pos:] = to_rev[:256-pos]
+                nums[:(pos+l) & 0xFF] = to_rev[256-pos:]
 
-            pos = (pos + l + skip) % len(nums)
-            skip += 1
+            pos = (pos + l + skip) & 0xFF
+            skip = (skip+1) & 0xFF
 
     res = 0
     for i in range(0, 256, 16):
