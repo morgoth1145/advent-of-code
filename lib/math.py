@@ -1,3 +1,4 @@
+import collections
 import functools
 import math
 
@@ -6,6 +7,30 @@ def mod_mult_inv(n, mod):
     such that (n * n_inv) % mod == 1
     '''
     return pow(n, -1, mod)
+
+def minimum_divisors_to_make_coprime(a, b):
+    '''Calculates the divisors of a and b such that gcd(a // a_div, b // b_div)
+    is 1 and a_div * b_div == gcd(a, b).
+    '''
+    if b < a:
+        # Prefer a being the smaller value. It can make the iteration faster.
+        b_div, a_div = minimum_divisors_to_make_coprime(b, a)
+        return a_div, b_div
+
+    a_div = math.gcd(a, b)
+    b_div = 1
+    # a // a_div may still share divisors with b. Find them and shift them to
+    # b_div. This may take multiple iterations for some cases (such as
+    # a = 27 and b = 9 where the minimum divisors are a_div = 1 and b_div = 9)
+    # since gcd(a // a_div, a_div) may not detect the full extent of the
+    # conflict. (For a = 27 and b = 9, a_div starts at 9 so gcd(a // a_div, a_div)
+    # is only 3, not 9!)
+    while True:
+        still_present = math.gcd(a // a_div, a_div)
+        if still_present == 1:
+            return a_div, b_div
+        a_div //= still_present
+        b_div *= still_present
 
 def chinese_remainder(congruencies):
     '''Efficiently calculates and returns the smallest number which works for
@@ -23,7 +48,8 @@ def chinese_remainder(congruencies):
     n = 1
     rem = 0
     for mod, r in congruencies:
-        common_denom = math.gcd(n, mod)
+        n_div, mod_div = minimum_divisors_to_make_coprime(n, mod)
+        common_denom = n_div * mod_div
         if common_denom > 1:
             # n and mod are not coprime, check for conflicts
             if rem % common_denom != r % common_denom:
@@ -32,17 +58,16 @@ def chinese_remainder(congruencies):
                 # second congruence (sol % mod == r) imply *different* answers
                 # mod common_denom!
                 return None
-            # These can be reduced by dividing out common_denom from one of the
-            # congruences
-            mod_cand = mod // common_denom
-            if math.gcd(n, mod_cand) == 1:
-                mod = mod_cand
-                r %= mod
-            else:
-                # Dividing out common_denom from mod did *not* make n and mod coprime
-                # Thus dividing common_denom from n should make them coprime
-                n //= common_denom
+
+            # These congruencies can be reduced to be coprime using the divisors
+            # computed above
+            if n_div != 1:
+                n //= n_div
                 rem %= n
+            if mod_div != 1:
+                mod //= mod_div
+                r %= mod
+
         next_n = n*mod
         mod_inv = mod_mult_inv(mod, n)
         n_inv = mod_mult_inv(n, mod)
@@ -77,6 +102,123 @@ def offset_chinese_remainder(congruencies):
                     for mod, offset
                     in congruencies]
     return chinese_remainder(congruencies)
+
+def chinese_remainder_incongruence(incongruencies):
+    '''Efficiently calculates and returns the smallest number which works for
+    all given incongruences. For example, given the following:
+    x % 4 != 0
+    x % 2 != 1
+    x % 6 != 2
+    x % 6 != 0
+    The smallest x which satisfies all three is 10.
+    If no solution exists, returns None.
+
+    Arguments:
+    incongruencies -- The list of incongruencies to use. Expected to be a list
+    of (mod, remainder) tuples.
+    '''
+    mod_to_bad_remainders = collections.defaultdict(set)
+
+    for mod, remainder in incongruencies:
+        mod_to_bad_remainders[mod].add(remainder % mod)
+
+    valid_congruency_options = [
+        (mod, set(range(mod)) - bad_remainders)
+        for mod, bad_remainders
+        in mod_to_bad_remainders.items()
+    ]
+
+    # Process valid congruency options from the fewest to greatest
+    # number of options to minimize exponential blow-up during processing
+    valid_congruency_options.sort(key=lambda pair: (len(pair[1]), pair[0]))
+
+    # Follow the same overall algorithm as chinese_remainder, but keep track
+    # of sets of options instead of one answer.
+    n = 1
+    rem_options = {0}
+
+    for mod, r_options in valid_congruency_options:
+        new_options = set()
+
+        n_div, mod_div = minimum_divisors_to_make_coprime(n, mod)
+        common_denom = n_div * mod_div
+
+        if common_denom == 1:
+            remainder_to_r_options = {
+                1: r_options
+            }
+            remainder_to_rem_options = {
+                1: rem_options
+            }
+        else:
+            n //= n_div
+            mod //= mod_div
+
+            remainder_to_r_options = collections.defaultdict(set)
+            for r in r_options:
+                remainder_to_r_options[r % common_denom].add(r % mod)
+
+            remainder_to_rem_options = collections.defaultdict(set)
+            for rem in rem_options:
+                remainder_to_rem_options[rem % common_denom].add(rem % n)
+
+            # Eagerly release rem_options in case of exponential blowup
+            # to save memory
+            del rem_options
+
+        next_n = n*mod
+        mod_inv = mod_mult_inv(mod, n)
+        n_inv = mod_mult_inv(n, mod)
+        # Given two congruences: (x % mod == a) and (x % q == b)
+        # If mod and q are coprime then multiplicative inverses exist such that
+        # mod*mod_inv % q == 1 and q*q_inv % mod == 1
+        # We can construct the following
+        # y = (a*q*q_inv + b*mod*mod_inv) % (mod*q)
+        # Then y % mod == a and y % q == b. Thus y is a solution
+        # We can then merge these into a "super congruence" and merge in the next one!
+
+        rem_factor = mod*mod_inv
+        r_factor = n*n_inv
+
+        # Make sure to match up remainder options based on their remainder
+        # mod common_denom. If their remainder mod common_denom do not match
+        # then they imply *different* answers!
+        for val, r_options in remainder_to_r_options.items():
+            rem_options = remainder_to_rem_options.pop(val, None)
+            if rem_options is None:
+                continue
+
+            for rem in rem_options:
+                for r in r_options:
+                    new_options.add((rem*rem_factor + r*r_factor) % next_n)
+
+        n = next_n
+        rem_options = new_options
+
+        if len(rem_options) == 0:
+            return None
+
+    return min(rem_options)
+
+def offset_chinese_remainder_incongruence(incongruencies):
+    '''Efficiently calculates and returns the smallest number which works for
+    all given *offset* incongruences. For example, given the following:
+    (x + 0) % 4 != 0
+    (x + 1) % 2 != 0
+    (x + 4) % 6 != 0
+    (x + 6) % 6 != 0
+    The smallest x which satisfies all three is 10.
+    If no solution exists, returns None.
+
+    Arguments:
+    incongruencies -- The list of incongruencies to use. Expected to be a list
+    of (mod, offset) tuples.
+    '''
+    # Convert congruencies to chinese remainder form
+    incongruencies = [(mod, (mod - (offset % mod)) % mod)
+                      for mod, offset
+                      in incongruencies]
+    return chinese_remainder_incongruence(incongruencies)
 
 def find_continuous_curve_minimum(domain, fn):
     '''Efficiently finds the input in the domain that minimizes the function

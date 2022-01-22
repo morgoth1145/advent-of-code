@@ -1,18 +1,18 @@
-import collections
-
 import lib.aoc
+import lib.math
 
 def parse_input(s):
     for line in s.splitlines():
-        yield tuple(map(int, line.split(':')))
+        depth, layers = tuple(map(int, line.split(':')))
+        cycle = 2 * (layers - 1)
+        if cycle == 0:
+            cycle = 1
+        yield depth, layers, cycle
 
 def part1(s):
     answer = 0
 
-    for depth, layers in parse_input(s):
-        cycle = 2 * (layers - 1)
-        if cycle == 0:
-            cycle = 1
+    for depth, layers, cycle in parse_input(s):
         if depth % cycle == 0:
             # Caught!
             answer += depth * layers
@@ -20,26 +20,10 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    incongruencies = []
+    incongruencies = [(cycle, depth % cycle)
+                      for depth, _, cycle in parse_input(s)]
 
-    for depth, layers in parse_input(s):
-        cycle = 2 * (layers - 1)
-        if cycle == 0:
-            cycle = 1
-        incongruencies.append((cycle, (cycle - (depth % cycle)) % cycle))
-
-    incongruencies = sorted(incongruencies)
-
-    d = collections.defaultdict(set)
-    for mod, bad in incongruencies:
-        d[mod].add(bad)
-
-    answer = 0
-    while True:
-        if all(answer % mod not in bad
-               for mod, bad in d.items()):
-            break
-        answer += 1
+    answer = lib.math.offset_chinese_remainder_incongruence(incongruencies)
 
     print(f'The answer to part two is {answer}')
 
