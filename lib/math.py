@@ -264,7 +264,7 @@ def find_continuous_curve_minimum(domain, fn):
 
         if check_val < pivot:
             # The check block is smaller than the entire other side, that means
-            # that the minimum must lie inside the check bock
+            # that the minimum must lie inside the check block
             domain_indices = to_check
             pivot_idx = check_idx
             pivot = check_val
@@ -276,7 +276,7 @@ def find_continuous_curve_minimum(domain, fn):
                 pivot_idx -= check_idx
                 low = check_val
             else:
-                # The high side of the check bock does not contain the minimum
+                # The high side of the check block does not contain the minimum
                 domain_indices = domain_indices[:pivot_idx+check_idx+1]
                 high = check_val
 
