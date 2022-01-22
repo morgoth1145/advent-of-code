@@ -20,17 +20,34 @@ def part2(s):
 
     pos = 0
     length = 1
-    target_pos = 0
-    answer = None
 
-    for n in range(1, 50000001):
-        pos = (pos + steps) % length
-        pos += 1 # Insert location
-        if pos == target_pos:
-            target_pos += 1
-        elif pos == target_pos + 1:
-            answer = n
+    n = 1
+    to_insert = 50000000-1
+
+    while to_insert > 0:
+        # See if we can do a quick jump-ahead. We only care about insertions
+        # which land on 0, so we can skip iterations which don't loop around
+        skip_ahead = (length - 1 - pos) // (steps + 1)
+        if skip_ahead:
+            # Insert the chunks so long as they're still pending
+            skip_ahead = min(skip_ahead, to_insert)
+
+            pos += steps * skip_ahead + skip_ahead
+            length += skip_ahead
+
+            to_insert -= skip_ahead
+            n += skip_ahead
+            continue
+
+        pos = (pos + steps) % length + 1
         length += 1
+
+        # If the insert location is 1 then it's the new "after 0" value
+        if pos == 1:
+            answer = n
+
+        to_insert -= 1
+        n += 1
 
     print(f'The answer to part two is {answer}')
 
