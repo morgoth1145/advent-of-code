@@ -282,3 +282,64 @@ def find_continuous_curve_minimum(domain, fn):
 
     min_idx = min(domain_indices, key=lambda idx:fn(domain[idx]))
     return domain[min_idx]
+
+class Quadratic:
+    '''Hold quadratic formula/functions and provides relevant operations/helpers
+    to analyze and use them.
+    '''
+    def __init__(self, a, b, c):
+        self.a = a
+        self.b = b
+        self.c = c
+
+    def __neg__(self):
+        return Quadratic(-self.a,
+                         -self.b,
+                         -self.c)
+
+    def __add__(self, other):
+        assert(isinstance(other, Quadratic))
+        return Quadratic(self.a + other.a,
+                         self.b + other.b,
+                         self.c + other.c)
+
+    def __sub__(self, other):
+        assert(isinstance(other, Quadratic))
+        return Quadratic(self.a - other.a,
+                         self.b - other.b,
+                         self.c - other.c)
+
+    def __call__(self, x):
+        return x*x*self.a + x*self.b + self.c
+
+    @property
+    def terms(self):
+        return self.a, self.b, self.c
+
+    def solutions(self):
+        '''Generates all solutions for when this quadratic equals zero
+        '''
+        if self.a == 0:
+            return
+
+        discriminant = self.b**2 - 4*self.a*self.c
+        root = discriminant ** 0.5
+
+        yield (-self.b + root) / (2 * self.a)
+        yield (-self.b - root) / (2 * self.a)
+
+    def real_solutions(self):
+        '''Generates all real solutions for when this quadratic equals zero
+        '''
+        for s in self.solutions():
+            if isinstance(s, complex):
+                continue
+            yield s
+
+    def integral_solutions(self):
+        '''Generates all integral solutions for when this quadratic equals zero
+        '''
+        for s in self.real_solutions():
+            if round(s) != s:
+                continue
+            yield s

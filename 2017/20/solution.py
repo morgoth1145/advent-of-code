@@ -1,31 +1,23 @@
 import collections
 
 import lib.aoc
-
-def add_vectors(v0, v1):
-    x0, y0, z0 = v0
-    x1, y1, z1 = v1
-
-    return x0+x1, y0+y1, z0+z1
+import lib.math
 
 class Particle:
-    def __init__(self, idx, pos, vel, acc):
-        self.idx = idx
-        self.pos = pos
-        self.vel = vel
-        self.acc = acc
+    def __init__(self, pos, vel, acc):
+        formulae = []
+        for i in range(3):
+            a = acc[i]/2
+            b = vel[i] + acc[i]/2
+            c = pos[i]
+            formulae.append(lib.math.Quadratic(a, b, c))
 
-    @property
-    def manhattan_velocity(self):
-        return sum(map(abs, self.vel))
+        self.x_form = formulae[0]
+        self.y_form = formulae[1]
+        self.z_form = formulae[2]
 
-    @property
-    def manhattan_acceleration(self):
-        return sum(map(abs, self.acc))
-
-    def step(self):
-        self.vel = add_vectors(self.vel, self.acc)
-        self.pos = add_vectors(self.pos, self.vel)
+    def pos_at(self, t):
+        return self.x_form(t), self.y_form(t), self.z_form(t)
 
     def __str__(self):
         return f'Particle({self.pos}, {self.vel}, {self.acc})'
@@ -40,48 +32,70 @@ def parse_input(s):
         p = parse_vec(p)
         v = parse_vec(v)
         a = parse_vec(a)
-        yield Particle(idx, p, v, a)
+        yield Particle(p, v, a)
 
 def part1(s):
-    particles = sorted(parse_input(s),
-                       key=lambda p: (p.manhattan_acceleration,
-                                      p.manhattan_velocity))
+    particles = list(parse_input(s))
 
-    for idx in range(1, len(particles)):
-        if particles[idx].manhattan_acceleration > particles[0].manhattan_acceleration:
-            particles = particles[:idx]
-            break
+    long_term_manhattan_dist_formulae = []
+    for p in particles:
+        components = [p.x_form, p.y_form, p.z_form]
+        # Flip component formulae if necessary
+        # That is, this component eventually resides in the negative axis
+        for idx, f in enumerate(components):
+            if f.a > 0:
+                # Acceleration towards positive, leave alone
+                continue
+            if f.a == 0:
+                # Not accelerating, look at velocity
+                if f.b > 0:
+                    # Drifting towards positive, leave alone
+                    continue
+                if f.b == 0:
+                    # Not moving, look at position
+                    if f.c >= 0:
+                        # Sitting in positive, leave alone
+                        continue
+            components[idx] = -components[idx]
+        x, y, z = components
+        long_term_manhattan_dist_formulae.append(x + y + z)
 
-    # Assume no acceleration goes "counter" to the initial velocity
-    # Assume that there is a minimum velocity for the minimum acceleration
-
-    answer = particles[0].idx
+    # Select the manhattan distance formula which grows the slowest
+    # The slowest growing formula will minimize the quadratic, linear, and
+    # constant terms in that order
+    answer = min(range(len(particles)),
+                 key=lambda idx: long_term_manhattan_dist_formulae[idx].terms)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
     particles = list(parse_input(s))
 
-    turns_since_collisions = 0
+    # Find potential collision times based on x
+    times = set()
 
-    while turns_since_collisions < 1000:
-        pos_counts = collections.Counter()
+    for idx, p0 in enumerate(particles):
+        for p1 in particles[idx+1:]:
+            f = p0.x_form - p1.x_form
+            times.update(t for t in f.integral_solutions()
+                         if t >= 0)
 
-        for p in particles:
-            p.step()
-            pos_counts[p.pos] += 1
+    # Check for collisions at all candidate times
+    for t in sorted(times):
+        pos_to_indices = collections.defaultdict(list)
 
-        old_size = len(particles)
+        for idx, p in enumerate(particles):
+            pos_to_indices[p.pos_at(t)].append(idx)
+
+        to_remove = set()
+
+        for indices in pos_to_indices.values():
+            if len(indices) > 1:
+                to_remove.update(indices)
 
         particles = [p
-                     for p in particles
-                     if pos_counts[p.pos] == 1]
-
-        if old_size > len(particles):
-            # Collision
-            turns_since_collisions = 0
-        else:
-            turns_since_collisions += 1
+                     for idx, p in enumerate(particles)
+                     if idx not in to_remove]
 
     answer = len(particles)
 
