@@ -1,4 +1,12 @@
+import collections
+
 import lib.aoc
+
+def add_vectors(v0, v1):
+    x0, y0, z0 = v0
+    x1, y1, z1 = v1
+
+    return x0+x1, y0+y1, z0+z1
 
 class Particle:
     def __init__(self, idx, pos, vel, acc):
@@ -14,6 +22,10 @@ class Particle:
     @property
     def manhattan_acceleration(self):
         return sum(map(abs, self.acc))
+
+    def step(self):
+        self.vel = add_vectors(self.vel, self.acc)
+        self.pos = add_vectors(self.pos, self.vel)
 
     def __str__(self):
         return f'Particle({self.pos}, {self.vel}, {self.acc})'
@@ -48,7 +60,32 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    particles = list(parse_input(s))
+
+    turns_since_collisions = 0
+
+    while turns_since_collisions < 1000:
+        pos_counts = collections.Counter()
+
+        for p in particles:
+            p.step()
+            pos_counts[p.pos] += 1
+
+        old_size = len(particles)
+
+        particles = [p
+                     for p in particles
+                     if pos_counts[p.pos] == 1]
+
+        if old_size > len(particles):
+            # Collision
+            turns_since_collisions = 0
+        else:
+            turns_since_collisions += 1
+
+    answer = len(particles)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 20)
 part1(INPUT)
