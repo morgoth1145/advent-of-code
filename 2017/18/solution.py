@@ -1,125 +1,92 @@
+import threading
+
 import lib.aoc
+import lib.channels
 
-def parse_instructions(s):
-    instructions = []
+def execute(s, pid, send_chan, recv_chan):
+    def impl():
+        instructions = []
 
-    for line in s.splitlines():
-        parts = line.split()
-        if parts[1] not in 'abcdefghijklmnopqrstuvwxyz':
-            parts[1] = int(parts[1])
-        if len(parts) > 2 and parts[2] not in 'abcdefghijklmnopqrstuvwxyz':
-            parts[2] = int(parts[2])
-        instructions.append(parts)
+        for line in s.splitlines():
+            parts = line.split()
+            for i in range(1, len(parts)):
+                if parts[i] not in 'abcdefghijklmnopqrstuvwxyz':
+                    parts[i] = int(parts[i])
+            instructions.append(parts)
 
-    return instructions
+        idx = 0
+        registers = {
+            'p': pid
+        }
 
-def part1(s):
-    instructions = parse_instructions(s)
-
-    idx = 0
-    registers = {}
-    last_frequency = None
-
-    def get_val(val):
-        if isinstance(val, int):
-            return val
-        return registers.get(val, 0)
-
-    while True:
-        inst = instructions[idx]
-
-        if inst[0] == 'snd':
-            last_frequency = get_val(inst[1])
-        elif inst[0] == 'set':
-            registers[inst[1]] = get_val(inst[2])
-        elif inst[0] == 'add':
-            registers[inst[1]] = get_val(inst[1]) + get_val(inst[2])
-        elif inst[0] == 'mul':
-            registers[inst[1]] = get_val(inst[1]) * get_val(inst[2])
-        elif inst[0] == 'mod':
-            registers[inst[1]] = get_val(inst[1]) % get_val(inst[2])
-        elif inst[0] == 'rcv':
-            x = get_val(inst[1])
-            if x:
-                answer = last_frequency
-                break
-        elif inst[0] == 'jgz':
-            if get_val(inst[1]) > 0:
-                idx += get_val(inst[2])
-                continue
-        else:
-            assert(False)
-
-        idx += 1
-
-    print(f'The answer to part one is {answer}')
-
-class Program:
-    def __init__(self, s, pid):
-        self.instructions = parse_instructions(s)
-        self.idx = 0
-        self.registers = {'p': pid}
-        self.send_count = 0
-        self.queue = []
-
-    def push_val(self, val):
-        self.queue.append(val)
-
-    @property
-    def blocked(self):
-        return len(self.queue) == 0
-
-    def _get_val(self, val):
-        if isinstance(val, int):
-            return val
-        return self.registers.get(val, 0)
-
-    def execute(self):
-        outputs = []
+        def get_val(val):
+            if isinstance(val, int):
+                return val
+            return registers.get(val, 0)
 
         while True:
-            inst = self.instructions[self.idx]
+            inst = instructions[idx]
 
             if inst[0] == 'snd':
-                outputs.append(self._get_val(inst[1]))
-                self.send_count += 1
+                send_chan.send(get_val(inst[1]))
             elif inst[0] == 'set':
-                self.registers[inst[1]] = self._get_val(inst[2])
+                registers[inst[1]] = get_val(inst[2])
             elif inst[0] == 'add':
-                self.registers[inst[1]] = self._get_val(inst[1]) + self._get_val(inst[2])
+                registers[inst[1]] = get_val(inst[1]) + get_val(inst[2])
             elif inst[0] == 'mul':
-                self.registers[inst[1]] = self._get_val(inst[1]) * self._get_val(inst[2])
+                registers[inst[1]] = get_val(inst[1]) * get_val(inst[2])
             elif inst[0] == 'mod':
-                self.registers[inst[1]] = self._get_val(inst[1]) % self._get_val(inst[2])
+                registers[inst[1]] = get_val(inst[1]) % get_val(inst[2])
             elif inst[0] == 'rcv':
-                if len(self.queue) == 0:
-                    return outputs
-
-                self.registers[inst[1]] = self.queue.pop(0)
+                try:
+                    if recv_chan is None:
+                        # Part 1 mode
+                        if get_val(inst[1]):
+                            send_chan.close()
+                            return
+                    else:
+                        # Part 2 mode
+                        registers[inst[1]] = recv_chan.recv()
+                except lib.channels.ChannelClosed:
+                    return
             elif inst[0] == 'jgz':
-                if self._get_val(inst[1]) > 0:
-                    self.idx += self._get_val(inst[2])
+                if get_val(inst[1]) > 0:
+                    idx += get_val(inst[2])
                     continue
             else:
                 assert(False)
 
-            self.idx += 1
+            idx += 1
+    threading.Thread(target=impl).start()
+
+def part1(s):
+    frequencies = lib.channels.SyncChannel()
+    execute(s, 0, frequencies, None)
+
+    answer = 0
+    for val in frequencies:
+        answer = val
+
+    print(f'The answer to part one is {answer}')
 
 def part2(s):
-    a = Program(s, 0)
-    b = Program(s, 1)
+    a_chan = lib.channels.BufferedChannel()
+    b_chan = lib.channels.BufferedChannel()
 
-    while True:
-        a_outputs = a.execute()
-        for val in a_outputs:
-            b.push_val(val)
-        b_outputs = b.execute()
-        for val in b_outputs:
-            a.push_val(val)
-        if a.blocked and b.blocked:
-            break
+    stats = lib.channels.record_message_stats(b_chan)
 
-    answer = b.send_count
+    deadlock_events = lib.channels.detect_deadlock_events(2, a_chan, b_chan)
+
+    execute(s, 0, a_chan, b_chan)
+    execute(s, 1, b_chan, a_chan)
+
+    deadlock_events.recv()
+
+    # Tell the worker threads to close
+    a_chan.close()
+    b_chan.close()
+
+    answer = stats.sends
 
     print(f'The answer to part two is {answer}')
 
