@@ -1,7 +1,7 @@
 import lib.aoc
 import lib.grid
 
-def part1(s):
+def solve(s):
     grid = lib.grid.FixedGrid.parse(s)
 
     pos = None
@@ -15,7 +15,8 @@ def part1(s):
     x, y = pos
     dx, dy = 0, 1
 
-    answer = ''
+    seen_letters = ''
+    steps = 1 # Count the first step onto the board
 
     while True:
         cur = grid[x,y]
@@ -40,14 +41,23 @@ def part1(s):
             # Reached the end
             break
 
+        steps += 1
+
         if val not in '-|+':
             # Letter, accumulate it
-            answer += val
+            seen_letters += val
+
+    return seen_letters, steps
+
+def part1(s):
+    answer, _ = solve(s)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    _, answer = solve(s)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 19)
 part1(INPUT)
