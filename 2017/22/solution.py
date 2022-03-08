@@ -26,7 +26,44 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+
+    x, y = (grid.width)//2, (grid.height)//2
+    d = grid.to_dict()
+
+    dx, dy = 0, -1
+
+    answer = 0
+
+    for step in range(10000000):
+        state = d.get((x,y), '.')
+        if state == '.': # Clean
+            dx, dy = dy, -dx # Turn left
+        elif state == 'W':
+            pass
+        elif state == '#': # Infected
+            dx, dy = -dy, dx # Turn right
+        elif state == 'F':
+            dx, dy = -dx, -dy
+        else:
+            assert(False)
+
+        if state == '.': # Clean
+            d[x,y] = 'W'
+        elif state == 'W':
+            d[x,y] = '#'
+            answer += 1
+        elif state == '#': # Infected
+            d[x,y] = 'F'
+        elif state == 'F':
+            d[x,y] = '.'
+        else:
+            assert(False)
+
+        x += dx
+        y += dy
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 22)
 part1(INPUT)
