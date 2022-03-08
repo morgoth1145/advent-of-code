@@ -68,7 +68,9 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = solve(s, 18)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 21)
 part1(INPUT)
