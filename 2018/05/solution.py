@@ -1,28 +1,33 @@
 import lib.aoc
 
-def react(s):
-    for idx, (a, b) in enumerate(zip(s, s[1:])):
-        if a == b:
-            continue
-        if a.lower() != b.lower():
-            continue
-        # Reaction
-        return s[:idx] + s[idx+2:]
-    return s
+def full_reduce(s):
+    stack = []
+
+    for unit in s:
+        if stack:
+            if stack[-1].lower() == unit.lower():
+                if stack[-1] != unit:
+                    # Reaction
+                    stack.pop(-1)
+                    continue
+
+        stack.append(unit)
+
+    return ''.join(stack)
 
 def part1(s):
-    while True:
-        reduced = react(s)
-        if reduced == s:
-            break
-        s = reduced
-
-    answer = len(s)
+    answer = len(full_reduce(s))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = len(s)
+
+    for t in 'abcdefghijklmnopqrstuvwxyz':
+        cand = full_reduce(s.replace(t, '').replace(t.upper(), ''))
+        answer = min(answer, len(cand))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 5)
 part1(INPUT)
