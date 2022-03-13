@@ -18,7 +18,20 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    ids = list(s.splitlines())
+
+    for idx, a in enumerate(ids):
+        for b in ids[idx+1:]:
+            diffs = 0
+            for c1, c2 in zip(a, b):
+                if c1 != c2:
+                    diffs += 1
+            if diffs == 1:
+                for idx, (c1, c2) in enumerate(zip(a, b)):
+                    if c1 != c2:
+                        answer = a[:idx] + a[idx+1:]
+    
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 2)
 part1(INPUT)
