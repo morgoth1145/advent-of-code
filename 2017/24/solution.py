@@ -40,7 +40,36 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    parts = list(parse_input(s))
+
+    port_to_indices = collections.defaultdict(set)
+    for idx, (a, b) in enumerate(parts):
+        port_to_indices[a].add(idx)
+        port_to_indices[b].add(idx)
+
+    @functools.cache
+    def strongest(port, used):
+        candidates = port_to_indices[port] - set(used)
+
+        best = (0, 0)
+
+        for idx in candidates:
+            a, b = parts[idx]
+            if a == port:
+                other = b
+            else:
+                other = a
+                assert(b == port)
+
+            length, strength = strongest(other, tuple(sorted(used + (idx,))))
+            
+            best = max(best, (length+1, a + b + strength))
+
+        return best
+
+    length, answer = strongest(0, tuple())
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2017, 24)
 part1(INPUT)
