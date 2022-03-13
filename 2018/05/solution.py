@@ -5,11 +5,10 @@ def full_reduce(s):
 
     for unit in s:
         if stack:
-            if stack[-1].lower() == unit.lower():
-                if stack[-1] != unit:
-                    # Reaction
-                    stack.pop(-1)
-                    continue
+            if stack[-1].swapcase() == unit:
+                # Reaction
+                stack.pop(-1)
+                continue
 
         stack.append(unit)
 
