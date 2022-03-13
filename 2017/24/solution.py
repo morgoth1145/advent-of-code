@@ -3,24 +3,25 @@ import functools
 
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
+def solve(s, maximize_length):
+    parts = []
+    connections = collections.defaultdict(set)
+
+    for idx, line in enumerate(s.splitlines()):
         a, b = line.split('/')
-        yield int(a), int(b)
-
-def part1(s):
-    parts = list(parse_input(s))
-
-    port_to_indices = collections.defaultdict(set)
-    for idx, (a, b) in enumerate(parts):
-        port_to_indices[a].add(idx)
-        port_to_indices[b].add(idx)
+        a, b = int(a), int(b)
+        connections[a].add(idx)
+        connections[b].add(idx)
+        parts.append((a, b))
 
     @functools.cache
     def strongest(port, used):
-        candidates = port_to_indices[port] - set(used)
+        candidates = connections[port] - set(used)
 
-        best = 0
+        if maximize_length:
+            best = (0, 0)
+        else:
+            best = 0
 
         for idx in candidates:
             a, b = parts[idx]
@@ -30,44 +31,29 @@ def part1(s):
                 other = a
                 assert(b == port)
 
-            strength = a+b + strongest(other, tuple(sorted(used + (idx,))))
-            best = max(best, strength)
+            strength = strongest(other, tuple(sorted(used + (idx,))))
+
+            if maximize_length:
+                length, strength = strength
+                best = max(best, (length+1, a + b + strength))
+            else:
+                best = max(best, a + b + strength)
 
         return best
 
-    answer = strongest(0, tuple())
+    best = strongest(0, tuple())
+    if maximize_length:
+        best = best[1]
+
+    return best
+
+def part1(s):
+    answer = solve(s, maximize_length=False)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    parts = list(parse_input(s))
-
-    port_to_indices = collections.defaultdict(set)
-    for idx, (a, b) in enumerate(parts):
-        port_to_indices[a].add(idx)
-        port_to_indices[b].add(idx)
-
-    @functools.cache
-    def strongest(port, used):
-        candidates = port_to_indices[port] - set(used)
-
-        best = (0, 0)
-
-        for idx in candidates:
-            a, b = parts[idx]
-            if a == port:
-                other = b
-            else:
-                other = a
-                assert(b == port)
-
-            length, strength = strongest(other, tuple(sorted(used + (idx,))))
-            
-            best = max(best, (length+1, a + b + strength))
-
-        return best
-
-    length, answer = strongest(0, tuple())
+    answer = solve(s, maximize_length=True)
 
     print(f'The answer to part two is {answer}')
 
