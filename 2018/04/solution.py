@@ -2,22 +2,18 @@ import collections
 
 import lib.aoc
 
-def parse_input(s):
+def parse_sleep_record(s):
+    guard_sleep_record = collections.defaultdict(collections.Counter)
+
+    duty = None
+    fell_asleep = None
+
     for line in sorted(s.splitlines()):
         date, time, act = line.split(maxsplit=2)
         date = date[1:]
 
         hour, minute = list(map(int, time[:-1].split(':')))
 
-        yield date, hour, minute, act
-
-def part1(s):
-    guard_sleep_record = collections.defaultdict(collections.Counter)
-
-    duty = None
-    fell_asleep = None
-
-    for date, hour, minute, act in parse_input(s):
         if act.startswith('Guard'):
             assert(fell_asleep is None)
             _, n, _, _ = act.split()
@@ -37,6 +33,11 @@ def part1(s):
             continue
         assert(False)
 
+    return guard_sleep_record
+
+def part1(s):
+    guard_sleep_record = parse_sleep_record(s)
+
     guard, sleep_record = max(guard_sleep_record.items(),
                               key=lambda pair: sum(pair[1].values()))
     (minute, _), = sleep_record.most_common(1)
@@ -46,7 +47,19 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    guard_sleep_record = parse_sleep_record(s)
+
+    best = (0, 0, 0)
+
+    for guard, sleep_record in guard_sleep_record.items():
+        (minute, times_slept), = sleep_record.most_common(1)
+        best = max(best, (times_slept, guard, minute))
+
+    _, guard, minute = best
+
+    answer = guard * minute
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 4)
 part1(INPUT)
