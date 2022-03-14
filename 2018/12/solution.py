@@ -1,54 +1,27 @@
 import lib.aoc
 
-def step(plant_offsets, plant_patterns):
-    new_offsets = []
-
-    for off in range(plant_offsets[0]-2, plant_offsets[-1]+3):
-        key = []
-        for i in range(off-2, off+3):
-            key.append('#' if i in plant_offsets else '.')
-        key = ''.join(key)
-
-        if key in plant_patterns:
-            new_offsets.append(off)
-
-    adjust = new_offsets[0]
-    plant_offsets = tuple(o-adjust
-                          for o in new_offsets)
-
-    return adjust, plant_offsets
-
-def run(s, generations):
+def solve(s, generations):
     groups = s.split('\n\n')
 
-    start = groups[0].split()[2]
+    pots = groups[0].split()[2]
+    start = pots.index('#')
+    pots = pots.strip('.')
 
-    plant_offsets = []
-    for idx, c in enumerate(start):
-        if c == '#':
-            plant_offsets.append(idx)
-
-    start = plant_offsets[0]
-    plant_offsets = tuple(o-start
-                          for o in plant_offsets)
-
-    plant_patterns = set()
+    transitions = {}
 
     for line in groups[1].splitlines():
         a, b = line.split(' => ')
-        if b == '#':
-            plant_patterns.add(a)
+        transitions[a] = b
 
-    assert('.....' not in plant_patterns)
+    assert(transitions['.....'] == '.')
 
     memory = {}
     sequence = []
 
-    gen_num = 0
-    while gen_num < generations:
-        sequence.append((start, plant_offsets))
-        if plant_offsets in memory:
-            gen_seen, prev_start = memory[plant_offsets]
+    for gen_num in range(generations):
+        sequence.append((start, pots))
+        if pots in memory:
+            gen_seen, prev_start = memory[pots]
             # Jump ahead!
 
             repeat_every = gen_num - gen_seen
@@ -56,32 +29,38 @@ def run(s, generations):
 
             remaining = generations - gen_num
             jump_by = remaining // repeat_every
-            gen_num += jump_by * repeat_every
             start += jump_by * shift_per
+
+            remaining = remaining % repeat_every
+            next_start, pots = sequence[gen_seen + remaining]
+
+            start += next_start - prev_start
             break
 
-        memory[plant_offsets] = (gen_num, start)
-        gen_num += 1
+        memory[pots] = (gen_num, start)
 
-        adjust, plant_offsets = step(plant_offsets, plant_patterns)
-        start += adjust
+        # The added padding shifts start to the left, though
+        # we'll likely shift back at the end
+        start -= 2
+        pots = '....' + pots + '....'
 
-    # Wrap up if needed
-    while gen_num < generations:
-        gen_num += 1
-        adjust, plant_offsets = step(plant_offsets, plant_patterns)
-        start += adjust
+        pots = ''.join(transitions[pots[i:i+5]]
+                       for i in range(len(pots)-4))
 
-    return [o+start
-            for o in plant_offsets]
+        start += pots.index('#')
+        pots = pots.strip('.')
+
+    return sum(start + idx
+               for idx, c in enumerate(pots)
+               if c == '#')
 
 def part1(s):
-    answer = sum(run(s, 20))
+    answer = solve(s, 20)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    answer = sum(run(s, 50000000000))
+    answer = solve(s, 50000000000)
 
     print(f'The answer to part two is {answer}')
 
