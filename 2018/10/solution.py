@@ -1,20 +1,18 @@
 import lib.aoc
 import lib.ocr
 
-def parse_input(s):
+def parse(s):
+    points = []
+    velocities = []
+
     for line in s.splitlines():
         line = line.replace('=<', ' ').replace('>', ' ').replace(',', '')
         _, px, py, _, vx, vy = line.split()
 
-        yield int(px), int(py), int(vx), int(vy)
+        points.append((int(px), int(py)))
+        velocities.append((int(vx), int(vy)))
 
-def part1(s):
-    points = []
-    velocities = []
-
-    for px, py, vx, vy in parse_input(s):
-        points.append((px, py))
-        velocities.append((vx, vy))
+    steps = 0
 
     while True:
         min_y = min(y for x,y in points)
@@ -22,16 +20,21 @@ def part1(s):
 
         if max_y - min_y < 10:
             # Assume that the valid position is relatively short
-            answer = lib.ocr.parse_coord_set(points)
-            break
+            return lib.ocr.parse_coord_set(points), steps
 
         for idx, ((px, py), (vx, vy)) in enumerate(zip(points, velocities)):
             points[idx] = (px+vx, py+vy)
+        steps += 1
+
+def part1(s):
+    answer, _ = parse(s)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    _, answer = parse(s)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 10)
 part1(INPUT)
