@@ -54,7 +54,28 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    points = list(parse_input(s))
+
+    min_x = min(x for x,y in points)
+    max_x = max(x for x,y in points)
+    min_y = min(y for x,y in points)
+    max_y = max(y for x,y in points)
+
+    width = max_x-min_x+1
+    height = max_y-min_y+1
+
+    answer = 0
+
+    # The ranges are probably overkill
+    for x in range(min_x-width, max_x+1+width):
+        for y in range(min_y-height, max_y+1+height):
+            tot_dist = 0
+            for px, py in points:
+                tot_dist += abs(x-px) + abs(y-py)
+            if tot_dist < 10000:
+                answer += 1
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 6)
 part1(INPUT)
