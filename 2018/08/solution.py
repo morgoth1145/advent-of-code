@@ -36,7 +36,38 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    root = parse_tree(s)
+
+    def evaluate(node):
+        children, metadata = node
+
+        if children:
+            counts = [0] * len(children)
+
+            for idx in metadata:
+                if idx == 0:
+                    continue
+                idx -= 1
+                if idx >= len(children):
+                    continue
+                counts[idx] += 1
+
+            value = 0
+
+            for c, child in zip(counts, children):
+                if c == 0:
+                    continue
+
+                value += c * evaluate(child)
+
+            return value
+
+        # No children
+        return sum(metadata)
+
+    answer = evaluate(root)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 8)
 part1(INPUT)
