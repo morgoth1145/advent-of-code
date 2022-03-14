@@ -6,24 +6,21 @@ def parse_input(s):
     for line in s.splitlines():
         yield tuple(map(int, line.split(',')))
 
-def get_set_sizes(points, x_range, y_range):
-    sizes = collections.Counter()
+def closest_point(points, x, y):
+    best_dist = None
+    cands = []
+    for idx, (px, py) in enumerate(points):
+        dist = abs(x-px) + abs(y-py)
+        if best_dist is None or best_dist > dist:
+            best_dist = dist
+            cands = [idx]
+        elif best_dist == dist:
+            cands.append(idx)
 
-    for x in x_range:
-        for y in y_range:
-            best_dist = None
-            cands = []
-            for idx, (px, py) in enumerate(points):
-                dist = abs(x-px) + abs(y-py)
-                if best_dist is None or best_dist > dist:
-                    best_dist = dist
-                    cands = [idx]
-                elif best_dist == dist:
-                    cands.append(idx)
-            if len(cands) == 1:
-                sizes[cands[0]] += 1
-
-    return sizes
+    # If there's a conflict, nothing is closest
+    if len(cands) > 1:
+        return None
+    return cands[0]
 
 def part1(s):
     points = list(parse_input(s))
@@ -33,47 +30,60 @@ def part1(s):
     min_y = min(y for x,y in points)
     max_y = max(y for x,y in points)
 
-    width = max_x-min_x+1
-    height = max_y-min_y+1
+    x_range = range(min_x, max_x+1)
+    y_range = range(min_y, max_y+1)
 
-    base_sizes = get_set_sizes(points,
-                               range(min_x, max_x+1),
-                               range(min_y, max_y+1))
+    sizes = collections.Counter()
 
-    sizes = get_set_sizes(points,
-                          range(min_x-width, max_x+1+width),
-                          range(min_y-height, max_y+1+height))
+    for x in x_range:
+        for y in y_range:
+            sizes[closest_point(points, x, y)] += 1
 
-    answer = 0
-    for idx in range(len(points)):
-        # Assume that a larger size means infinite
-        # May not always be true
-        if base_sizes[idx] == sizes[idx]:
-            answer = max(answer, base_sizes[idx])
+    infinites = set()
+
+    for x in x_range:
+        infinites.add(closest_point(points, x, min_y))
+        infinites.add(closest_point(points, x, max_y))
+    for y in y_range:
+        infinites.add(closest_point(points, min_x, y))
+        infinites.add(closest_point(points, max_x, y))
+
+    answer = max(count
+                 for best, count in sizes.items()
+                 if best is not None
+                 if best not in infinites)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
     points = list(parse_input(s))
 
-    min_x = min(x for x,y in points)
-    max_x = max(x for x,y in points)
-    min_y = min(y for x,y in points)
-    max_y = max(y for x,y in points)
+    mid_x = sum(x for x,y in points) // len(points)
+    mid_y = sum(y for x,y in points) // len(points)
 
-    width = max_x-min_x+1
-    height = max_y-min_y+1
-
+    seen = {(mid_x, mid_y)}
+    to_check = [(mid_x, mid_y)]
     answer = 0
 
-    # The ranges are probably overkill
-    for x in range(min_x-width, max_x+1+width):
-        for y in range(min_y-height, max_y+1+height):
-            tot_dist = 0
-            for px, py in points:
-                tot_dist += abs(x-px) + abs(y-py)
-            if tot_dist < 10000:
-                answer += 1
+    while to_check:
+        x, y = to_check.pop(-1)
+
+        tot_dist = sum(abs(x-px) + abs(y-py)
+                       for px, py in points)
+
+        if tot_dist >= 10000:
+            continue
+
+        answer += 1
+
+        for neighbor in [(x-1, y),
+                         (x+1, y),
+                         (x, y-1),
+                         (x, y+1)]:
+            if neighbor in seen:
+                continue
+            to_check.append(neighbor)
+            seen.add(neighbor)
 
     print(f'The answer to part two is {answer}')
 
