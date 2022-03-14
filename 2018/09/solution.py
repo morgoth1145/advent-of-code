@@ -16,7 +16,7 @@ def play(players, last_marble):
             scores[player] += marbles.popleft()
         else:
             marbles.rotate(-2)
-            marbles.insert(0, m)
+            marbles.appendleft(m)
 
         player = (player + 1) % players
 
