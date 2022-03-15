@@ -1,83 +1,122 @@
 import lib.aoc
 import lib.grid
 
-def part1(s):
+class Cart:
+    def __init__(self, coord, direct):
+        self.coord = coord
+        self.direct = direct
+        self.intersect_count = 0
+
+    def move(self):
+        x, y = self.coord
+        dx, dy = self.direct
+        self.coord = x+dx, y+dy
+
+    def handle_track(self, track):
+        dx, dy = self.direct
+
+        if track == '+':
+            # Intersection
+            choice = self.intersect_count % 3
+            self.intersect_count += 1
+
+            if choice == 0:
+                # Turn left
+                dx, dy = dy, -dx
+            elif choice == 1:
+                # Straight
+                pass
+            elif choice == 2:
+                # Turn right
+                dx, dy = -dy, dx
+            else:
+                assert(False)
+        elif track == '/':
+            # Turn right if moving vertically, turn left if moving horizontally
+            dx, dy = -dy, -dx
+        elif track == '\\':
+            # Turn left if moving vertically, turn right if moving horizontally
+            dx, dy = dy, dx
+
+        self.direct = dx, dy
+
+    def __repr__(self):
+        return f'Cart({self.coord}, {self.direct}, {self.intersect_count})'
+
+def parse_input(s):
     grid = lib.grid.FixedGrid.parse(s)
 
     carts = []
 
     for coord, c in grid.items():
-        if c in ' -/\\|+':
-            continue
-
         if c == '<':
-            carts.append((coord, -1, 0))
+            carts.append(Cart(coord, (-1, 0)))
             grid[coord] = '-'
         elif c == '>':
-            carts.append((coord, 1, 0))
+            carts.append(Cart(coord, (1, 0)))
             grid[coord] = '-'
         elif c == '^':
-            carts.append((coord, 0, -1))
+            carts.append(Cart(coord, (0, -1)))
             grid[coord] = '|'
         elif c == 'v':
-            carts.append((coord, 0, 1))
+            carts.append(Cart(coord, (0, 1)))
             grid[coord] = '|'
-        else:
-            assert(False)
 
-    intersection_counts = [0] * len(carts)
+    return grid, carts
+
+def tick(grid, carts):
+    # Move carts in a top-down, then left-right fashion
+    carts = sorted(carts, key=lambda c: (c.coord[1], c.coord[0]))
+
+    locations = {cart.coord: cart
+                 for cart in carts}
+
+    crashes = []
+
+    for cart in carts:
+        if cart.coord not in locations:
+            # Something ran into us already!
+            continue
+
+        # This cart is about to move
+        del locations[cart.coord]
+
+        cart.move()
+        if cart.coord in locations:
+            del locations[cart.coord]
+            crashes.append(cart.coord)
+            continue
+
+        cart.handle_track(grid[cart.coord])
+
+        locations[cart.coord] = cart
+
+    carts = list(locations.values())
+
+    return crashes, carts
+
+def part1(s):
+    grid, carts = parse_input(s)
 
     while True:
-        seen = set()
-        crash = None
-
-        for idx, ((x, y), dx, dy) in enumerate(carts):
-            x += dx
-            y += dy
-
-            coord = x, y
-
-            if coord in seen:
-                crash = coord
-                break
-
-            seen.add(coord)
-
-            if grid[coord] == '+':
-                # Intersection
-                choice = intersection_counts[idx] % 3
-
-                if choice == 0:
-                    # Turn left
-                    dx, dy = dy, -dx
-                elif choice == 1:
-                    # Straight
-                    pass
-                elif choice == 2:
-                    # Turn right
-                    dx, dy = -dy, dx
-                else:
-                    assert(False)
-
-                intersection_counts[idx] += 1
-            elif grid[coord] == '/':
-                # Turn right if moving vertically, turn left if moving horizontally
-                dx, dy = -dy, -dx
-            elif grid[coord] == '\\':
-                # Turn left if moving vertically, turn right if moving horizontally
-                dx, dy = dy, dx
-
-            carts[idx] = coord, dx, dy
-
-        if crash is not None:
-            x, y = crash
+        crashes, carts = tick(grid, carts)
+        if crashes:
+            x, y = crashes[0]
             answer = f'{x},{y}'
             break
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    grid, carts = parse_input(s)
+
+    while len(carts) > 1:
+        _, carts = tick(grid, carts)
+
+    x, y = carts[0].coord
+    answer = f'{x},{y}'
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 13)
 part1(INPUT)
