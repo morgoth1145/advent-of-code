@@ -7,7 +7,7 @@ class Unit:
         self.hp = hp
         self.force = force
 
-def parse_input(s):
+def parse_game(s, elf_strength):
     grid = lib.grid.FixedGrid.parse(s)
     units = {}
     force_counts = {
@@ -17,7 +17,9 @@ def parse_input(s):
 
     for coord, c in grid.items():
         if c in 'EG':
-            units[coord] = Unit(3, 200, c)
+            u = units[coord] = Unit(3, 200, c)
+            if c == 'E':
+                u.ap = elf_strength
             force_counts[c] += 1
 
     return grid, units, force_counts
@@ -138,21 +140,40 @@ def execute_round(grid, units, force_counts):
     # Executed a full round
     return True
 
-def part1(s):
-    grid, units, force_counts = parse_input(s)
+def run_game(s, elf_strength, elves_must_survive):
+    grid, units, force_counts = parse_game(s, elf_strength)
+
+    elf_count = force_counts['E']
 
     full_rounds_run = 0
     while execute_round(grid, units, force_counts):
         full_rounds_run += 1
+        if elves_must_survive and force_counts['E'] < elf_count:
+            # An elf died!
+            return None
+
+    if elves_must_survive and force_counts['E'] < elf_count:
+        # An elf died!
+        return None
 
     remaining_hp = sum(u.hp for u in units.values())
 
-    answer = full_rounds_run * remaining_hp
+    return full_rounds_run * remaining_hp
+
+def part1(s):
+    answer = run_game(s, elf_strength=3, elves_must_survive=False)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = None
+    elf_power = 3
+
+    while answer is None:
+        elf_power += 1
+        answer = run_game(s, elf_strength=elf_power, elves_must_survive=True)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 15)
 part1(INPUT)
