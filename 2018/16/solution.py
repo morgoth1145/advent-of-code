@@ -178,7 +178,44 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    samples, program = parse_input(s)
+
+    opcode_options = {
+        code: set(INSTRUCTIONS.keys())
+        for code in range(16)
+    }
+
+    for before, instruction, after in samples:
+        opcode = instruction[0]
+        opcode_options[opcode] &= sample_options(before, instruction, after)
+
+    deduced = {}
+    while opcode_options:
+        new_known = []
+        new_assigned = set()
+
+        for code, options in opcode_options.items():
+            if len(options) == 1:
+                name = list(options)[0]
+                new_known.append(code)
+                new_assigned.add(name)
+                deduced[code] = name
+
+        for code in new_known:
+            del opcode_options[code]
+
+        for code, options in opcode_options.items():
+            opcode_options[code] = options - new_assigned
+
+    registers = [0] * 4
+
+    for opcode, a, b, c in program:
+        name = deduced[opcode]
+        registers = INSTRUCTIONS[name](registers, a, b, c)
+
+    answer = registers[0]
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 16)
 part1(INPUT)
