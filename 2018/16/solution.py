@@ -20,135 +20,24 @@ def parse_input(s):
 
     return samples, program
 
-INSTRUCTIONS = {}
-
-def addr(regs, a, b, c):
-    regs = list(regs)
-    if max(a, b, c) > 3:
-        return None
-    regs[c] = regs[a] + regs[b]
-    return regs
-INSTRUCTIONS['addr'] = addr
-
-def addi(regs, a, b, c):
-    regs = list(regs)
-    if max(a, c) > 3:
-        return None
-    regs[c] = regs[a] + b
-    return regs
-INSTRUCTIONS['addi'] = addi
-
-def mulr(regs, a, b, c):
-    regs = list(regs)
-    if max(a, b, c) > 3:
-        return None
-    regs[c] = regs[a] * regs[b]
-    return regs
-INSTRUCTIONS['mulr'] = mulr
-
-def muli(regs, a, b, c):
-    regs = list(regs)
-    if max(a, c) > 3:
-        return None
-    regs[c] = regs[a] * b
-    return regs
-INSTRUCTIONS['muli'] = muli
-
-def banr(regs, a, b, c):
-    regs = list(regs)
-    if max(a, b, c) > 3:
-        return None
-    regs[c] = regs[a] & regs[b]
-    return regs
-INSTRUCTIONS['banr'] = banr
-
-def bani(regs, a, b, c):
-    regs = list(regs)
-    if max(a, c) > 3:
-        return None
-    regs[c] = regs[a] & b
-    return regs
-INSTRUCTIONS['bani'] = bani
-
-def borr(regs, a, b, c):
-    regs = list(regs)
-    if max(a, b, c) > 3:
-        return None
-    regs[c] = regs[a] | regs[b]
-    return regs
-INSTRUCTIONS['borr'] = borr
-
-def bori(regs, a, b, c):
-    regs = list(regs)
-    if max(a, c) > 3:
-        return None
-    regs[c] = regs[a] | b
-    return regs
-INSTRUCTIONS['bori'] = bori
-
-def setr(regs, a, b, c):
-    regs = list(regs)
-    if max(a, c) > 3:
-        return None
-    regs[c] = regs[a]
-    return regs
-INSTRUCTIONS['setr'] = setr
-
-def seti(regs, a, b, c):
-    regs = list(regs)
-    if c > 3:
-        return None
-    regs[c] = a
-    return regs
-INSTRUCTIONS['seti'] = seti
-
-def gtir(regs, a, b, c):
-    regs = list(regs)
-    if max(b, c) > 3:
-        return None
-    regs[c] = 1 if a > regs[b] else 0
-    return regs
-INSTRUCTIONS['gtir'] = gtir
-
-def gtri(regs, a, b, c):
-    regs = list(regs)
-    if max(a, c) > 3:
-        return None
-    regs[c] = 1 if regs[a] > b else 0
-    return regs
-INSTRUCTIONS['gtri'] = gtri
-
-def gtrr(regs, a, b, c):
-    regs = list(regs)
-    if max(a, b, c) > 3:
-        return None
-    regs[c] = 1 if regs[a] > regs[b] else 0
-    return regs
-INSTRUCTIONS['gtrr'] = gtrr
-
-def eqir(regs, a, b, c):
-    regs = list(regs)
-    if max(b, c) > 3:
-        return None
-    regs[c] = 1 if a == regs[b] else 0
-    return regs
-INSTRUCTIONS['eqir'] = eqir
-
-def eqri(regs, a, b, c):
-    regs = list(regs)
-    if max(a, c) > 3:
-        return None
-    regs[c] = 1 if regs[a] == b else 0
-    return regs
-INSTRUCTIONS['eqri'] = eqri
-
-def eqrr(regs, a, b, c):
-    regs = list(regs)
-    if max(a, b, c) > 3:
-        return None
-    regs[c] = 1 if regs[a] == regs[b] else 0
-    return regs
-INSTRUCTIONS['eqrr'] = eqrr
+INSTRUCTIONS = {
+    'addr': lambda regs, a, b: regs[a] + regs[b],
+    'addi': lambda regs, a, b: regs[a] + b,
+    'mulr': lambda regs, a, b: regs[a] * regs[b],
+    'muli': lambda regs, a, b: regs[a] * b,
+    'banr': lambda regs, a, b: regs[a] & regs[b],
+    'bani': lambda regs, a, b: regs[a] & b,
+    'borr': lambda regs, a, b: regs[a] | regs[b],
+    'bori': lambda regs, a, b: regs[a] | b,
+    'setr': lambda regs, a, b: regs[a],
+    'seti': lambda regs, a, b: a,
+    'gtir': lambda regs, a, b: 1 if a > regs[b] else 0,
+    'gtri': lambda regs, a, b: 1 if regs[a] > b else 0,
+    'gtrr': lambda regs, a, b: 1 if regs[a] > regs[b] else 0,
+    'eqir': lambda regs, a, b: 1 if a == regs[b] else 0,
+    'eqri': lambda regs, a, b: 1 if regs[a] == b else 0,
+    'eqrr': lambda regs, a, b: 1 if regs[a] == regs[b] else 0,
+}
 
 def sample_options(before, instruction, after):
     options = set()
@@ -156,8 +45,11 @@ def sample_options(before, instruction, after):
     _, a, b, c = instruction
 
     for name, fn in INSTRUCTIONS.items():
-        computed = fn(before, a, b, c)
-        if computed is None:
+        computed = list(before)
+        try:
+            computed[c] = fn(computed, a, b)
+        except:
+            # Register lookup failed
             continue
         if computed != after:
             continue
@@ -211,7 +103,7 @@ def part2(s):
 
     for opcode, a, b, c in program:
         name = deduced[opcode]
-        registers = INSTRUCTIONS[name](registers, a, b, c)
+        registers[c] = INSTRUCTIONS[name](registers, a, b)
 
     answer = registers[0]
 
