@@ -45,7 +45,56 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    INSTRUCTIONS_AS_STRING = {
+        'addr': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] + regs[{b}]'),
+        'addi': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] + {b}'),
+        'mulr': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] * regs[{b}]'),
+        'muli': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] * {b}'),
+        'banr': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] & regs[{b}]'),
+        'bani': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] & {b}'),
+        'borr': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] | regs[{b}]'),
+        'bori': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] | {b}'),
+        'setr': lambda a, b, c: (f'regs[{c}]', f'regs[{a}]'),
+        'seti': lambda a, b, c: (f'regs[{c}]', f'{a}'),
+        'gtir': lambda a, b, c: (f'regs[{c}]', f'1 if {a} > regs[{b}] else 0'),
+        'gtri': lambda a, b, c: (f'regs[{c}]', f'1 if regs[{a}] > {b} else 0'),
+        'gtrr': lambda a, b, c: (f'regs[{c}]', f'1 if regs[{a}] > regs[{b}] else 0'),
+        'eqir': lambda a, b, c: (f'regs[{c}]', f'1 if {a} == regs[{b}] else 0'),
+        'eqri': lambda a, b, c: (f'regs[{c}]', f'1 if regs[{a}] == {b} else 0'),
+        'eqrr': lambda a, b, c: (f'regs[{c}]', f'1 if regs[{a}] == regs[{b}] else 0'),
+    }
+
+    ip_addr, instructions = parse_input(s)
+
+    assert(ip_addr != 0)
+
+    print('idx = 0')
+    print(f'regs = {[1] + [0]*5}')
+    print()
+    print('while (true)')
+    print('{')
+    print('    switch (idx)')
+    print('    {')
+    for inst_idx, (cmd, a, b, c) in enumerate(instructions):
+        print(f'    case {inst_idx}:')
+        lhs, rhs = INSTRUCTIONS_AS_STRING[cmd](a, b, c)
+        if ip_addr in (a, b):
+            rhs = rhs.replace(f'regs[{ip_addr}]', str(inst_idx))
+        if c == ip_addr:
+            print(f'        idx = {rhs} + 1')
+            print('        break;')
+        else:
+            print(f'        {lhs} = {rhs}')
+            assert(inst_idx+1 < len(instructions))
+    print('    default:')
+    print('        return regs[0];')
+    print('    }')
+    print('}')
+
+    print('Please decompile, human')
+    answer = int(input('What is the answer? '))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 19)
 part1(INPUT)
