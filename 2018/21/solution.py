@@ -12,6 +12,27 @@ def parse_input(s):
 
     return ip_addr, instructions
 
+class QuantumResult:
+    def __init__(self, options):
+        self.options = options
+
+    def __add__(self, other):
+        return QuantumResult([(v+other, test)
+                              for v, test in self.options])
+
+class QuantumRegister:
+    def __init__(self):
+        pass
+
+    def __eq__(self, other):
+        return QuantumResult([(1, other), (0, None)])
+
+def bool_to_res(res):
+    if isinstance(res, bool):
+        return 1 if res else 0
+    assert(isinstance(res, QuantumResult))
+    return res
+
 INSTRUCTIONS = {
     'addr': lambda regs, a, b: regs[a] + regs[b],
     'addi': lambda regs, a, b: regs[a] + b,
@@ -23,12 +44,12 @@ INSTRUCTIONS = {
     'bori': lambda regs, a, b: regs[a] | b,
     'setr': lambda regs, a, b: regs[a],
     'seti': lambda regs, a, b: a,
-    'gtir': lambda regs, a, b: 1 if a > regs[b] else 0,
-    'gtri': lambda regs, a, b: 1 if regs[a] > b else 0,
-    'gtrr': lambda regs, a, b: 1 if regs[a] > regs[b] else 0,
-    'eqir': lambda regs, a, b: 1 if a == regs[b] else 0,
-    'eqri': lambda regs, a, b: 1 if regs[a] == b else 0,
-    'eqrr': lambda regs, a, b: 1 if regs[a] == regs[b] else 0,
+    'gtir': lambda regs, a, b: bool_to_res(a > regs[b]),
+    'gtri': lambda regs, a, b: bool_to_res(regs[a] > b),
+    'gtrr': lambda regs, a, b: bool_to_res(regs[a] > regs[b]),
+    'eqir': lambda regs, a, b: bool_to_res(a == regs[b]),
+    'eqri': lambda regs, a, b: bool_to_res(regs[a] == b),
+    'eqrr': lambda regs, a, b: bool_to_res(regs[a] == regs[b]),
 }
 
 def trace_sim(s, reg0, num_to_run):
@@ -102,15 +123,77 @@ def solve_decompiled(s, reg0):
     print('Please decompile, human')
     return int(input('What is the answer? '))
 
+def gen_solutions_programmatically(s):
+    ip_addr, instructions = parse_input(s)
+    idx = 0
+
+    assert(all(i[3] != 0
+               for i in instructions))
+
+    a_addr = instructions[17][3]
+    tmp_addr = instructions[18][3]
+    target_addr = instructions[20][2]
+
+    # Floor division block
+    assert(0 not in (ip_addr, a_addr, target_addr, tmp_addr))
+    assert(len(set((ip_addr, a_addr, target_addr, tmp_addr))) == 4)
+
+    assert(instructions[17] == ['seti', 0, None, a_addr])
+    assert(instructions[18] == ['addi', a_addr, 1, tmp_addr])
+    assert(instructions[19] == ['muli', tmp_addr, 256, tmp_addr])
+    assert(instructions[20] == ['gtrr', tmp_addr, target_addr, tmp_addr])
+    assert(instructions[21] in (['addr', ip_addr, tmp_addr, ip_addr],
+                                ['addr', tmp_addr, ip_addr, ip_addr]))
+    assert(instructions[22] == ['addi', ip_addr, 1, ip_addr])
+    assert(instructions[23] == ['seti', 25, None, ip_addr])
+    assert(instructions[24] == ['addi', a_addr, 1, a_addr])
+    assert(instructions[25] == ['seti', 17, None, ip_addr])
+
+    seen = set()
+
+    regs = [QuantumRegister()] + [0] * 5
+
+    instructions_run = 0
+
+    while idx < len(instructions):
+        instructions_run += 1
+
+        if idx == 17:
+            # Super instruction
+            regs[a_addr] = regs[target_addr] // 256
+            regs[tmp_addr] = 1
+            idx = 26
+            continue
+
+        regs[ip_addr] = idx
+        old_regs = list(regs)
+        cmd, a, b, c = instructions[idx]
+        regs[c] = INSTRUCTIONS[cmd](regs, a, b)
+        if isinstance(regs[ip_addr], QuantumResult):
+            options = regs[ip_addr].options
+            idx_options = []
+            for val, test in regs[ip_addr].options:
+                if val+1 >= len(instructions):
+                    assert(test is not None)
+                    if test in seen:
+                        return
+                    yield test
+                    seen.add(test)
+                else:
+                    idx_options.append(val+1)
+            assert(len(idx_options) == 1)
+            idx = idx_options[0]
+            regs[ip_addr] = idx-1
+        else:
+            idx = regs[ip_addr] + 1
+
 def part1(s):
-    print('What value of reg[0] will halt in the least instructions?')
-    answer = solve_decompiled(s, 0)
+    answer = next(gen_solutions_programmatically(s))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    print('What value of reg[0] will halt in the most instructions?')
-    answer = solve_decompiled(s, 0)
+    answer = list(gen_solutions_programmatically(s))[-1]
 
     print(f'The answer to part two is {answer}')
 
