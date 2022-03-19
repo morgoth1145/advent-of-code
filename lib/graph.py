@@ -16,30 +16,40 @@ def topological_sort(graph):
     for key in graph.keys():
         yield from impl(key)
 
-# TODO: Change to use the distance-based graph
-def longest_path_length(graph, start):
-    '''Searches for and returns the length of the longest path from start to
-    somewhere in the graph'''
-    seen = {start}
-    steps = -1
-    queue = [start]
+def longest_minimal_path_length(graph, start):
+    '''Returns the destination and length of the longest minimal path from
+    start to somewhere in the graph.
+
+    graph[node] must return a list of (neighbor, distance) pairs
+    '''
+    seen = set()
+    queue = [(0, start)]
+
+    max_dist = 0
+    furthest_node = start
     while len(queue) > 0:
-        steps += 1
-        new_queue = []
-        for pos in queue:
-            for neighbor in graph[pos]:
-                if neighbor in seen:
-                    continue
-                new_queue.append(neighbor)
-                seen.add(neighbor)
-        queue = new_queue
-    return steps
+        current_dist, current_node = heapq.heappop(queue)
+        if current_node in seen:
+            continue
+
+        seen.add(current_node)
+        if current_dist > max_dist:
+            max_dist = current_dist
+            furthest_node = current_node
+
+        for neighbor_node, neighbor_dist in graph[current_node]:
+            if neighbor_node in seen:
+                continue
+            heapq.heappush(queue, (current_dist + neighbor_dist,
+                                   neighbor_node))
+    return current_node, max_dist
 
 def all_reachable(graph, start, max_dist=None):
     '''Returns (node, distance) pairs of all reachable nodes in the graph.
     graph[node] must return a list of (neighbor, distance) pairs
 
-    If supplied, max_dist caps the allowed distance when reaching nodes'''
+    If supplied, max_dist caps the allowed distance when reaching nodes
+    '''
     seen = set()
     queue = [(0, start)]
     while len(queue) > 0:

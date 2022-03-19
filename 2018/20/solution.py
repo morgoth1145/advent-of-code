@@ -3,14 +3,6 @@ import collections
 import lib.aoc
 import lib.graph
 
-INVERSES = dict(zip('NSEW', 'SNWE'))
-MOVES = {
-    'N': lambda x,y: (x, y-1),
-    'S': lambda x,y: (x, y+1),
-    'E': lambda x,y: (x+1, y),
-    'W': lambda x,y: (x-1, y),
-}
-
 class Node:
     def __init__(self):
         self.seq = []
@@ -48,6 +40,13 @@ def contruct_map(s):
     assert(len(stack[0]) == 1)
     tree = stack[0][0]
 
+    MOVES = {
+        'N': lambda x,y: (x, y-1),
+        'S': lambda x,y: (x, y+1),
+        'E': lambda x,y: (x+1, y),
+        'W': lambda x,y: (x-1, y),
+    }
+
     m = collections.defaultdict(set)
 
     def walk_tree(node, positions):
@@ -55,10 +54,12 @@ def contruct_map(s):
             new_positions = set()
             if isinstance(step, str):
                 for x, y in positions:
-                    m[x,y].add(step)
-                    x, y = MOVES[step](x, y)
-                    m[x,y].add(INVERSES[step])
-                    new_positions.add((x, y))
+                    n = MOVES[step](x, y)
+
+                    m[x,y].add((n, 1))
+                    m[n].add(((x,y), 1))
+
+                    new_positions.add(n)
             else:
                 for option in step:
                     new_positions |= walk_tree(option, positions)
@@ -70,26 +71,14 @@ def contruct_map(s):
     return m
 
 def part1(s):
-    m = contruct_map(s)
-
-    graph = {}
-    for (x, y), doors in m.items():
-        graph[x,y] = [MOVES[d](x, y)
-                      for d in doors]
-
-    answer = lib.graph.longest_path_length(graph, (0, 0))
+    _, answer = lib.graph.longest_minimal_path_length(contruct_map(s), (0, 0))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    m = contruct_map(s)
-
-    graph = {}
-    for (x, y), doors in m.items():
-        graph[x,y] = [(MOVES[d](x, y), 1)
-                      for d in doors]
-
-    answer = sum(1 for dest, dist in lib.graph.all_reachable(graph, (0, 0))
+    answer = sum(1
+                 for dest, dist
+                 in lib.graph.all_reachable(contruct_map(s), (0, 0))
                  if dist >= 1000)
 
     print(f'The answer to part two is {answer}')
