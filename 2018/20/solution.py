@@ -82,7 +82,17 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    m = contruct_map(s)
+
+    graph = {}
+    for (x, y), doors in m.items():
+        graph[x,y] = [(MOVES[d](x, y), 1)
+                      for d in doors]
+
+    answer = sum(1 for dest, dist in lib.graph.all_reachable(graph, (0, 0))
+                 if dist >= 1000)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 20)
 part1(INPUT)
