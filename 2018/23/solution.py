@@ -33,7 +33,51 @@ def bots_in_range(bots, gx, gy, gz):
     return count
 
 def part2(s):
-    pass
+    bots = list(parse_bots(s))
+
+    # Guess the center as the weighted average of the bots
+    # (The weight is the inverse of the radius)
+    gx = round(sum(x/r for r, (x, y, z) in bots) / sum(1/r for r,_ in bots))
+    gy = round(sum(y/r for r, (x, y, z) in bots) / sum(1/r for r,_ in bots))
+    gz = round(sum(z/r for r, (x, y, z) in bots) / sum(1/r for r,_ in bots))
+
+    best_count = 0
+    best_dist = 0
+
+    while True:
+        improved = False
+
+        dx = -1 if gx > 0 else 1
+        dy = -1 if gy > 0 else 1
+        dz = -1 if gz > 0 else 1
+
+        for factor in (100000, 10000, 1000, 100, 10, 1):
+            for fx in (-4, -2, -1, 0, 1, 2, 4):
+                for fy in (-4, -2, -1, 0, 1, 2, 4):
+                    for fz in (-4, -2, -1, 0, 1, 2, 4):
+                        if fx == fy == fz:
+                            continue
+                        while True:
+                            nx = gx + dx * fx * factor
+                            ny = gy + dy * fy * factor
+                            nz = gz + dz * fz * factor
+                            count = bots_in_range(bots, nx, ny, nz)
+                            dist = abs(nx) + abs(ny) + abs(nz)
+                            if count < best_count:
+                                break
+                            if count == best_count and dist > best_dist:
+                                break
+                            improved = True
+                            best_count = count
+                            best_dist = dist
+                            gx, gy, gz = nx, ny, nz
+
+        if not improved:
+            break
+
+    answer = abs(gx) + abs(gy) + abs(gz)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 23)
 part1(INPUT)
