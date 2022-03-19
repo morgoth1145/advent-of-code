@@ -109,7 +109,10 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    print('What value of reg[0] will halt in the most instructions?')
+    answer = solve_decompiled(s, 0)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 21)
 part1(INPUT)
