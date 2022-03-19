@@ -2,10 +2,10 @@ import sys
 
 import lib.aoc
 
-# UTTER HACK
+# UTTER HACK, THE SIM SHOULD NOT NEED TO RECURSE SO MUCH
 sys.setrecursionlimit(3000)
 
-def parse_clay(s):
+def run_sim(s):
     clay = set()
     for line in s.splitlines():
         a, b = line.split(', ')
@@ -19,10 +19,6 @@ def parse_clay(s):
         else:
             for x in r:
                 clay.add((x, pos))
-    return clay
-
-def part1(s):
-    clay = parse_clay(s)
 
     min_y = min(y for x,y in clay)
     max_y = max(y for x,y in clay)
@@ -74,12 +70,21 @@ def part1(s):
 
     flood(500, 0)
 
+    return seen, supports - clay
+
+def part1(s):
+    seen, still_water = run_sim(s)
+
     answer = len(seen)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    seen, still_water = run_sim(s)
+
+    answer = len(still_water)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 17)
 part1(INPUT)
