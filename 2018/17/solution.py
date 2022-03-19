@@ -1,9 +1,9 @@
-import sys
-
 import lib.aoc
 
-# UTTER HACK, THE SIM SHOULD NOT NEED TO RECURSE SO MUCH
-sys.setrecursionlimit(3000)
+NEW_STATE = 0
+CHECK0_STATE = 1
+CHECK1_STATE = 2
+CHECK2_STATE = 3
 
 def run_sim(s):
     clay = set()
@@ -23,66 +23,77 @@ def run_sim(s):
     min_y = min(y for x,y in clay)
     max_y = max(y for x,y in clay)
 
-    seen = set()
+    has_water = set()
     supports = set(clay)
 
-    def flood(x, y):
-        if y > max_y:
-            return
+    stack = [(500, 0, NEW_STATE)]
 
-        if (x, y) in seen:
-            return
+    while stack:
+        x, y, state = stack.pop(-1)
 
-        if y >= min_y:
-            seen.add((x, y))
+        if state == NEW_STATE:
+            state = CHECK0_STATE
+            if y > max_y:
+                continue
+            has_water.add((x, y))
+            if (x, y) in supports:
+                # Known still water
+                continue
 
-        if (x, y+1) not in clay:
-            flood(x, y+1)
+        if state == CHECK0_STATE:
+            state = CHECK1_STATE
+            if (x, y+1) not in supports:
+                stack.append((x, y, state))
+                stack.append((x, y+1, NEW_STATE))
+                continue
 
-        if (x, y+1) in supports:
-            supported = True
-            row = [(x, y)]
+        if state == CHECK1_STATE:
+            state = CHECK2_STATE
+            if (x, y+1) not in supports:
+                continue
 
-            left_x = x-1
-            while (left_x, y) not in clay:
-                row.append((left_x, y))
-                if (left_x, y+1) not in supports:
-                    flood(left_x, y+1)
-                if (left_x, y+1) not in supports:
-                    supported = False
-                    break
-                left_x -= 1
+        row_supported = True
 
-            right_x = x+1
-            while (right_x, y) not in clay:
-                row.append((right_x, y))
-                if (right_x, y+1) not in supports:
-                    flood(right_x, y+1)
-                if (right_x, y+1) not in supports:
-                    supported = False
-                    break
-                right_x += 1
+        left_x = x-1
+        while (left_x, y) not in clay:
+            has_water.add((left_x, y))
+            if (left_x, y+1) not in supports:
+                if (left_x, y+1) not in has_water:
+                    # This hasn't been checked yet. Check if it's supported.
+                    # If it is, we'll re-flood
+                    stack.append((left_x, y, NEW_STATE))
+                row_supported = False
+                break
+            left_x -= 1
 
-            seen.update(row)
+        right_x = x+1
+        while (right_x, y) not in clay:
+            has_water.add((right_x, y))
+            if (right_x, y+1) not in supports:
+                if (right_x, y+1) not in has_water:
+                    # This hasn't been checked yet. Check if it's supported.
+                    # If it is, we'll re-flood
+                    stack.append((right_x, y, NEW_STATE))
+                row_supported = False
+                break
+            right_x += 1
 
-            if supported:
-                supports.update(row)
+        if row_supported:
+            for x in range(left_x+1, right_x):
+                supports.add((x, y))
 
-    flood(500, 0)
-
-    return seen, supports - clay
+    all_water = sum(1 for x,y in has_water
+                    if y >= min_y)
+    still_water = len(supports - clay)
+    return all_water, still_water
 
 def part1(s):
-    seen, still_water = run_sim(s)
-
-    answer = len(seen)
+    answer, _ = run_sim(s)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    seen, still_water = run_sim(s)
-
-    answer = len(still_water)
+    _, answer = run_sim(s)
 
     print(f'The answer to part two is {answer}')
 
