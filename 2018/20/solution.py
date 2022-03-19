@@ -3,42 +3,9 @@ import collections
 import lib.aoc
 import lib.graph
 
-class Node:
-    def __init__(self):
-        self.seq = []
-
-    def add(self, step):
-        self.seq.append(step)
-
-    def has_data(self):
-        return len(self.seq) > 0
-
 def contruct_map(s):
     assert(s[0] == '^')
     assert(s[-1] == '$')
-    s = s[1:-1]
-
-    stack = [[Node()]]
-
-    for c in s:
-        if c in 'NSEW':
-            stack[-1][-1].add(c)
-        elif c == '(':
-            stack.append([Node()])
-        elif c == '|':
-            stack[-1].append(Node())
-        elif c == ')':
-            children = stack.pop(-1)
-            children = [c for c in children
-                        if c.has_data()]
-            stack[-1][-1].add(children)
-            pass
-        else:
-            assert(False)
-
-    assert(len(stack) == 1)
-    assert(len(stack[0]) == 1)
-    tree = stack[0][0]
 
     MOVES = {
         'N': lambda x,y: (x, y-1),
@@ -49,24 +16,36 @@ def contruct_map(s):
 
     m = collections.defaultdict(set)
 
-    def walk_tree(node, positions):
-        for step in node.seq:
+    stack = []
+    base_positions = None
+    positions = {(0, 0)}
+
+    for c in s[1:-1]:
+        if c in MOVES:
             new_positions = set()
-            if isinstance(step, str):
-                for x, y in positions:
-                    n = MOVES[step](x, y)
-
-                    m[x,y].add((n, 1))
-                    m[n].add(((x,y), 1))
-
-                    new_positions.add(n)
-            else:
-                for option in step:
-                    new_positions |= walk_tree(option, positions)
+            for x, y in positions:
+                n = MOVES[c](x, y)
+                m[x,y].add((n, 1))
+                m[n].add(((x,y), 1))
+                new_positions.add(n)
             positions = new_positions
-        return positions
+        elif c == '(':
+            stack.append((set(), base_positions))
+            base_positions = positions
+        elif c == '|':
+            # Propagate positions back up the stack
+            stack[-1][0].update(positions)
+            # New set of options
+            positions = base_positions
+        elif c == ')':
+            # Propagate positions back up the stack
+            stack[-1][0].update(positions)
+            # Pop back up
+            positions, base_positions = stack.pop(-1)
+        else:
+            assert(False)
 
-    walk_tree(tree, {(0, 0)})
+    assert(len(stack) == 0)
 
     return m
 
