@@ -115,8 +115,11 @@ class FixedGrid:
                 yield x, y+1
 
     def print(self, line_spacing=' '):
-        print('\n'.join(line_spacing.join(str(self._grid[x][y])
-                                          for x in range(self._width))
-                        for y in range(self._height)))
+        print(self.as_str(line_spacing))
+
+    def as_str(self, line_spacing=' '):
+        return '\n'.join(line_spacing.join(str(self._grid[x][y])
+                                           for x in range(self._width))
+                         for y in range(self._height))
 
 # TODO: ExpandingGrid (probably dict-based)
