@@ -4,8 +4,11 @@ def parse_input(s):
     ip_addr, *instructions = s.splitlines()
     ip_addr = int(ip_addr.split()[1])
     instructions = [i.split() for i in instructions]
-    instructions = [(cmd, int(a), int(b), int(c))
+    instructions = [[cmd, int(a), int(b), int(c)]
                     for cmd, a, b, c in instructions]
+    for i in instructions:
+        if i[0] in ('seti', 'setr'):
+            i[2] = None # Unused argument
 
     return ip_addr, instructions
 
@@ -28,11 +31,11 @@ INSTRUCTIONS = {
     'eqrr': lambda regs, a, b: 1 if regs[a] == regs[b] else 0,
 }
 
-def part1(s):
+def solve_sim(s, reg0):
     ip_addr, instructions = parse_input(s)
     idx = 0
 
-    regs = [0] * 6
+    regs = [reg0] + [0] * 5
 
     while idx < len(instructions):
         regs[ip_addr] = idx
@@ -40,11 +43,9 @@ def part1(s):
         regs[c] = INSTRUCTIONS[cmd](regs, a, b)
         idx = regs[ip_addr] + 1
 
-    answer = regs[0]
+    return regs[0]
 
-    print(f'The answer to part one is {answer}')
-
-def part2(s):
+def solve_decompiled(s, reg0):
     INSTRUCTIONS_AS_STRING = {
         'addr': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] + regs[{b}]'),
         'addi': lambda a, b, c: (f'regs[{c}]', f'regs[{a}] + {b}'),
@@ -68,8 +69,10 @@ def part2(s):
 
     assert(ip_addr != 0)
 
+    regs = [reg0] + [0] * 5
+
     print('idx = 0')
-    print(f'regs = {[1] + [0]*5}')
+    print(f'regs = {regs}')
     print()
     print('while (true)')
     print('{')
@@ -92,7 +95,62 @@ def part2(s):
     print('}')
 
     print('Please decompile, human')
-    answer = int(input('What is the answer? '))
+    return int(input('What is the answer? '))
+
+def solve_optimized_sim(s, reg0):
+    ip_addr, instructions = parse_input(s)
+    idx = 0
+
+    out_addr = 0
+    a_addr = instructions[3][1]
+    b_addr = instructions[2][3]
+    tmp_addr = instructions[3][3]
+    target_addr = instructions[4][2]
+    assert(sorted([out_addr, ip_addr, tmp_addr,
+                   target_addr, a_addr, b_addr]) == list(range(6)))
+
+    assert(instructions[2] == ['seti', 1, None, b_addr])
+    assert(instructions[3] in (['mulr', a_addr, b_addr, tmp_addr],
+                               ['mulr', b_addr, a_addr, tmp_addr]))
+    assert(instructions[4] in (['eqrr', tmp_addr, target_addr, tmp_addr],
+                               ['eqrr', target_addr, tmp_addr, tmp_addr]))
+    assert(instructions[5] in (['addr', ip_addr, tmp_addr, ip_addr],
+                               ['addr', tmp_addr, ip_addr, ip_addr]))
+    assert(instructions[6] == ['addi', ip_addr, 1, ip_addr])
+    assert(instructions[7] in (['addr', out_addr, a_addr, out_addr],
+                               ['addr', a_addr, out_addr, out_addr]))
+    assert(instructions[8] == ['addi', b_addr, 1, b_addr])
+    assert(instructions[9] == ['gtrr', b_addr, target_addr, tmp_addr])
+    assert(instructions[10] in (['addr', ip_addr, tmp_addr, ip_addr],
+                                ['addr', tmp_addr, ip_addr, ip_addr]))
+    assert(instructions[11] == ['seti', 2, None, ip_addr])
+
+    regs = [reg0] + [0] * 5
+
+    while idx < len(instructions):
+        if idx == 2:
+            if regs[target_addr] % regs[a_addr] == 0:
+                regs[out_addr] += regs[a_addr]
+            regs[tmp_addr] = 0
+            regs[b_addr] == regs[target_addr]+1
+            regs[ip_addr] = 11
+            idx = 12
+            continue
+
+        regs[ip_addr] = idx
+        cmd, a, b, c = instructions[idx]
+        regs[c] = INSTRUCTIONS[cmd](regs, a, b)
+        idx = regs[ip_addr] + 1
+
+    return regs[0]
+
+def part1(s):
+    answer = solve_optimized_sim(s, 0)
+
+    print(f'The answer to part one is {answer}')
+
+def part2(s):
+    answer = solve_optimized_sim(s, 1)
 
     print(f'The answer to part two is {answer}')
 
