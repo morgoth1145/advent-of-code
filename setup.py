@@ -24,6 +24,28 @@ def get_template(year, day):
 
     pass'''
 
+    import_template = '''import collections
+import functools
+import itertools
+import math
+import parse
+import re
+
+import lib.aoc
+import lib.graph
+from lib.graphics import *
+import lib.grid
+import lib.hex_coord
+import lib.lazy_dict
+import lib.math
+import lib.ocr
+import lib.parsing'''
+
+    if year == 2019:
+        import_template += '''
+
+intcode = __import__('2019.intcode').intcode'''
+
     part_1_template = f'''def part1(s):
 ##    nums = list(map(lambda r:r[0], parse.findall('{{:d}}', s)))
 ##    lines = s.splitlines()
@@ -48,22 +70,7 @@ def get_template(year, day):
 ##    if input('Submit answer? ').lower() in ('y', 'yes', '1'):
 ##        assert(lib.aoc.submit_answer({year}, {day}, 2, answer))'''
 
-    return f'''import collections
-import functools
-import itertools
-import math
-import parse
-import re
-
-import lib.aoc
-import lib.graph
-from lib.graphics import *
-import lib.grid
-import lib.hex_coord
-import lib.lazy_dict
-import lib.math
-import lib.ocr
-import lib.parsing
+    return f'''{import_template}
 
 {parse_template}
 

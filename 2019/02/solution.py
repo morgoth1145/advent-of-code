@@ -1,47 +1,16 @@
 import lib.aoc
 
-def run_intcode(program):
-    idx = 0
-
-    def take_num():
-        nonlocal idx
-        val = program[idx]
-        idx += 1
-        return val
-
-    def take_num_by_ref():
-        nonlocal idx
-        ref = program[idx]
-        idx += 1
-        return program[ref]
-
-    while True:
-        opcode = take_num()
-        if opcode == 1:
-            a = take_num_by_ref()
-            b = take_num_by_ref()
-            c = take_num()
-            program[c] = a + b
-            continue
-        if opcode == 2:
-            a = take_num_by_ref()
-            b = take_num_by_ref()
-            c = take_num()
-            program[c] = a * b
-            continue
-        if opcode == 99:
-            return
-        assert(False)
+intcode = __import__('2019.intcode').intcode
 
 def part1(s):
-    program = list(map(int, s.split(',')))
+    p = intcode.Program(s)
 
-    program[1] = 12
-    program[2] = 2
+    p.memory[1] = 12
+    p.memory[2] = 2
 
-    run_intcode(program)
+    p.run()
 
-    answer = program[0]
+    answer = p.memory[0]
 
     print(f'The answer to part one is {answer}')
 
@@ -50,14 +19,14 @@ def part2(s):
 
     for noun in range(100):
         for verb in range(100):
-            program = list(map(int, s.split(',')))
+            p = intcode.Program(s)
 
-            program[1] = noun
-            program[2] = verb
+            p.memory[1] = noun
+            p.memory[2] = verb
 
-            run_intcode(program)
+            p.run()
 
-            if program[0] == 19690720:
+            if p.memory[0] == 19690720:
                 answer = 100 * noun + verb
                 break
 
