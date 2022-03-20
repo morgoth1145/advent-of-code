@@ -1,10 +1,11 @@
 import lib.aoc
 
 def parse_wire(instructions):
-    wire = set()
+    wire = {}
 
     x, y = 0, 0
 
+    steps = 0
     for inst in instructions.split(','):
         direct = inst[0]
         count = int(inst[1:])
@@ -22,7 +23,9 @@ def parse_wire(instructions):
 
         for _ in range(count):
             x, y = x+dx, y+dy
-            wire.add((x, y))
+            steps += 1
+
+            wire[x,y] = wire.get((x, y), steps)
 
     return wire
 
@@ -33,13 +36,22 @@ def part1(s):
     w2 = parse_wire(w2)
 
     answer = min(abs(x) + abs(y)
-                 for x, y in w1
+                 for (x, y) in w1
                  if (x, y) in w2)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    w1, w2 = s.splitlines()
+
+    w1 = parse_wire(w1)
+    w2 = parse_wire(w2)
+
+    answer = min(w1[c] + w2[c]
+                 for c in w1
+                 if c in w2)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 3)
 part1(INPUT)
