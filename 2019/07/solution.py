@@ -1,5 +1,4 @@
 import itertools
-import threading
 
 import lib.aoc
 
@@ -26,18 +25,13 @@ def part2(s):
         first_in = None
         last_out = None
 
-        def link_channels(prev_out, next_in):
-            for val in prev_out:
-                next_in.send(val)
-
         for p in phases:
-            in_chan, out_chan = intcode.Program(s).run()
+            in_chan, out_chan = intcode.Program(s).run(in_chan=last_out)
+            # The previous program won't output until we give it the input
+            # signal. There's no chance of synchronization problems here.
             in_chan.send(p)
-            if last_out is None:
+            if first_in is None:
                 first_in = in_chan
-            else:
-                threading.Thread(target=link_channels,
-                                 args=(last_out, in_chan)).start()
             last_out = out_chan
 
         # Seed the chain

@@ -6,8 +6,9 @@ class Program:
     def __init__(self, s):
         self.memory = list(map(int, s.split(',')))
 
-    def run(self):
-        in_chan = lib.channels.BufferedChannel()
+    def run(self, in_chan=None):
+        if in_chan is None:
+            in_chan = lib.channels.BufferedChannel()
         out_chan = lib.channels.BufferedChannel()
         threading.Thread(target=self.__run,
                          args=(in_chan, out_chan)).start()
