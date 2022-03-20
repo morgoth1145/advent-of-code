@@ -58,11 +58,6 @@ def parse_units(s):
 
         yield Group(count, hp, dmg, dmg_type, init, weaknesses, immunities)
 
-def parse_input(s):
-    immune, infection = s.split('\n\n')
-
-    return list(parse_units(immune)), list(parse_units(infection))
-
 def fight(immune, infection):
     forces = [immune, infection]
 
@@ -90,6 +85,8 @@ def fight(immune, infection):
                 continue
 
             computed_dmg = group.computed_dmg(enemy_group)
+            if computed_dmg == 0:
+                continue
 
             candidates.append((computed_dmg,
                                enemy_group.effective_power,
@@ -138,18 +135,51 @@ def fight(immune, infection):
 
     return immune, infection
 
-def part1(s):
-    immune, infection = parse_input(s)
+def fight_to_the_death(s, boost=0):
+    immune, infection = s.split('\n\n')
+
+    immune = list(parse_units(immune))
+    infection = list(parse_units(infection))
+
+    for group in immune:
+        group.dmg += boost
 
     while len(immune) > 0 and len(infection) > 0:
+        imm_counts = [g.count for g in immune]
+        inf_counts = [g.count for g in infection]
         immune, infection = fight(immune, infection)
+        if ([g.count for g in immune] == imm_counts and
+            [g.count for g in infection] == inf_counts):
+            # Stalemate
+            return None, None
+
+    return immune, infection
+
+def part1(s):
+    immune, infection = fight_to_the_death(s)
 
     answer = sum(group.count for group in immune + infection)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    min_boost = 0
+    while True:
+        min_boost += 1
+
+        immune, infection = fight_to_the_death(s, min_boost)
+        if immune is None:
+            continue
+
+        if len(infection) == 0:
+            break
+
+    immune, infection = fight_to_the_death(s, min_boost)
+    assert(len(infection) == 0)
+
+    answer = sum(group.count for group in immune + infection)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2018, 24)
 part1(INPUT)
