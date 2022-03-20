@@ -23,6 +23,7 @@ class BufferedChannel:
         self.__mutex = threading.RLock()
         self.__send_cv = threading.Condition(self.__mutex)
         self.__recv_cv = threading.Condition(self.__mutex)
+        self.__close_cv = threading.Condition(self.__mutex)
         self.__closed = False
         self.__queue = collections.deque()
         self.__max_size = max_size
@@ -60,11 +61,16 @@ class BufferedChannel:
             self.__send_cv.notify()
             return val
 
+    def wait_for_close(self):
+        with self.__mutex:
+            self.__close_cv.wait_for(lambda: self.__closed)
+
     def close(self):
         with self.__mutex:
             self.__closed = True
             self.__send_cv.notify_all()
             self.__recv_cv.notify_all()
+            self.__close_cv.notify_all()
 
     def __iter__(self):
         try:
@@ -89,6 +95,7 @@ class SyncChannel:
         self.__send_cv = threading.Condition(self.__mutex)
         self.__recv_cv = threading.Condition(self.__mutex)
         self.__handoff_cv = threading.Condition(self.__mutex)
+        self.__close_cv = threading.Condition(self.__mutex)
         self.__closed = False
         self.__send_state = 0
         self.__recv_state = 0
@@ -142,12 +149,17 @@ class SyncChannel:
             self.__recv_cv.notify()
             return val
 
+    def wait_for_close(self):
+        with self.__mutex:
+            self.__close_cv.wait_for(lambda: self.__closed)
+
     def close(self):
         with self.__mutex:
             self.__closed = True
             self.__send_cv.notify_all()
             self.__recv_cv.notify_all()
             self.__handoff_cv.notify_all()
+            self.__close_cv.notify_all()
 
     def __iter__(self):
         try:

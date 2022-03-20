@@ -3,25 +3,18 @@ import lib.aoc
 intcode = __import__('2019.intcode').intcode
 
 def part1(s):
-    p = intcode.Program(s)
+    in_chan, out_chan = intcode.Program(s).run()
 
-    p.run_async()
-    p.in_chan.send(1)
-
-    answer = None
-
-    for val in p.out_chan:
-        answer = val
+    in_chan.send(1)
+    answer = list(out_chan)[-1]
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    p = intcode.Program(s)
+    in_chan, out_chan = intcode.Program(s).run()
 
-    p.run_async()
-    p.in_chan.send(5)
-
-    answer = p.out_chan.recv()
+    in_chan.send(5)
+    answer = out_chan.recv()
 
     print(f'The answer to part two is {answer}')
 

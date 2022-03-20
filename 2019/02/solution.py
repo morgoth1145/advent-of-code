@@ -8,7 +8,8 @@ def part1(s):
     p.memory[1] = 12
     p.memory[2] = 2
 
-    p.run()
+    _, out = p.run()
+    out.wait_for_close()
 
     answer = p.memory[0]
 
@@ -24,7 +25,8 @@ def part2(s):
             p.memory[1] = noun
             p.memory[2] = verb
 
-            p.run()
+            _, out = p.run()
+            out.wait_for_close()
 
             if p.memory[0] == 19690720:
                 answer = 100 * noun + verb
