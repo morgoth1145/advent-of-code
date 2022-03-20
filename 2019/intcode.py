@@ -63,6 +63,30 @@ class Program:
                 val = take_mode_num()
                 self.out_chan.send(val)
                 continue
+            if opcode == 5:
+                test = take_mode_num()
+                dest = take_mode_num()
+                if test != 0:
+                    idx = dest
+                continue
+            if opcode == 6:
+                test = take_mode_num()
+                dest = take_mode_num()
+                if test == 0:
+                    idx = dest
+                continue
+            if opcode == 7:
+                a = take_mode_num()
+                b = take_mode_num()
+                dest = take_num()
+                self.memory[dest] = 1 if a < b else 0
+                continue
+            if opcode == 8:
+                a = take_mode_num()
+                b = take_mode_num()
+                dest = take_num()
+                self.memory[dest] = 1 if a == b else 0
+                continue
             if opcode == 99:
                 self.out_chan.close()
                 return

@@ -16,7 +16,14 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    p = intcode.Program(s)
+
+    p.run_async()
+    p.in_chan.send(5)
+
+    answer = p.out_chan.recv()
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 5)
 part1(INPUT)
