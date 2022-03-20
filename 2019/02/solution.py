@@ -46,7 +46,25 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = None
+
+    for noun in range(100):
+        for verb in range(100):
+            program = list(map(int, s.split(',')))
+
+            program[1] = noun
+            program[2] = verb
+
+            run_intcode(program)
+
+            if program[0] == 19690720:
+                answer = 100 * noun + verb
+                break
+
+        if answer is not None:
+            break
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 2)
 part1(INPUT)
