@@ -1,36 +1,69 @@
+import threading
+
+import lib.channels
+
 class Program:
     def __init__(self, s):
         self.memory = list(map(int, s.split(',')))
+        self.in_chan = lib.channels.SyncChannel()
+        self.out_chan = lib.channels.SyncChannel()
+
+    def run_async(self):
+        # TODO: Fix
+        threading.Thread(target=self.run).start()
 
     def run(self):
         idx = 0
 
-        def take_num():
-            nonlocal idx
-            val = self.memory[idx]
-            idx += 1
-            return val
-
-        def take_num_by_ref():
-            nonlocal idx
-            ref = self.memory[idx]
-            idx += 1
-            return self.memory[ref]
-
         while True:
-            opcode = take_num()
+            opcode = self.memory[idx]
+            idx += 1
+            modes = opcode // 100
+            opcode = opcode % 100
+
+            def take_num():
+                nonlocal idx, modes
+                assert(modes % 10 == 0)
+                modes = modes // 10
+                val = self.memory[idx]
+                idx += 1
+                return val
+
+            def take_mode_num():
+                nonlocal idx, modes
+                m = modes % 10
+                modes = modes // 10
+                val = self.memory[idx]
+                idx += 1
+                if m == 1:
+                    return val
+                if m == 0:
+                    return self.memory[val]
+                print('Unknown mode')
+                assert(False)
+
             if opcode == 1:
-                a = take_num_by_ref()
-                b = take_num_by_ref()
+                a = take_mode_num()
+                b = take_mode_num()
                 c = take_num()
                 self.memory[c] = a + b
                 continue
             if opcode == 2:
-                a = take_num_by_ref()
-                b = take_num_by_ref()
+                a = take_mode_num()
+                b = take_mode_num()
                 c = take_num()
                 self.memory[c] = a * b
                 continue
+            if opcode == 3:
+                val = self.in_chan.recv()
+                dest = take_num()
+                self.memory[dest] = val
+                continue
+            if opcode == 4:
+                val = take_mode_num()
+                self.out_chan.send(val)
+                continue
             if opcode == 99:
+                self.out_chan.close()
                 return
             assert(False)
