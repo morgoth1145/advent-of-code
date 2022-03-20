@@ -24,8 +24,37 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
+def valid_password2(p):
+    p = list(map(int, str(p)))
+
+    if len(p) != 6:
+        return False
+
+    double = False
+    last = p[0]
+    last_start = 0
+    for idx, d in enumerate(p[1:]):
+        idx += 1
+
+        if d < last:
+            return False
+        if d > last:
+            if idx - last_start == 2:
+                double = True
+            last = d
+            last_start = idx
+
+    if len(p) - last_start == 2:
+        double = True
+
+    return double
+
 def part2(s):
-    pass
+    a, b = list(map(int, s.split('-')))
+
+    answer = sum(map(valid_password2, range(a, b+1)))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 4)
 part1(INPUT)
