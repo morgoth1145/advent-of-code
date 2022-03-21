@@ -22,7 +22,7 @@ def compute_minimum_angle(dx, dy):
 
 # Constructs a map of angle to which asteroids are visible at that angle
 def determine_asteroid_visibility(grid, x, y):
-    asteroids = collections.defaultdict(set)
+    asteroids = collections.defaultdict(list)
 
     for (ox, oy), c in grid.items():
         if c == '.':
@@ -30,7 +30,10 @@ def determine_asteroid_visibility(grid, x, y):
         if x == ox and y == oy:
             continue
 
-        asteroids[compute_minimum_angle(ox-x, oy-y)].add((ox, oy))
+        asteroids[compute_minimum_angle(ox-x, oy-y)].append((ox, oy))
+
+    for asteroid_list in asteroids.values():
+        asteroid_list.sort(key=lambda a: abs(a[0]-x) + abs(a[1]-y))
 
     return asteroids
 
@@ -65,41 +68,29 @@ def part2(s):
 
     asteroids = determine_asteroid_visibility(grid, x, y)
 
-    right_side_angles = []
-    left_side_angles = []
+    angle_order = sorted(asteroids,
+                         key=lambda a: math.atan2(a[1], a[0]))
 
-    for dx, dy in asteroids:
-        if dx > 0:
-            right_side_angles.append((dx, dy))
-        elif dx < 0:
-            left_side_angles.append((dx, dy))
-
-    # Order angles in the right quadrant from top to bottom
-    right_side_angles.sort(key=lambda a: a[1]/a[0],
-                           reverse=True)
-
-    # Order angles in the right quadrant from bottom to top
-    left_side_angles.sort(key=lambda a: a[1]/a[0])
-
-    angle_order = []
-    if (0, 1) in asteroids:
-        angle_order.append((0, 1))
-    angle_order += right_side_angles
-    if (0, -1) in asteroids:
-        angle_order.append((0, -1))
-    angle_order += left_side_angles
+    # Find the first angle that's either pointing up or in the right quadrant
+    # Once found, rotate the angle order as needed
+    shift_idx = min(i for i in range(len(angle_order))
+                    if math.atan2(angle_order[i][1],
+                                  angle_order[i][0]) >= math.atan2(-1, 0))
+    angle_order = angle_order[shift_idx:] + angle_order[:shift_idx]
 
     destruction_order = []
 
-    while len(destruction_order) < 200:
+    while angle_order:
+        new_angle_order = []
+
         for a in angle_order:
-            if len(asteroids[a]) == 0:
-                continue
+            asteroid_list = asteroids[a]
+            destruction_order.append(asteroid_list.pop(0))
 
-            target = min(asteroids[a], key=lambda o: abs(o[0]-x) + abs(o[1]-y))
+            if len(asteroid_list) > 0:
+                new_angle_order.append(a)
 
-            asteroids[a].remove(target)
-            destruction_order.append(target)
+        angle_order = new_angle_order
 
     x, y = destruction_order[199]
 
