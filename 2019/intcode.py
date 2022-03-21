@@ -16,6 +16,7 @@ class Program:
 
     def __run(self, in_chan, out_chan):
         idx = 0
+        relative_base = 0
 
         def params(code, n, output=False):
             nonlocal idx
@@ -28,24 +29,41 @@ class Program:
             idx += n
             modes = list(map(int, str(modes).zfill(n)[::-1]))
             if output:
-                # The output should be in position mode
-                if modes[-1] != 0:
-                    print(idx-1-n, code, n, output, vals, modes)
-                assert(modes[-1] == 0)
-                # But treat it as immediate mode so that we get the memory
-                # index to store the output
+                # The output should not be in immediate mode
+                assert(modes[-1] in (0, 2))
+                # But store the output mode and treat it as immediate mode
+                # in the main loop to leave it alone. (We want the output
+                # position, not the value at that position!)
+                out_mode = modes[-1]
                 modes[-1] = 1
 
             for i, (v, m) in enumerate(zip(vals, modes)):
                 if m == 0:
                     # Position mode
+                    if v >= len(self.memory):
+                        self.memory += [0] * (v - len(self.memory) + 1)
                     vals[i] = self.memory[v]
                 elif m == 1:
                     # Immediate mode, leave alone
                     pass
+                elif m == 2:
+                    # Relative mode
+                    v += relative_base
+                    if v >= len(self.memory):
+                        self.memory += [0] * (v - len(self.memory) + 1)
+                    vals[i] = self.memory[v]
                 else:
                     print(f'Unknown parameter mode: {m}')
                     assert(False)
+
+            if output:
+                if out_mode == 2:
+                    # Output was in relative mode, get the absolute position
+                    vals[-1] += relative_base
+                # Ensure we have room for the output
+                pos = vals[-1]
+                if pos >= len(self.memory):
+                    self.memory += [0] * (pos - len(self.memory) + 1)
 
             return vals
 
@@ -89,6 +107,10 @@ class Program:
             if opcode == 8:
                 a, b, dest = params(code, 2, output=True)
                 self.memory[dest] = 1 if a == b else 0
+                continue
+            if opcode == 9:
+                a, = params(code, 1)
+                relative_base += a
                 continue
             if opcode == 99:
                 out_chan.close()
