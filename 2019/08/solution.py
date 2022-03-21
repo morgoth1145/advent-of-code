@@ -3,28 +3,25 @@ import collections
 import lib.aoc
 import lib.ocr
 
-def parse_layers(s, width, height):
-    nums = list(map(int, s))
+def partition(nums, stride):
+    assert(len(nums) % stride == 0)
 
-    assert(len(nums) % (width * height) == 0)
+    out = []
 
-    for i in range(0, len(nums), width * height):
-        layer_nums = nums[i:i+width*height]
+    for i in range(0, len(nums), stride):
+        out.append(nums[i:i+stride])
 
-        layer = []
+    return out
 
-        for j in range(0, width*height, width):
-            layer.append(layer_nums[j:j+width])
-
-        yield layer
+WIDTH = 25
+HEIGHT = 6
+LAYER_LENGTH = WIDTH*HEIGHT
 
 def part1(s):
-    best = (len(s), 0)
+    best = (LAYER_LENGTH, 0)
 
-    for layer in parse_layers(s, 25, 6):
-        c = collections.Counter()
-        for row in layer:
-            c += collections.Counter(row)
+    for layer in partition(list(map(int, s)), LAYER_LENGTH):
+        c = collections.Counter(layer)
         key = (c[0], c[1] * c[2])
         best = min(best, key)
 
@@ -33,22 +30,21 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    image = [[2] * 25
-             for _ in range(6)]
+    composite = [2] * LAYER_LENGTH
 
-    for layer in parse_layers(s, 25, 6):
-        for image_row, layer_row in zip(image, layer):
-            for x, (image_cell, layer_cell) in enumerate(zip(image_row, layer_row)):
-                if image_cell == 2:
-                    image_row[x] = layer_cell
+    for layer in partition(list(map(int, s)), LAYER_LENGTH):
+        for i, (image_cell, layer_cell) in enumerate(zip(composite, layer)):
+            if image_cell == 2:
+                composite[i] = layer_cell
 
-    white_cells = set()
+    assert(2 not in composite)
 
-    for y, row in enumerate(image):
-        for x, cell in enumerate(row):
-            assert(cell != 2)
-            if cell == 1:
-                white_cells.add((x, y))
+    image = partition(composite, WIDTH)
+
+    white_cells = [(x, y)
+                   for y, row in enumerate(image)
+                   for x, cell in enumerate(row)
+                   if cell == 1]
 
     answer = lib.ocr.parse_coord_set(white_cells)
 
