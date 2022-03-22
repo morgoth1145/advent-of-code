@@ -19,47 +19,72 @@ def parse_recipes(s):
 
     return recipes
 
-def create(recipes, count, name, surplus=collections.Counter()):
-    if name == 'ORE':
-        return collections.Counter(), surplus
-
+def ore_required_for_fuel(recipes, fuel_count):
     spent = collections.Counter()
+    surplus = collections.Counter()
 
-    amount_created, ingredients = recipes[name]
+    def create(recipes, count, name):
+        if name == 'ORE':
+            return
 
-    used_from_surplus = min(count, surplus[name])
-    surplus[name] -= used_from_surplus
-    spent[name] += used_from_surplus
-    count -= used_from_surplus
+        amount_created, ingredients = recipes[name]
 
-    if count == 0:
-        return spent, surplus
+        used_from_surplus = min(count, surplus[name])
+        surplus[name] -= used_from_surplus
+        spent[name] += used_from_surplus
+        count -= used_from_surplus
 
-    times_to_make = (count + amount_created - 1) // amount_created
+        if count == 0:
+            return
 
-    # Record any surplus that we created
-    surplus[name] += amount_created * times_to_make - count
+        times_to_make = (count + amount_created - 1) // amount_created
 
-    for ingredient_count, ingredient_name in ingredients:
-        sub_spent, surplus = create(recipes,
-                                    times_to_make * ingredient_count,
-                                    ingredient_name)
-        spent += sub_spent
-        spent[ingredient_name] += times_to_make * ingredient_count
+        # Record any surplus that we created
+        surplus[name] += amount_created * times_to_make - count
 
-    return spent, surplus
+        for ingredient_count, ingredient_name in ingredients:
+            create(recipes, times_to_make * ingredient_count, ingredient_name)
+
+            spent[ingredient_name] += times_to_make * ingredient_count
+
+    create(recipes, fuel_count, 'FUEL')
+
+    assert(surplus['ORE'] == 0)
+
+    return spent['ORE']
 
 def part1(s):
     recipes = parse_recipes(s)
 
-    spent, surplus = create(recipes, 1, 'FUEL')
-
-    answer = spent['ORE'] + surplus['ORE']
+    answer = ore_required_for_fuel(recipes, 1)
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    recipes = parse_recipes(s)
+
+    MAXIMUM_ORE = 1000000000000
+
+    # Find a range where the upper bound is more fuel than we can create
+    low_fuel = 1
+    high_fuel = 2
+    while ore_required_for_fuel(recipes, high_fuel) <= MAXIMUM_ORE:
+        low_fuel = high_fuel
+        high_fuel *= 2
+
+    # Binary search to find the maximum fuel we can create
+    while low_fuel+1 < high_fuel:
+        mid_fuel = (low_fuel + high_fuel) // 2
+
+        required = ore_required_for_fuel(recipes, mid_fuel)
+        if required <= MAXIMUM_ORE:
+            low_fuel = mid_fuel
+        else:
+            high_fuel = mid_fuel
+
+    answer = low_fuel
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 14)
 part1(INPUT)
