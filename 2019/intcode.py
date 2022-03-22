@@ -6,10 +6,11 @@ class Program:
     def __init__(self, s):
         self.memory = list(map(int, s.split(',')))
 
-    def run(self, in_chan=None):
+    def run(self, in_chan=None, out_chan=None):
         if in_chan is None:
             in_chan = lib.channels.BufferedChannel()
-        out_chan = lib.channels.BufferedChannel()
+        if out_chan is None:
+            out_chan = lib.channels.BufferedChannel()
         threading.Thread(target=self.__run,
                          args=(in_chan, out_chan)).start()
         return in_chan, out_chan
