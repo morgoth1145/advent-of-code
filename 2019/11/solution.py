@@ -37,20 +37,12 @@ def get_painted_grid(s, first_panel):
     return grid
 
 def part1(s):
-    grid = get_painted_grid(s, 0)
-
-    answer = len(grid)
+    answer = len(get_painted_grid(s, 0))
 
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    grid = get_painted_grid(s, 1)
-
-    white_panels = [coord
-                    for coord, color in grid.items()
-                    if color == 1]
-
-    answer = lib.ocr.parse_coord_set(white_panels)
+    answer = lib.ocr.parse_dict(get_painted_grid(s, 1), 1)
 
     print(f'The answer to part two is {answer}')
 

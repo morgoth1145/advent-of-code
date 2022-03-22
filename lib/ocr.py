@@ -92,3 +92,7 @@ def parse_coord_set(coords):
             json.dump(known, f, sort_keys=True)
 
     return output
+
+def parse_dict(d, include_value):
+    return parse_coord_set([c for c, val in d.items()
+                            if val == include_value])
