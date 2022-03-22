@@ -3,7 +3,7 @@ import lib.graph
 
 intcode = __import__('2019.intcode').intcode
 
-def part1(s):
+def parse_grid(s):
     in_chan, out_chan = intcode.Program(s).run(stop_on_no_input=True)
 
     grid = {}
@@ -46,12 +46,19 @@ def part1(s):
             oxy_coord = coord
             break
 
+    return grid, oxy_coord
+
+def neighbor_coords(x, y):
+    return [(x, y-1),
+            (x, y+1),
+            (x-1, y),
+            (x+1, y)]
+
+def part1(s):
+    grid, oxy_coord = parse_grid(s)
+
     def neighbor_fn(coord):
-        x, y = coord
-        for n in [(x, y-1),
-                  (x, y+1),
-                  (x-1, y),
-                  (x+1, y)]:
+        for n in neighbor_coords(*coord):
             if grid[n] != '#':
                 yield n, 1
 
@@ -62,7 +69,25 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    grid, oxy_coord = parse_grid(s)
+
+    def open_neighbors(cells):
+        for x, y in cells:
+            for n in neighbor_coords(x, y):
+                if grid[n] == '.':
+                    yield n
+
+    answer = 0
+
+    next_to_fill = set(open_neighbors([oxy_coord]))
+
+    while next_to_fill:
+        answer += 1
+        for c in next_to_fill:
+            grid[c] = 'O'
+        next_to_fill = set(open_neighbors(next_to_fill))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 15)
 part1(INPUT)
