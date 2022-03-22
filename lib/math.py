@@ -32,7 +32,7 @@ def minimum_divisors_to_make_coprime(a, b):
         a_div //= still_present
         b_div *= still_present
 
-def chinese_remainder(congruencies):
+def chinese_remainder(congruencies, min_answer=0):
     '''Efficiently calculates and returns the smallest number which works for
     all given congruences. For example, given the following:
     x % 5 == 2
@@ -44,6 +44,8 @@ def chinese_remainder(congruencies):
     Arguments:
     congruencies -- The list of congruencies to use. Expected to be a list of
     (mod, remainder) tuples.
+    min_answer (optional) -- The minimum answer to return. (Useful to get nonzero
+    answers if the remainders may all be zero)
     '''
     n = 1
     rem = 0
@@ -81,10 +83,17 @@ def chinese_remainder(congruencies):
         next_rem = (rem*mod*mod_inv + r*n*n_inv) % next_n
         n = next_n
         rem = next_rem
-    # The final remainder is the smallest number which works for all congruencies!
-    return rem
 
-def offset_chinese_remainder(congruencies):
+    # The final remainder is the smallest number which works for all congruencies!
+    answer = rem
+
+    # But if it's less than min_answer, offset it until it's good
+    while answer < min_answer:
+        answer += n
+
+    return answer
+
+def offset_chinese_remainder(congruencies, min_answer=0):
     '''Efficiently calculates and returns the smallest number which works for
     all given *offset* congruences. For example, given the following:
     (x + 2) % 5 == 0
@@ -96,14 +105,16 @@ def offset_chinese_remainder(congruencies):
     Arguments:
     congruencies -- The list of congruencies to use. Expected to be a list of
     (mod, offset) tuples.
+    min_answer (optional) -- The minimum answer to return. (Useful to get nonzero
+    answers if the offsets may all be zero)
     '''
     # Convert congruencies to chinese remainder form
     congruencies = [(mod, (mod - (offset % mod)) % mod)
                     for mod, offset
                     in congruencies]
-    return chinese_remainder(congruencies)
+    return chinese_remainder(congruencies, min_answer)
 
-def chinese_remainder_incongruence(incongruencies):
+def chinese_remainder_incongruence(incongruencies, min_answer=0):
     '''Efficiently calculates and returns the smallest number which works for
     all given incongruences. For example, given the following:
     x % 4 != 0
@@ -116,6 +127,8 @@ def chinese_remainder_incongruence(incongruencies):
     Arguments:
     incongruencies -- The list of incongruencies to use. Expected to be a list
     of (mod, remainder) tuples.
+    min_answer (optional) -- The minimum answer to return. (Useful to get nonzero
+    answers if the remainders may all be zero)
     '''
     mod_to_bad_remainders = collections.defaultdict(set)
 
@@ -198,9 +211,21 @@ def chinese_remainder_incongruence(incongruencies):
         if len(rem_options) == 0:
             return None
 
-    return min(rem_options)
+    # The final remainder is the smallest number which works for all possible congruencies!
+    possible_answers = sorted(rem_options)
 
-def offset_chinese_remainder_incongruence(incongruencies):
+    # But make sure that they're at least min_answer!
+    offset = 0
+
+    while True:
+        for answer in possible_answers:
+            if answer + offset >= min_answer:
+                return answer + offset
+
+        # No answer was big enough, increase the offset
+        offset += n
+
+def offset_chinese_remainder_incongruence(incongruencies, min_answer=0):
     '''Efficiently calculates and returns the smallest number which works for
     all given *offset* incongruences. For example, given the following:
     (x + 0) % 4 != 0
@@ -213,12 +238,14 @@ def offset_chinese_remainder_incongruence(incongruencies):
     Arguments:
     incongruencies -- The list of incongruencies to use. Expected to be a list
     of (mod, offset) tuples.
+    min_answer (optional) -- The minimum answer to return. (Useful to get nonzero
+    answers if the offsets may all be zero)
     '''
     # Convert congruencies to chinese remainder form
     incongruencies = [(mod, (mod - (offset % mod)) % mod)
                       for mod, offset
                       in incongruencies]
-    return chinese_remainder_incongruence(incongruencies)
+    return chinese_remainder_incongruence(incongruencies, min_answer)
 
 def find_continuous_curve_minimum(domain, fn):
     '''Efficiently finds the input in the domain that minimizes the function
