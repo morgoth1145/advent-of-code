@@ -6,16 +6,16 @@ class Program:
     def __init__(self, s):
         self.memory = list(map(int, s.split(',')))
 
-    def run(self, in_chan=None, out_chan=None):
+    def run(self, in_chan=None, out_chan=None, stop_on_no_input=False):
         if in_chan is None:
             in_chan = lib.channels.BufferedChannel()
         if out_chan is None:
             out_chan = lib.channels.BufferedChannel()
         threading.Thread(target=self.__run,
-                         args=(in_chan, out_chan)).start()
+                         args=(in_chan, out_chan, stop_on_no_input)).start()
         return in_chan, out_chan
 
-    def __run(self, in_chan, out_chan):
+    def __run(self, in_chan, out_chan, stop_on_no_input):
         idx = 0
         relative_base = 0
 
@@ -84,7 +84,12 @@ class Program:
                 continue
             if opcode == 3:
                 dest, = params(code, 0, output=True)
-                val = in_chan.recv()
+                try:
+                    val = in_chan.recv()
+                except lib.channels.ChannelClosed:
+                    if stop_on_no_input:
+                        return
+                    raise
                 self.memory[dest] = val
                 continue
             if opcode == 4:
