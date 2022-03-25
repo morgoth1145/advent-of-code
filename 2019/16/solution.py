@@ -1,21 +1,22 @@
+import itertools
+
 import lib.aoc
-
-def make_mask(idx, length):
-    idx += 1
-    mask = []
-
-    while len(mask) < length+1:
-        for n in (0, 1, 0, -1):
-            mask += [n] * idx
-
-    return mask[1:length+1]
 
 def phase(nums):
     out_nums = []
 
     for idx, n in enumerate(nums):
-        val = abs(sum(d*m for d, m in zip(nums, make_mask(idx, len(nums)))))
-        out_nums.append(val % 10)
+        repeat = idx+1
+        val = 0
+
+        offset = idx
+        while offset < len(nums):
+            val += sum(nums[offset:offset+repeat])
+            offset += 2*repeat
+            val -= sum(nums[offset:offset+repeat])
+            offset += 2*repeat
+
+        out_nums.append(abs(val) % 10)
 
     return out_nums
 
@@ -28,16 +29,6 @@ def part1(s):
     answer = ''.join(map(str, nums[:8]))
 
     print(f'The answer to part one is {answer}')
-
-def partial_sums_mod_10(nums):
-    out_nums = []
-
-    s = 0
-    for n in nums:
-        s += n
-        out_nums.append(s % 10)
-
-    return out_nums
 
 def part2(s):
     nums = list(map(int, s))
@@ -54,7 +45,7 @@ def part2(s):
     reverse_nums = (nums[::-1] * repeat_times)[:remain_length]
 
     for _ in range(100):
-        reverse_nums = partial_sums_mod_10(reverse_nums)
+        reverse_nums = [n%10 for n in itertools.accumulate(reverse_nums)]
 
     answer = ''.join(map(str, reverse_nums[-8:]))[::-1]
 
