@@ -58,6 +58,27 @@ def make_connectivity_graph(grid, points_of_interest):
 
     return connectivity_graph
 
+def neighbor_states_with_new_key(connectivity_graph, start_symbol, keys):
+    def neighbor_fn(symbol):
+        if symbol in string.ascii_lowercase:
+            if symbol not in keys:
+                # Don't pass the first new key we find
+                return
+
+        for neighbor, dist in connectivity_graph[symbol]:
+            if neighbor in string.ascii_uppercase:
+                if neighbor.swapcase() not in keys:
+                    # Can't cross this door yet
+                    continue
+
+            yield neighbor, dist
+
+    graph = lib.graph.make_lazy_graph(neighbor_fn)
+
+    for symbol, dist in lib.graph.all_reachable(graph, start_symbol):
+        if symbol in string.ascii_lowercase and symbol not in keys:
+            yield symbol, dist
+
 def part1(s):
     grid = lib.grid.FixedGrid.parse(s)
 
@@ -68,18 +89,11 @@ def part1(s):
 
     def neighbor_fn(state):
         symbol, keys = state
-
-        for neighbor, dist in connectivity_graph[symbol]:
-            if neighbor in string.ascii_uppercase:
-                if neighbor.swapcase() not in keys:
-                    # Can't cross this door yet
-                    continue
-
-            new_keys = keys
-            if neighbor in string.ascii_lowercase:
-                new_keys = tuple(sorted(set(keys + (neighbor,))))
-
-            yield (neighbor, new_keys), dist
+        for key, dist in neighbor_states_with_new_key(connectivity_graph,
+                                                          symbol,
+                                                          keys):
+            new_keys = tuple(sorted(keys + (key,)))
+            yield (key, new_keys), dist
 
     graph = lib.graph.make_lazy_graph(neighbor_fn)
 
@@ -121,23 +135,15 @@ def part2(s):
     connectivity_graph = make_connectivity_graph(grid, keys | doors | starts)
 
     def neighbor_fn(state):
-        # TODO: Only return neighbors which are a new key
-        # That should drastically speed up part 2
         bots, keys = state
         bots = list(bots)
 
         for bot_idx, bot_pos in enumerate(bots):
-            for neighbor, dist in connectivity_graph[bot_pos]:
-                if neighbor in string.ascii_uppercase:
-                    if neighbor.swapcase() not in keys:
-                        # Can't cross this door yet
-                        continue
-
-                new_keys = keys
-                if neighbor in string.ascii_lowercase:
-                    new_keys = tuple(sorted(set(keys + (neighbor,))))
-
-                bots[bot_idx] = neighbor
+            for key, dist in neighbor_states_with_new_key(connectivity_graph,
+                                                          bot_pos,
+                                                          keys):
+                new_keys = tuple(sorted(keys + (key,)))
+                bots[bot_idx] = key
 
                 yield (tuple(bots), new_keys), dist
 
