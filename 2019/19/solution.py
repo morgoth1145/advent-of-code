@@ -23,7 +23,6 @@ def part1(s):
 def part2(s):
     p = intcode.Program(s)
 
-    @functools.cache
     def is_affected(x, y):
         in_chan, out_chan = p.clone().run()
         in_chan.send(x)
@@ -45,10 +44,15 @@ def part2(s):
         while not is_affected(x, y+HEIGHT-1):
             x += 1
 
-        if all(is_affected(x+dx, y+dy)
-               for dx in range(WIDTH)
-               for dy in range(HEIGHT)):
-            break
+        if not is_affected(x+WIDTH-1, y):
+            # The right side isn't affected anymore!
+            continue
+
+        # Sanity check the full square
+        assert(all(is_affected(x+dx, y+dy)
+                   for dx in range(WIDTH)
+                   for dy in range(HEIGHT)))
+        break
 
     answer = 10000 * x + y
 

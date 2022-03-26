@@ -24,26 +24,16 @@ class Program:
         idx = 0
         relative_base = 0
 
-        def params(code, n, output=False):
+        def params(modes, n, output=False):
             nonlocal idx
-            modes = code // 100
-
-            if output:
-                n += 1
 
             vals = self.memory[idx:idx+n]
             idx += n
-            modes = list(map(int, str(modes).zfill(n)[::-1]))
-            if output:
-                # The output should not be in immediate mode
-                assert(modes[-1] in (0, 2))
-                # But store the output mode and treat it as immediate mode
-                # in the main loop to leave it alone. (We want the output
-                # position, not the value at that position!)
-                out_mode = modes[-1]
-                modes[-1] = 1
 
-            for i, (v, m) in enumerate(zip(vals, modes)):
+            for i, v in enumerate(vals):
+                modes, m = divmod(modes, 10)
+
+                # TODO: Perhaps Python 10 pattern matching would be faster?
                 if m == 0:
                     # Position mode
                     if v >= len(self.memory):
@@ -63,13 +53,26 @@ class Program:
                     assert(False)
 
             if output:
-                if out_mode == 2:
-                    # Output was in relative mode, get the absolute position
-                    vals[-1] += relative_base
+                pos = self.memory[idx]
+                idx += 1
+
+                # TODO: Perhaps Python 10 pattern matching would be faster?
+                out_mode = modes % 10
+                if out_mode == 0:
+                    # Position mode, leave alone
+                    pass
+                elif out_mode == 2:
+                    # Relative mode, get the absolute position
+                    pos += relative_base
+                else:
+                    print(f'Invalid output parameter mode: {out_mode}')
+                    assert(False)
+
                 # Ensure we have room for the output
-                pos = vals[-1]
                 if pos >= len(self.memory):
                     self.memory += [0] * (pos - len(self.memory) + 1)
+
+                vals.append(pos)
 
             return vals
 
@@ -77,18 +80,18 @@ class Program:
             code = self.memory[idx]
             idx += 1
 
-            opcode = code % 100
+            modes, opcode = divmod(code, 100)
 
             if opcode == 1:
-                a, b, dest = params(code, 2, output=True)
+                a, b, dest = params(modes, 2, output=True)
                 self.memory[dest] = a + b
                 continue
             if opcode == 2:
-                a, b, dest = params(code, 2, output=True)
+                a, b, dest = params(modes, 2, output=True)
                 self.memory[dest] = a * b
                 continue
             if opcode == 3:
-                dest, = params(code, 0, output=True)
+                dest, = params(modes, 0, output=True)
                 try:
                     val = in_chan.recv()
                 except lib.channels.ChannelClosed:
@@ -98,29 +101,29 @@ class Program:
                 self.memory[dest] = val
                 continue
             if opcode == 4:
-                val, = params(code, 1)
+                val, = params(modes, 1)
                 out_chan.send(val)
                 continue
             if opcode == 5:
-                test, dest_idx = params(code, 2)
+                test, dest_idx = params(modes, 2)
                 if test != 0:
                     idx = dest_idx
                 continue
             if opcode == 6:
-                test, dest_idx = params(code, 2)
+                test, dest_idx = params(modes, 2)
                 if test == 0:
                     idx = dest_idx
                 continue
             if opcode == 7:
-                a, b, dest = params(code, 2, output=True)
+                a, b, dest = params(modes, 2, output=True)
                 self.memory[dest] = 1 if a < b else 0
                 continue
             if opcode == 8:
-                a, b, dest = params(code, 2, output=True)
+                a, b, dest = params(modes, 2, output=True)
                 self.memory[dest] = 1 if a == b else 0
                 continue
             if opcode == 9:
-                a, = params(code, 1)
+                a, = params(modes, 1)
                 relative_base += a
                 continue
             if opcode == 99:
