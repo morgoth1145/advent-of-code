@@ -11,33 +11,29 @@ def parse_maze(s):
     points_of_interest = collections.defaultdict(list)
 
     for (x, y), c in grid.items():
-        if c != '.':
-            continue
+        if c in string.ascii_uppercase:
+            # Read in top-down, left-right fashion
+            for dx, dy in [(1, 0),
+                           (0, 1)]:
+                if (x+dx, y+dy) not in grid:
+                    continue
 
-        for n in grid.neighbors(x, y):
-            nc = grid[n]
-            if len(nc) != 1:
-                # Skip any cells we determined were portals!
-                continue
+                nc = grid[x+dx, y+dy]
+                if nc not in string.ascii_uppercase:
+                    continue
 
-            if nc in string.ascii_uppercase:
-                dx = n[0] - x
-                dy = n[1] - y
+                key = c+nc
 
-                n2 = (x + 2*dx, y + 2*dy)
-                nc2 = grid[n2]
+                if (x-dx, y-dy) in grid and grid[x-dx, y-dy] == '.':
+                    loc = (x-dx, y-dy)
+                else:
+                    loc = (x+2*dx, y+2*dy)
+                    assert(grid[loc] == '.')
 
-                key = nc + nc2
-                if dx < 0 or dy < 0:
-                    # We read top-down, left-right. This key was read backwards
-                    key = key[::-1]
-
-                points_of_interest[key].append((x, y))
-
-                grid[x,y] = key
-                grid[n] = '#'
-                grid[n2] = ' '
-
+                points_of_interest[key].append(loc)
+                grid[loc] = key
+                grid[x,y] = '#'
+                grid[x+dx, y+dy] = '#'
                 break
 
     return grid, points_of_interest

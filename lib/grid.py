@@ -70,6 +70,10 @@ class FixedGrid:
     def area(self):
         return self._width * self._height
 
+    def __contains__(self, c):
+        x, y = c
+        return 0 <= x < self._width and 0 <= y < self._height
+
     def __getitem__(self, c):
         x, y = c
         assert(0 <= x < self._width and 0 <= y < self._height)
