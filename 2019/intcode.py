@@ -6,6 +6,11 @@ class Program:
     def __init__(self, s):
         self.memory = list(map(int, s.split(',')))
 
+    def clone(self):
+        p = Program('1')
+        p.memory = list(self.memory)
+        return p
+
     def run(self, in_chan=None, out_chan=None, stop_on_no_input=False):
         if in_chan is None:
             in_chan = lib.channels.BufferedChannel()
