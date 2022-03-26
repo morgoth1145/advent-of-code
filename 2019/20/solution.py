@@ -45,15 +45,23 @@ def parse_maze(s):
 def parse_graph(s):
     grid, points_of_interest = parse_maze(s)
 
+    OUTER_X = (2, grid.width-3)
+    OUTER_Y = (2, grid.height-3)
+
     graph = collections.defaultdict(list)
 
     for key, locations in points_of_interest.items():
         if len(locations) == 2:
             # Set up the portal
-            k1 = key + '1'
-            k2 = key + '2'
-
             loc1, loc2 = locations
+
+            if loc1[0] in OUTER_X or loc1[1] in OUTER_Y:
+                k1 = key + '_OUT'
+                k2 = key + '_IN'
+            else:
+                assert(loc2[0] in OUTER_X or loc2[1] in OUTER_Y)
+                k1 = key + '_IN'
+                k2 = key + '_OUT'
 
             grid[loc1] = k1
             grid[loc2] = k2
@@ -98,7 +106,37 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    base_graph = parse_graph(s)
+
+    def recursive_neighbor_fn(state):
+        key, level = state
+
+        for dest_key, dist in base_graph[key]:
+            if level > 0 and dest_key in ('AA', 'ZZ'):
+                # Walls
+                continue
+
+            if dest_key[:2] == key[:2]:
+                # Portal, this affects our level!
+                if key.endswith('_IN'):
+                    yield (dest_key, level+1), dist
+                else:
+                    assert(key.endswith('_OUT'))
+                    yield (dest_key, level-1), dist
+                continue
+
+            if level == 0 and dest_key.endswith('_OUT'):
+                # Walls
+                continue
+
+            # Staying on the same level
+            yield (dest_key, level), dist
+
+    graph = lib.graph.make_lazy_graph(recursive_neighbor_fn)
+
+    answer = lib.graph.dijkstra_length(graph, ('AA', 0), ('ZZ', 0))
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 20)
 part1(INPUT)
