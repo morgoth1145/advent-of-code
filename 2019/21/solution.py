@@ -27,8 +27,10 @@ WALK
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    answer = run_springdroid(s, '''OR D J
-AND H J
+    answer = run_springdroid(s, '''OR E J
+AND I J
+OR H J
+AND D J
 OR B T
 AND C T
 NOT T T
