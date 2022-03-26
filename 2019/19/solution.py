@@ -21,7 +21,38 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    p = intcode.Program(s)
+
+    @functools.cache
+    def is_affected(x, y):
+        in_chan, out_chan = p.clone().run()
+        in_chan.send(x)
+        in_chan.send(y)
+
+        return out_chan.recv() == 1
+
+    x, y = 0, 0
+
+    WIDTH = 100
+    HEIGHT = 100
+
+    while True:
+        # Walk down until the right side of the box is affected
+        while not is_affected(x+WIDTH-1, y):
+            y += 1
+
+        # Walk right until the left side of the box is affected
+        while not is_affected(x, y+HEIGHT-1):
+            x += 1
+
+        if all(is_affected(x+dx, y+dy)
+               for dx in range(WIDTH)
+               for dy in range(HEIGHT)):
+            break
+
+    answer = 10000 * x + y
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 19)
 part1(INPUT)
