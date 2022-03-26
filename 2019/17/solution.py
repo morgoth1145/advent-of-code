@@ -19,7 +19,9 @@ def part1(s):
 
     print(f'The answer to part one is {answer}')
 
-def extract_path(grid):
+def extract_path(s):
+    grid = get_scaffold_grid(s).to_dict()
+
     x, y = next(coord
                 for coord, c in grid.items()
                 if c == '^')
@@ -52,13 +54,21 @@ def extract_path(grid):
         steps.append(move_units)
 
 MAX_SEQUENCE_LENGTH = 20
-NUM_SUBPROGRAMS = 3
+SUBPROGRAM_NAMES = 'ABC'
+NUM_SUBPROGRAMS = len(SUBPROGRAM_NAMES)
 
-def compress_path(remaining_steps, main_sequence, subprograms):
-    if len(','.join(map(str, main_sequence))) > MAX_SEQUENCE_LENGTH:
+def compress_path(remaining_steps, main_sequence=tuple(), subprograms=tuple()):
+    if len(','.join(main_sequence)) > MAX_SEQUENCE_LENGTH:
         return None
 
     if len(remaining_steps) == 0:
+        main_sequence = ','.join(main_sequence)
+
+        subprograms = [','.join(map(str, subprogram))
+                       for subprogram in subprograms]
+        while len(subprograms) < NUM_SUBPROGRAMS:
+            subprograms.append('')
+
         return main_sequence, subprograms
 
     for subprogram_idx, subprogram in enumerate(subprograms):
@@ -74,7 +84,7 @@ def compress_path(remaining_steps, main_sequence, subprograms):
         last_step = subprogram[-1]
         if last_step == remaining_steps[subprogram_len-1]:
             compressed = compress_path(remaining_steps[subprogram_len:],
-                                       main_sequence + (subprogram_idx,),
+                                       main_sequence + (SUBPROGRAM_NAMES[subprogram_idx],),
                                        subprograms)
             if compressed is not None:
                 return compressed
@@ -84,7 +94,7 @@ def compress_path(remaining_steps, main_sequence, subprograms):
             new_remaining = list(remaining_steps[subprogram_len-1:])
             new_remaining[0] -= last_step
             compressed = compress_path(new_remaining,
-                                       main_sequence + (subprogram_idx,),
+                                       main_sequence + (SUBPROGRAM_NAMES[subprogram_idx],),
                                        subprograms)
             if compressed is not None:
                 return compressed
@@ -117,21 +127,7 @@ def compress_path(remaining_steps, main_sequence, subprograms):
         trim_cand_subprogram()
 
 def part2(s):
-    raw_steps = extract_path(get_scaffold_grid(s).to_dict())
-
-    main, subprograms = compress_path(raw_steps, tuple(), tuple())
-
-    main = ','.join('ABC'[subprogram] for subprogram in main)
-
-    assert(len(main) <= MAX_SEQUENCE_LENGTH)
-
-    subprograms = [','.join(map(str, subprogram))
-                   for subprogram in subprograms]
-    while len(subprograms) < NUM_SUBPROGRAMS:
-        subprograms.append('')
-
-    assert(all(len(subprogram) <= MAX_SEQUENCE_LENGTH
-               for subprogram in subprograms))
+    main, subprograms = compress_path(extract_path(s))
 
     bot_commands = '\n'.join([main] + subprograms + ['n']) + '\n'
 
