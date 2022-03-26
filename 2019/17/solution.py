@@ -11,30 +11,21 @@ def get_scaffold_grid(s):
 def part1(s):
     grid = get_scaffold_grid(s)
 
-    answer = 0
-
-    for (x, y), c in grid.items():
-        if c != '#':
-            continue
-
-        neighbors = list(grid.neighbors(x, y))
-        if len(neighbors) != 4:
-            continue
-
-        if all(grid[n] == '#' for n in neighbors):
-            answer += x*y
+    answer = sum(x*y
+                 for (x, y), c in grid.items()
+                 if c == '#'
+                 if all(grid[n] == '#' for n in grid.neighbors(x, y))
+                 if len(list(grid.neighbors(x, y))) == 4)
 
     print(f'The answer to part one is {answer}')
 
-def part2(s):
-    grid = get_scaffold_grid(s).to_dict()
-
+def extract_path(grid):
     x, y = next(coord
                 for coord, c in grid.items()
                 if c == '^')
     dx, dy = 0, -1
 
-    raw_steps = []
+    steps = []
 
     while True:
         turn_options = [('L', dy, -dx),
@@ -48,9 +39,9 @@ def part2(s):
                 break
 
         if not good_turn:
-            break # Must be done
+            return steps # Must be done
 
-        raw_steps.append(turn)
+        steps.append(turn)
 
         move_units = 0
         while grid.get((x+dx, y+dy)) == '#':
@@ -58,82 +49,77 @@ def part2(s):
             x += dx
             y += dy
 
-        raw_steps.append(move_units)
+        steps.append(move_units)
 
-    MAX_SEQUENCE_LENGTH = 20
-    MAX_SUBPROGRAMS = 3
+MAX_SEQUENCE_LENGTH = 20
+NUM_SUBPROGRAMS = 3
 
-    def find_solution(remaining_steps, main_sequence, subprograms):
-        if len(','.join(map(str, main_sequence))) > MAX_SEQUENCE_LENGTH:
-            return None
+def compress_path(remaining_steps, main_sequence, subprograms):
+    if len(','.join(map(str, main_sequence))) > MAX_SEQUENCE_LENGTH:
+        return None
 
-        if len(remaining_steps) == 0:
-            return main_sequence, subprograms
+    if len(remaining_steps) == 0:
+        return main_sequence, subprograms
 
-        for subprogram_idx, subprogram in enumerate(subprograms):
-            subprogram_len = len(subprogram)
-            if len(remaining_steps) < subprogram_len:
-                continue
+    for subprogram_idx, subprogram in enumerate(subprograms):
+        subprogram_len = len(subprogram)
+        if len(remaining_steps) < subprogram_len:
+            continue
 
-            if not all(remaining_steps[idx] == step
-                       for idx, step in enumerate(subprogram[:-1])):
-                # This subprogram can't match the next step
-                continue
+        if not all(remaining_steps[idx] == step
+                   for idx, step in enumerate(subprogram[:-1])):
+            # This subprogram can't match the next step
+            continue
 
-            last_step = subprogram[-1]
-            if last_step == remaining_steps[subprogram_len-1]:
-                solution = find_solution(remaining_steps[subprogram_len:],
-                                         main_sequence + (subprogram_idx,),
-                                         subprograms)
-                if solution is not None:
-                    return solution
-            elif (isinstance(last_step, int) and
-                  isinstance(remaining_steps[subprogram_len-1], int) and
-                  last_step < remaining_steps[subprogram_len-1]):
-                new_remaining = list(remaining_steps[subprogram_len-1:])
-                new_remaining[0] -= last_step
-                solution = find_solution(new_remaining,
-                                         main_sequence + (subprogram_idx,),
-                                         subprograms)
-                if solution is not None:
-                    return solution
+        last_step = subprogram[-1]
+        if last_step == remaining_steps[subprogram_len-1]:
+            compressed = compress_path(remaining_steps[subprogram_len:],
+                                       main_sequence + (subprogram_idx,),
+                                       subprograms)
+            if compressed is not None:
+                return compressed
+        elif (isinstance(last_step, int) and
+              isinstance(remaining_steps[subprogram_len-1], int) and
+              last_step < remaining_steps[subprogram_len-1]):
+            new_remaining = list(remaining_steps[subprogram_len-1:])
+            new_remaining[0] -= last_step
+            compressed = compress_path(new_remaining,
+                                       main_sequence + (subprogram_idx,),
+                                       subprograms)
+            if compressed is not None:
+                return compressed
 
-        if len(subprograms) == MAX_SUBPROGRAMS:
-            return None
+    if len(subprograms) == NUM_SUBPROGRAMS:
+        return None
 
-        # Try to find a new subprogram
-        cand_subprogram = []
+    # Try to find a new subprogram
+    cand_subprogram = list(remaining_steps)
 
-        for step in remaining_steps:
-            cand_subprogram.append(step)
-
-            if len(','.join(map(str, cand_subprogram))) >= MAX_SEQUENCE_LENGTH:
-                break
-
-        while len(','.join(map(str, cand_subprogram))) > MAX_SEQUENCE_LENGTH:
-            if isinstance(cand_subprogram[-1], int):
-                cand_subprogram[-1] -= 1
-                if cand_subprogram[-1] == 0:
-                    cand_subprogram.pop(-1)
-            else:
+    def trim_cand_subprogram():
+        if isinstance(cand_subprogram[-1], int):
+            cand_subprogram[-1] -= 1
+            if cand_subprogram[-1] == 0:
                 cand_subprogram.pop(-1)
+        else:
+            cand_subprogram.pop(-1)
 
-        while cand_subprogram:
-            solution = find_solution(remaining_steps,
-                                     main_sequence,
-                                     subprograms + (tuple(cand_subprogram),))
-            if solution is not None:
-                return solution
+    while len(','.join(map(str, cand_subprogram))) > MAX_SEQUENCE_LENGTH:
+        trim_cand_subprogram()
 
-            # The subprogram didn't work, trim it
-            if isinstance(cand_subprogram[-1], int):
-                cand_subprogram[-1] -= 1
-                if cand_subprogram[-1] == 0:
-                    cand_subprogram.pop(-1)
-            else:
-                cand_subprogram.pop(-1)
+    while cand_subprogram:
+        compressed = compress_path(remaining_steps,
+                                   main_sequence,
+                                   subprograms + (tuple(cand_subprogram),))
+        if compressed is not None:
+            return compressed
 
-    main, subprograms = find_solution(raw_steps, tuple(), tuple())
+        # The subprogram didn't work, trim it
+        trim_cand_subprogram()
+
+def part2(s):
+    raw_steps = extract_path(get_scaffold_grid(s).to_dict())
+
+    main, subprograms = compress_path(raw_steps, tuple(), tuple())
 
     main = ','.join('ABC'[subprogram] for subprogram in main)
 
@@ -141,22 +127,20 @@ def part2(s):
 
     subprograms = [','.join(map(str, subprogram))
                    for subprogram in subprograms]
+    while len(subprograms) < NUM_SUBPROGRAMS:
+        subprograms.append('')
 
     assert(all(len(subprogram) <= MAX_SEQUENCE_LENGTH
                for subprogram in subprograms))
+
+    bot_commands = '\n'.join([main] + subprograms + ['n']) + '\n'
 
     p = intcode.Program(s)
     p.memory[0] = 2 # Wake up robot
     in_chan, out_chan = p.run()
 
-    for routine in [main] + subprograms:
-        for c in routine:
-            in_chan.send(ord(c))
-        in_chan.send(ord('\n'))
-
-    # Turn off continuous video feed
-    in_chan.send(ord('n'))
-    in_chan.send(ord('\n'))
+    for c in map(ord, bot_commands):
+        in_chan.send(c)
 
     answer = list(out_chan)[-1]
 
