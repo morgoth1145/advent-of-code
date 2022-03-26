@@ -27,7 +27,18 @@ WALK
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    answer = run_springdroid(s, '''OR D J
+AND H J
+OR B T
+AND C T
+NOT T T
+AND T J
+NOT A T
+OR T J
+RUN
+''')
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 21)
 part1(INPUT)
