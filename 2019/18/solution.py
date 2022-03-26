@@ -70,15 +70,16 @@ def part1(s):
         symbol, keys = state
 
         for neighbor, dist in connectivity_graph[symbol]:
-            if neighbor in string.ascii_lowercase:
-                new_keys = tuple(sorted(set(keys + (neighbor,))))
-                yield (neighbor, new_keys), dist
-                continue
             if neighbor in string.ascii_uppercase:
                 if neighbor.swapcase() not in keys:
                     # Can't cross this door yet
                     continue
-            yield (neighbor, keys), dist
+
+            new_keys = keys
+            if neighbor in string.ascii_lowercase:
+                new_keys = tuple(sorted(set(keys + (neighbor,))))
+
+            yield (neighbor, new_keys), dist
 
     graph = lib.graph.make_lazy_graph(neighbor_fn)
 
@@ -95,7 +96,67 @@ def part1(s):
     print(f'The answer to part one is {answer}')
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+
+    keys, doors, start = find_points_of_interest(grid)
+
+    sx, sy = start
+
+    # Wall off the vaults
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            grid[sx+dx, sy+dy] = '#'
+
+    starts = {
+        '@1': (sx-1, sy-1),
+        '@2': (sx+1, sy-1),
+        '@3': (sx+1, sy+1),
+        '@4': (sx-1, sy+1),
+    }
+
+    # Add the starting locations
+    for symbol, coord in starts.items():
+        grid[coord] = symbol
+
+    connectivity_graph = make_connectivity_graph(grid, keys | doors | starts)
+
+    def neighbor_fn(state):
+        # TODO: Only return neighbors which are a new key
+        # That should drastically speed up part 2
+        bots, keys = state
+        bots = list(bots)
+
+        for bot_idx, bot_pos in enumerate(bots):
+            for neighbor, dist in connectivity_graph[bot_pos]:
+                if neighbor in string.ascii_uppercase:
+                    if neighbor.swapcase() not in keys:
+                        # Can't cross this door yet
+                        continue
+
+                new_keys = keys
+                if neighbor in string.ascii_lowercase:
+                    new_keys = tuple(sorted(set(keys + (neighbor,))))
+
+                bots[bot_idx] = neighbor
+
+                yield (tuple(bots), new_keys), dist
+
+            bots[bot_idx] = bot_pos
+
+    graph = lib.graph.make_lazy_graph(neighbor_fn)
+
+    ALL_KEYS = tuple(sorted(keys.keys()))
+
+    def have_all_keys(state):
+        bots, keys = state
+        return keys == ALL_KEYS
+
+    answer = lib.graph.dijkstra_length_fuzzy_end(graph,
+                                                 (('@1', '@2', '@3', '@4'),
+                                                  tuple()),
+                                                 have_all_keys)
+
+    print(f'The answer to part two is {answer}')
 
 INPUT = lib.aoc.get_input(2019, 18)
 part1(INPUT)
