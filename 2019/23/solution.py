@@ -6,135 +6,113 @@ import lib.channels
 intcode = __import__('2019.intcode').intcode
 
 class Packet:
-    def __init__(self, dest, x, y, nat_generated=False):
+    def __init__(self, src, dest, x, y):
+        self.src = src
         self.dest = dest
         self.x = x
         self.y = y
-        self.nat_generated = nat_generated
 
-def read_packets_and_forward(comp_out_chan, controller_chan):
-    for dest in comp_out_chan:
-        x = comp_out_chan.recv()
-        y = comp_out_chan.recv()
+def run(s, num_processes, include_nat):
+    NAT_ADDR = 255
 
-        controller_chan.send(Packet(dest, x, y))
-
-def part1(s):
     in_channels = []
     out_channels = []
 
     controller_chan = lib.channels.BufferedChannel()
 
     # Set up channels
-    for _ in range(50):
+    for _ in range(num_processes):
         in_channels.append(lib.channels.BufferedChannel())
         out_channels.append(lib.channels.BufferedChannel())
 
-    # Initialize the input channels
-    for addr, in_chan in enumerate(in_channels):
-        in_chan.send(addr)
-        # After sending useful information, pretend that there's no packet
-        # waiting and send -1
-        in_chan.send(-1)
-
-    # Forward packets from each program to the controller
-    for out_chan in out_channels:
-        threading.Thread(target=read_packets_and_forward,
-                         args=(out_chan, controller_chan)).start()
-
-    # Start programs
-    for in_chan, out_chan in zip(in_channels, out_channels):
-        intcode.Program(s).run(in_chan=in_chan, out_chan=out_chan,
-                               stop_on_no_input=True)
-
-    # Controller loop
-    for packet in controller_chan:
-        if packet.dest == 255:
-            answer = packet.y
-            break
-        in_chan = in_channels[packet.dest]
-        in_chan.send(packet.x)
-        in_chan.send(packet.y)
-        # After sending useful information, pretend that there's no packet
-        # waiting and send -1
-        in_chan.send(-1)
-
-    # Close all input channels to shut down the network
-    for in_chan in in_channels:
-        in_chan.close()
-
-    print(f'The answer to part one is {answer}')
-
-def part2(s):
-    in_channels = []
-    out_channels = []
-
-    controller_chan = lib.channels.BufferedChannel()
-
-    # Set up channels
-    for _ in range(50):
-        in_channels.append(lib.channels.BufferedChannel())
-        out_channels.append(lib.channels.BufferedChannel())
-
-    deadlock_chan = lib.channels.detect_deadlock_events(101,
+    deadlock_chan = lib.channels.detect_deadlock_events(2*num_processes+1,
                                                         controller_chan,
                                                         *(in_channels + out_channels))
 
+    def forward_deadlocks():
+        for deadlock in deadlock_chan:
+            controller_chan.send('deadlock')
+    threading.Thread(target=forward_deadlocks).start()
+
     # Initialize the input channels
     for addr, in_chan in enumerate(in_channels):
         in_chan.send(addr)
-        # After sending useful information, pretend that there's no packet
-        # waiting and send -1
-        in_chan.send(-1)
 
     # Forward packets from each program to the controller
-    for out_chan in out_channels:
-        threading.Thread(target=read_packets_and_forward,
-                         args=(out_chan, controller_chan)).start()
+    def forward_program_packets(src, out_chan):
+        for dest in out_chan:
+            x = out_chan.recv()
+            y = out_chan.recv()
+
+            controller_chan.send(Packet(src, dest, x, y))
+    for addr, out_chan in enumerate(out_channels):
+        threading.Thread(target=forward_program_packets,
+                         args=(addr, out_chan)).start()
 
     # Start programs
     for in_chan, out_chan in zip(in_channels, out_channels):
         intcode.Program(s).run(in_chan=in_chan, out_chan=out_chan,
                                stop_on_no_input=True)
 
+    def shutdown_network():
+        for in_chan in in_channels:
+            in_chan.close()
+
+        deadlock_chan.close()
+
     nat_packet = None
+    last_nat_generated_y = None
 
-    def nat_listener():
-        for deadlock in deadlock_chan:
-            assert(nat_packet is not None)
-
-            # Send a copy of the last nat packet to 0
-            controller_chan.send(Packet(0, nat_packet.x, nat_packet.y, True))
-    threading.Thread(target=nat_listener).start()
-
-    last_nat_sent_y = None
+    active_machines = set(range(num_processes))
 
     # Controller loop
     for msg in controller_chan:
-        if msg.nat_generated:
-            if msg.y == last_nat_sent_y:
-                answer = msg.y
-                break
-            last_nat_sent_y = msg.y
+        if msg == 'deadlock':
+            if len(active_machines) == 0:
+                # Absolute deadlock!
+                assert(include_nat)
+                controller_chan.send(Packet(NAT_ADDR, 0, nat_packet.x, nat_packet.y))
+                continue
 
-        if msg.dest == 255:
-            nat_packet = msg
+            addr = min(active_machines)
+            active_machines.remove(addr)
+            in_channels[addr].send(-1)
+            continue
+
+        if msg.src == NAT_ADDR:
+            assert(include_nat)
+            if msg.y == last_nat_generated_y:
+                # This is our first duplicate (part 2)
+                shutdown_network()
+                return last_nat_generated_y
+            last_nat_generated_y = msg.y
+
+        if msg.src != NAT_ADDR:
+            active_machines.add(msg.src)
+        if msg.dest != NAT_ADDR:
+            active_machines.add(msg.dest)
+
+        if msg.dest == NAT_ADDR:
+            if include_nat:
+                nat_packet = msg
+            else:
+                # This is the first message to the nat (part 1)
+                shutdown_network()
+                return msg.y
             continue
 
         in_chan = in_channels[msg.dest]
         in_chan.send(msg.x)
         in_chan.send(msg.y)
-        # After sending useful information, pretend that there's no packet
-        # waiting and send -1
-        in_chan.send(-1)
         continue
 
-    # Close all input channels to shut down the network
-    for in_chan in in_channels:
-        in_chan.close()
+def part1(s):
+    answer = run(s, 50, include_nat=False)
 
-    # And close the background deadlock listener thread
-    deadlock_chan.close()
+    print(f'The answer to part one is {answer}')
+
+def part2(s):
+    answer = run(s, 50, include_nat=True)
 
     print(f'The answer to part two is {answer}')
 
