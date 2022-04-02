@@ -11,16 +11,19 @@ class Program:
         p.memory = list(self.memory)
         return p
 
-    def run(self, in_chan=None, out_chan=None, stop_on_no_input=False):
+    def run(self, in_chan=None, out_chan=None,
+            stop_on_no_input=False, stop_on_closed_output=False):
         if in_chan is None:
             in_chan = lib.channels.BufferedChannel()
         if out_chan is None:
             out_chan = lib.channels.BufferedChannel()
         threading.Thread(target=self.__run,
-                         args=(in_chan, out_chan, stop_on_no_input)).start()
+                         args=(in_chan, out_chan,
+                               stop_on_no_input, stop_on_closed_output)).start()
         return in_chan, out_chan
 
-    def __run(self, in_chan, out_chan, stop_on_no_input):
+    def __run(self, in_chan, out_chan,
+              stop_on_no_input, stop_on_closed_output):
         idx = 0
         relative_base = 0
 
@@ -96,13 +99,18 @@ class Program:
                     val = in_chan.recv()
                 except lib.channels.ChannelClosed:
                     if stop_on_no_input:
-                        return
+                        break
                     raise
                 self.memory[dest] = val
                 continue
             if opcode == 4:
                 val, = params(modes, 1)
-                out_chan.send(val)
+                try:
+                    out_chan.send(val)
+                except lib.channels.ChannelClosed:
+                    if stop_on_closed_output:
+                        break
+                    raise
                 continue
             if opcode == 5:
                 test, dest_idx = params(modes, 2)
@@ -127,6 +135,7 @@ class Program:
                 relative_base += a
                 continue
             if opcode == 99:
-                out_chan.close()
-                return
+                break
             assert(False)
+
+        out_chan.close()
