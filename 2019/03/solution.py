@@ -39,7 +39,7 @@ def part1(s):
                  for (x, y) in w1
                  if (x, y) in w2)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 3, 1, answer)
 
 def part2(s):
     w1, w2 = s.splitlines()
@@ -51,7 +51,7 @@ def part2(s):
                  for c in w1
                  if c in w2)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 3, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 3)
 part1(INPUT)

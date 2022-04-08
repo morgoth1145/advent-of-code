@@ -46,7 +46,7 @@ def part1(s):
         if not moved:
             break
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 25, 1, answer)
 
 def part2(s):
     print('There is no part two for Christmas!')

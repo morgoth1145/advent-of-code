@@ -6,7 +6,7 @@ import lib.aoc
 def part1(s):
     answer = sum(map(lambda r:r[0], parse.findall('{:d}', s)))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 12, 1, answer)
 
 def sum_not_red(data):
     if isinstance(data, list):
@@ -24,7 +24,7 @@ def sum_not_red(data):
 def part2(s):
     answer = sum_not_red(json.loads(s))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 12, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 12)
 part1(INPUT)

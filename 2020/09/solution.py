@@ -13,7 +13,7 @@ def get_invalid_num(nums):
 def part1(s):
     nums = list(map(int, s.split()))
     answer = get_invalid_num(nums)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 9, 1, answer)
 
 def part2(s):
     nums = list(map(int, s.split()))
@@ -28,7 +28,7 @@ def part2(s):
                 the_nums = nums[idx+1:idx+idx2+2]
                 assert(sum(the_nums) == target)
                 answer = min(the_nums) + max(the_nums)
-                print(f'The answer to part two is {answer}')
+                lib.aoc.give_answer(2020, 9, 2, answer)
                 return
 
 INPUT = lib.aoc.get_input(2020, 9)

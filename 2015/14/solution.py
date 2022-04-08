@@ -35,12 +35,12 @@ def run_race(s, total_time):
 def part1(s):
     answer = max(run_race(s, 2503)[0])
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 14, 1, answer)
 
 def part2(s):
     answer = max(run_race(s, 2503)[1])
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 14, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 14)
 part1(INPUT)

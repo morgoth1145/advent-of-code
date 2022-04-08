@@ -53,12 +53,12 @@ def run(s, a, b):
 def part1(s):
     _, answer = run(s, 0, 0)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 23, 1, answer)
 
 def part2(s):
     _, answer = run(s, 1, 0)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 23, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 23)
 part1(INPUT)

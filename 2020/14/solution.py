@@ -28,7 +28,7 @@ def part1(s):
             val |= int(mask.replace('X', '0'), 2)
             memory[addr] = val
     answer = sum(memory.values())
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 14, 1, answer)
 
 def all_addresses(addr, addr_mask):
     # Apply ones in mask
@@ -53,7 +53,7 @@ def part2(s):
             for a in all_addresses(addr, mask):
                 memory[a] = val
     answer = sum(memory.values())
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 14, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 14)
 

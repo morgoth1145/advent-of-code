@@ -45,7 +45,7 @@ def part1(s):
         if not high_out:
             bots[high_target].append(high)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 10, 1, answer)
 
 def part2(s):
     bots, instructions = parse_input(s)
@@ -77,7 +77,7 @@ def part2(s):
 
     answer = outputs[0] * outputs[1] * outputs[2]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 10, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 10)
 part1(INPUT)

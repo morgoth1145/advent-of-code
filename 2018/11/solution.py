@@ -68,7 +68,7 @@ def part1(s):
     power, (x, y) = solve(int(s), max_square_size=3)[3]
     answer = f'{x},{y}'
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 11, 1, answer)
 
 def part2(s):
     best_sums = solve(int(s))
@@ -82,7 +82,7 @@ def part2(s):
 
     answer = f'{x},{y},{square_size}'
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 11, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 11)
 part1(INPUT)

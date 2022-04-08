@@ -46,7 +46,7 @@ def part1(s):
         if shared_borders == 2:
             # It's a corner!
             answer *= num
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 20, 1, answer)
 
 def generate_grid_symmetries(grid):
     candidates = []
@@ -165,7 +165,7 @@ def count_non_monster_tiles(image):
 
 def part2(s):
     answer = count_non_monster_tiles(generate_image(parse_tiles(s)))
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 20, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 20)
 

@@ -3,7 +3,7 @@ import lib.aoc
 def part1(s):
     answer = sum(map(int, s.splitlines()))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 1, 1, answer)
 
 def part2(s):
     changes = list(map(int, s.splitlines()))
@@ -26,7 +26,7 @@ def part2(s):
 
     answer = f
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 1)
 part1(INPUT)

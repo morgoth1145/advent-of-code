@@ -66,7 +66,7 @@ def part1(s):
 
     answer = lib.graph.dijkstra_length(graph, (0, 0), oxy_coord)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 15, 1, answer)
 
 def part2(s):
     grid, oxy_coord = parse_grid(s)
@@ -87,7 +87,7 @@ def part2(s):
             grid[c] = 'O'
         next_to_fill = set(open_neighbors(next_to_fill))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 15, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 15)
 part1(INPUT)

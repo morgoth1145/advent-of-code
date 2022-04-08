@@ -17,12 +17,12 @@ def solve(s, disk):
 def part1(s):
     answer = solve(s, 272)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 16, 1, answer)
 
 def part2(s):
     answer = solve(s, 35651584)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 16)
 part1(INPUT)

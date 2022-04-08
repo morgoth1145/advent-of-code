@@ -6,7 +6,7 @@ def part1(s):
     for g in groups:
         g = ''.join(g.split())
         answer += len(set(g))
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 6, 1, answer)
 
 def part2(s):
     groups = s.split('\n\n')
@@ -17,7 +17,7 @@ def part2(s):
         for p in people[1:]:
             all_yes &= set(p)
         answer += len(set(all_yes))
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 6, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 6)
 part1(INPUT)

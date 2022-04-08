@@ -30,7 +30,7 @@ def part1(s):
             answer = abs(x) + abs(y)
             break
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 3, 1, answer)
 
 def part2(s):
     n = int(s)
@@ -48,7 +48,7 @@ def part2(s):
             answer = val
             break
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 3, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 3)
 part1(INPUT)

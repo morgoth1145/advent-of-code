@@ -25,7 +25,7 @@ def parse_tree(s):
 def part1(s):
     answer, _ = parse_tree(s)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 7, 1, answer)
 
 def part2(s):
     root, tree = parse_tree(s)
@@ -61,7 +61,7 @@ def part2(s):
 
     answer = list(fixes.values())[0]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 7)
 part1(INPUT)

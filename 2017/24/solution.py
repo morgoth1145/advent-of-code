@@ -50,12 +50,12 @@ def solve(s, maximize_length):
 def part1(s):
     answer = solve(s, maximize_length=False)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 24, 1, answer)
 
 def part2(s):
     answer = solve(s, maximize_length=True)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 24, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 24)
 part1(INPUT)

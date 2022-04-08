@@ -21,7 +21,7 @@ def dance(order, s):
 def part1(s):
     answer = dance('abcdefghijklmnop', s)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 16, 1, answer)
 
 def part2(s):
     answer = 'abcdefghijklmnop'
@@ -44,7 +44,7 @@ def part2(s):
     for _ in range(remaining):
         answer = dance(answer, s)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 16)
 part1(INPUT)

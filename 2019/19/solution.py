@@ -18,7 +18,7 @@ def part1(s):
             if out_chan.recv() == 1:
                 answer += 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 19, 1, answer)
 
 def part2(s):
     p = intcode.Program(s)
@@ -56,7 +56,7 @@ def part2(s):
 
     answer = 10000 * x + y
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 19, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 19)
 part1(INPUT)

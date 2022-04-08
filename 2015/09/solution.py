@@ -24,12 +24,12 @@ def solve(s, optimize_fn):
 def part1(s):
     answer = solve(s, min)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 9, 1, answer)
 
 def part2(s):
     answer = solve(s, max)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 9, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 9)
 part1(INPUT)

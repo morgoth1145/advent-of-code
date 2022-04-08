@@ -6,7 +6,7 @@ def part1(s):
         for b in nums:
             if a + b == 2020:
                 answer = a * b
-                print(f'The answer to part one is {answer}')
+                lib.aoc.give_answer(2020, 1, 1, answer)
                 return
 
 def part2(s):
@@ -18,7 +18,7 @@ def part2(s):
             for c in nums:
                 if a + b + c == 2020:
                     answer = a * b * c
-                    print(f'The answer to part one is {answer}')
+                    lib.aoc.give_answer(2020, 1, 2, answer)
                     return
 
 INPUT = lib.aoc.get_input(2020, 1)

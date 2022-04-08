@@ -103,12 +103,12 @@ def solve(s, digit_search_order, optimize_fn):
 def part1(s):
     answer = solve(s, range(9, 0, -1), max)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 24, 1, answer)
 
 def part2(s):
     answer = solve(s, range(1, 10), min)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 24, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 24)
 part1(INPUT)

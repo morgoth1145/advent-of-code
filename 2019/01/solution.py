@@ -4,7 +4,7 @@ def part1(s):
     answer = sum(max(0, m // 3 - 2)
                  for m in map(int, s.splitlines()))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 1, 1, answer)
 
 def part2(s):
     def recursive_fuel_cost(m):
@@ -15,7 +15,7 @@ def part2(s):
 
     answer = sum(map(recursive_fuel_cost, map(int, s.splitlines())))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 1)
 part1(INPUT)

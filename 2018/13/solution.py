@@ -105,7 +105,7 @@ def part1(s):
             answer = f'{x},{y}'
             break
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 13, 1, answer)
 
 def part2(s):
     grid, carts = parse_input(s)
@@ -116,7 +116,7 @@ def part2(s):
     x, y = carts[0].coord
     answer = f'{x},{y}'
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 13)
 part1(INPUT)

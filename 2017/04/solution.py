@@ -11,7 +11,7 @@ def part1(s):
         if len(passphrase) == len(set(passphrase)):
             answer += 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 4, 1, answer)
 
 def part2(s):
     answer = 0
@@ -22,7 +22,7 @@ def part2(s):
         if len(passphrase) == len(set(passphrase)):
             answer += 1
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 4)
 part1(INPUT)

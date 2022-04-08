@@ -12,7 +12,7 @@ def part1(s):
                for n in grid.neighbors(x, y)):
             answer += val+1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 9, 1, answer)
 
 def count_basin_size(grid, c):
     basin = {c}
@@ -45,7 +45,7 @@ def part2(s):
     a, b, c = sorted(basin_sizes)[-3:]
     answer = a*b*c
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 9, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 9)
 part1(INPUT)

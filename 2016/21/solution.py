@@ -97,7 +97,7 @@ def part1(s):
     for apply, inverse in parse_instructions(s):
         answer = apply(answer)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 21, 1, answer)
 
 def part2(s):
     answer = 'fbgdceah'
@@ -105,7 +105,7 @@ def part2(s):
     for apply, inverse in list(parse_instructions(s))[::-1]:
         answer = inverse(answer)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 21, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 21)
 part1(INPUT)

@@ -34,7 +34,7 @@ def part1(s):
 
     answer = len(dots)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 13, 1, answer)
 
 def part2(s):
     dots, folds = parse(s)
@@ -44,7 +44,7 @@ def part2(s):
 
     answer = lib.ocr.parse_coord_set(dots)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 13)
 part1(INPUT)

@@ -37,7 +37,7 @@ def part1(s):
 
     answer = rolls * min(s1, s2)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 21, 1, answer)
 
 def compute_quantum_moves_to_winning_universes(max_tile, target_score, die):
     # Precompute the moves for slightly faster runtime
@@ -131,7 +131,7 @@ def part2(s):
                                          21,
                                          3))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 21, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 21)
 part1(INPUT)

@@ -36,7 +36,7 @@ def part1(s):
     answer = find_match(s,
                         make_eq_check(EXPECTED_EQ + EXPECTED_GT + EXPECTED_LT))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 16, 1, answer)
 
 def make_gt_check(expectations):
     def impl(things):
@@ -56,7 +56,7 @@ def part2(s):
                         make_gt_check(EXPECTED_GT),
                         make_lt_check(EXPECTED_LT))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 16)
 part1(INPUT)

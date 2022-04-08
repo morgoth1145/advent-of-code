@@ -19,7 +19,7 @@ def part1(s):
     answer = sum(1 for tile in screen.values()
                  if tile == 2)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 13, 1, answer)
 
 def part2(s):
     p = intcode.Program(s)
@@ -72,7 +72,7 @@ def part2(s):
     input_requests.close()
     answer = score
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 13)
 part1(INPUT)

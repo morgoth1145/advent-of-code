@@ -27,14 +27,14 @@ def part1(s):
 
     answer = max(play(int(players), int(last_marble)))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 9, 1, answer)
 
 def part2(s):
     players, _, _, _, _, _, last_marble, _ = s.split()
 
     answer = max(play(int(players), 100 * int(last_marble)))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 9, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 9)
 part1(INPUT)

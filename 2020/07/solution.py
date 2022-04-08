@@ -26,7 +26,7 @@ def part1(s):
                  for key
                  in graph.keys()
                  if can_contain(graph, key, 'shiny gold'))
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 7, 1, answer)
 
 def count_contents(graph, bag):
     return sum(n * (1 + count_contents(graph, t))
@@ -36,7 +36,7 @@ def count_contents(graph, bag):
 def part2(s):
     graph = parse_bags(s)
     answer = count_contents(graph, 'shiny gold')
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 7)
 
@@ -58,7 +58,7 @@ def part1_optimized(s):
                in graph.get(bag, [])):
             contains_target.add(bag)
     answer = len(contains_target)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 7, 1, answer)
 
 def part2_optimized(s):
     graph = parse_bags(s)
@@ -69,7 +69,7 @@ def part2_optimized(s):
                     in graph.get(bag, []))
         bag_content_counts[bag] = total
     answer = bag_content_counts['shiny gold']
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 7, 2, answer)
 
 # This input *WILL* break naive solutions. The optimized solution runs blazing fast though!
 INTENSE_INPUT = '''a a bags contain no other bags.

@@ -3,7 +3,7 @@ import lib.aoc
 def part1(s):
     answer = s.count('(') - s.count(')')
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 1, 1, answer)
 
 def part2(s):
     floor = 0
@@ -17,7 +17,7 @@ def part2(s):
             answer = idx+1
             break
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 1)
 part1(INPUT)

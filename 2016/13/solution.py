@@ -32,7 +32,7 @@ def part1(s):
                                        (1, 1),
                                        (31, 39))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 13, 1, answer)
 
 def part2(s):
     graph = parse_graph(s)
@@ -40,7 +40,7 @@ def part2(s):
     answer = len(list(lib.graph.all_reachable(graph, (1, 1), 50)))
     answer += 1 # all_reachable excludes the start location
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 13)
 part1(INPUT)

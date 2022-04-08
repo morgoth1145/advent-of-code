@@ -25,7 +25,7 @@ def part1(s):
             x += dx*n
             y += dy*n
     answer = abs(x) + abs(y)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 12, 1, answer)
 
 def part2(s):
     sx, sy = 0, 0
@@ -52,7 +52,7 @@ def part2(s):
             sx += x*n
             sy += y*n
     answer = abs(sx) + abs(sy)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 12, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 12)
 

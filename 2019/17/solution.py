@@ -17,7 +17,7 @@ def part1(s):
                  if all(grid[n] == '#' for n in grid.neighbors(x, y))
                  if len(list(grid.neighbors(x, y))) == 4)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 17, 1, answer)
 
 def extract_path(s):
     grid = get_scaffold_grid(s).to_dict()
@@ -140,7 +140,7 @@ def part2(s):
 
     answer = list(out_chan)[-1]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 17, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 17)
 part1(INPUT)

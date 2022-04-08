@@ -13,7 +13,7 @@ def part1(s):
 
     answer = p.memory[0]
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 2, 1, answer)
 
 def part2(s):
     answer = None
@@ -35,7 +35,7 @@ def part2(s):
         if answer is not None:
             break
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 2, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 2)
 part1(INPUT)

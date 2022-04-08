@@ -9,14 +9,14 @@ def parse_congruencies(s):
 def part1(s):
     answer = lib.math.offset_chinese_remainder(parse_congruencies(s))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 15, 1, answer)
 
 def part2(s):
     s += '\nDisc n+1 has 11 positions; at time=0, it is at position 0.'
 
     answer = lib.math.offset_chinese_remainder(parse_congruencies(s))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 15, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 15)
 part1(INPUT)

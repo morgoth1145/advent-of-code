@@ -15,7 +15,7 @@ def part1(s):
 
     answer = 1 + len(list(lib.graph.all_reachable(graph, 0)))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 12, 1, answer)
 
 def part2(s):
     graph = parse_graph(s)
@@ -32,7 +32,7 @@ def part2(s):
         unreached.remove(start)
         unreached -= set(lib.graph.node_dist_list_to_nodes(group))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 12, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 12)
 part1(INPUT)

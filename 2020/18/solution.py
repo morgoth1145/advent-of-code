@@ -11,7 +11,7 @@ def special_eval(expression):
 
 def part1(s):
     answer = sum(map(special_eval, s.splitlines()))
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 18, 1, answer)
 
 def advanced_special_eval(expression):
     def merger(parts):
@@ -25,7 +25,7 @@ def advanced_special_eval(expression):
 
 def part2(s):
     answer = sum(map(advanced_special_eval, s.splitlines()))
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 18, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 18)
 

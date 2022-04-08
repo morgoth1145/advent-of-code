@@ -12,7 +12,7 @@ def part1(s):
             break
         answer = max(answer, high+1)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 20, 1, answer)
 
 def part2(s):
     answer = 0
@@ -25,7 +25,7 @@ def part2(s):
 
     answer += 4294967296 - maybe_allowed
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 20, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 20)
 part1(INPUT)

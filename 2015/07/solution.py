@@ -49,7 +49,7 @@ def part1(s):
 
     answer = evaluate_wires(wires, 'a')
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 7, 1, answer)
 
 def part2(s):
     wires = parse_input(s)
@@ -57,7 +57,7 @@ def part2(s):
 
     answer = evaluate_wires(wires, 'a')
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 7)
 part1(INPUT)

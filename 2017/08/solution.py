@@ -31,7 +31,7 @@ def part1(s):
 
     answer = max(registers.values())
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 8, 1, answer)
 
 def part2(s):
     registers = {}
@@ -44,7 +44,7 @@ def part2(s):
             answer = max(answer, val)
             registers[var1] = val
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 8, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 8)
 part1(INPUT)

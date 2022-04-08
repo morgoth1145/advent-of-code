@@ -65,12 +65,12 @@ def solve(s, iterations):
 def part1(s):
     answer = solve(s, 5)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 21, 1, answer)
 
 def part2(s):
     answer = solve(s, 18)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 21, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 21)
 part1(INPUT)

@@ -22,7 +22,7 @@ def part1(s):
 
     answer = sum(map(valid_password, range(a, b+1)))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 4, 1, answer)
 
 def valid_password2(p):
     p = list(map(int, str(p)))
@@ -54,7 +54,7 @@ def part2(s):
 
     answer = sum(map(valid_password2, range(a, b+1)))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 4)
 part1(INPUT)

@@ -19,7 +19,7 @@ def part1(s):
     grid = lib.grid.FixedGrid.parse(s, value_fn=int)
     answer = solve(grid)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 15, 1, answer)
 
 def part2(s):
     grid = lib.grid.FixedGrid.parse(s, value_fn=int)
@@ -43,7 +43,7 @@ def part2(s):
 
     answer = solve(grid)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 15, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 15)
 part1(INPUT)

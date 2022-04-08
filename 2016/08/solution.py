@@ -38,12 +38,12 @@ def apply_instructions(s):
 def part1(s):
     answer = len(apply_instructions(s))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 8, 1, answer)
 
 def part2(s):
     answer = lib.ocr.parse_coord_set(apply_instructions(s))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 8, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 8)
 part1(INPUT)

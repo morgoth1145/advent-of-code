@@ -25,7 +25,7 @@ def solve(s):
 def part1(s):
     answer = solve(s)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 19, 1, answer)
 
 def part2(s):
     # Replace rules 8 and 11
@@ -36,7 +36,7 @@ def part2(s):
 
     answer = solve(s)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 19, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 19)
 

@@ -67,7 +67,7 @@ def part1(s):
         if len(sample_options(before, instruction, after)) >= 3:
             answer += 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 16, 1, answer)
 
 def part2(s):
     samples, program = parse_input(s)
@@ -107,7 +107,7 @@ def part2(s):
 
     answer = registers[0]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 16)
 part1(INPUT)

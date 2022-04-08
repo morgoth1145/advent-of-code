@@ -25,13 +25,13 @@ def decoded_savings(line):
 def part1(s):
     answer = sum(map(decoded_savings, s.splitlines()))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 8, 1, answer)
 
 def part2(s):
     answer = sum(2 + line.count('"') + line.count('\\')
                  for line in s.splitlines())
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 8, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 8)
 part1(INPUT)

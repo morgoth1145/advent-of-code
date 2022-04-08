@@ -13,7 +13,7 @@ def part1(s):
                  for _, outputs in parse(s)
                  for pattern in outputs)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 8, 1, answer)
 
 def part2(s):
     VALID_PATTERNS = {
@@ -60,7 +60,7 @@ def part2(s):
             out = out * 10 + VALID_PATTERNS[new_n]
         answer += out
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 8, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 8)
 part1(INPUT)

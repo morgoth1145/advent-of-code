@@ -57,8 +57,7 @@ intcode = __import__('2019.intcode').intcode'''
 ##    data = parse_input(s)
 
     print(f'The answer to part one is {{answer}}')
-    if input('Submit answer? ').lower() in ('y', 'yes', '1'):
-        assert(lib.aoc.submit_answer({year}, {day}, 1, answer))'''
+    lib.aoc.give_answer({year}, {day}, 1, answer)'''
 
     if day == 25:
         part_2_template = f'''def part2(s):
@@ -67,8 +66,7 @@ intcode = __import__('2019.intcode').intcode'''
         part_2_template = f'''def part2(s):
     pass
 ##    print(f'The answer to part two is {{answer}}')
-##    if input('Submit answer? ').lower() in ('y', 'yes', '1'):
-##        assert(lib.aoc.submit_answer({year}, {day}, 2, answer))'''
+##    lib.aoc.give_answer({year}, {day}, 2, answer)'''
 
     return f'''{import_template}
 

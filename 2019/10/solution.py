@@ -59,7 +59,7 @@ def part1(s):
 
     answer = len(determine_asteroid_visibility(grid, x, y))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 10, 1, answer)
 
 def part2(s):
     grid = lib.grid.FixedGrid.parse(s)
@@ -96,7 +96,7 @@ def part2(s):
 
     answer = x * 100 + y
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 10, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 10)
 part1(INPUT)

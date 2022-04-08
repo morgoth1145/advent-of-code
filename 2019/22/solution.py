@@ -77,14 +77,14 @@ def parse_rng(s, mod):
 def part1(s):
     answer = parse_rng(s, 10007)(2019)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 22, 1, answer)
 
 def part2(s):
     super_rng = parse_rng(s, 119315717514047) ** 101741582076661
 
     answer = super_rng.invert()(2020)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 22, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 22)
 part1(INPUT)

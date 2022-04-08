@@ -53,7 +53,7 @@ def part1(s):
                  if best is not None
                  if best not in infinites)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 6, 1, answer)
 
 def part2(s):
     points = list(parse_input(s))
@@ -85,7 +85,7 @@ def part2(s):
             to_check.append(neighbor)
             seen.add(neighbor)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 6, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 6)
 part1(INPUT)

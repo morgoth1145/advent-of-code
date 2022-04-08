@@ -40,7 +40,7 @@ def part1(s):
             biodiversity = 2 ** (x + y * grid.width)
             answer += biodiversity
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 24, 1, answer)
 
 def recursive_step(bugs):
     neighbor_counts = collections.Counter()
@@ -121,7 +121,7 @@ def part2(s):
 
     answer = len(bugs)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 24, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 24)
 part1(INPUT)

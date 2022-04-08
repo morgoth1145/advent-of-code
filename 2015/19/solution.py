@@ -32,7 +32,7 @@ def part1(s):
 
     answer = len(possibilities)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 19, 1, answer)
 
 def tokenize_by_element(molecule):
     # Weird special case...
@@ -69,7 +69,7 @@ def part2(s):
 
     answer = cnf.steps_to_generate(tokenize_by_element(molecule))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 19, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 19)
 part1(INPUT)

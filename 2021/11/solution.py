@@ -31,7 +31,7 @@ def part1(s):
     answer = sum(iterate(grid)
                  for _ in range(100))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 11, 1, answer)
 
 def part2(s):
     grid = lib.grid.FixedGrid.parse(s, value_fn=int)
@@ -40,7 +40,7 @@ def part2(s):
     while iterate(grid) != grid.area:
         answer += 1
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 11, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 11)
 part1(INPUT)

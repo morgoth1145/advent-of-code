@@ -16,7 +16,7 @@ def part1(s):
 
     answer = count_possible_triangles(tris)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 3, 1, answer)
 
 def column_tris(s):
     lines = s.splitlines()
@@ -32,7 +32,7 @@ def column_tris(s):
 def part2(s):
     answer = count_possible_triangles(column_tris(s))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 3, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 3)
 part1(INPUT)

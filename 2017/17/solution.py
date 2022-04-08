@@ -13,7 +13,7 @@ def part1(s):
 
     answer = buffer[(buffer.index(2017)+1) % len(buffer)]
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 17, 1, answer)
 
 def part2(s):
     steps = int(s)
@@ -49,7 +49,7 @@ def part2(s):
         to_insert -= 1
         n += 1
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 17, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 17)
 part1(INPUT)

@@ -58,6 +58,9 @@ def _get_input_cache_file(year, day):
 def _get_time_trial_file(year, day):
     return _get_cache_directory() / str(year) / f'day-{day}-time-trial.json'
 
+def _get_solution_cache_file(year, day):
+    return _get_cache_directory() / str(year) / f'day-{day}-solutions.json'
+
 def _get_puzzle_page(year, day):
     url = f'https://adventofcode.com/{year}/day/{day}'
     _load_session_cookie()
@@ -205,7 +208,7 @@ def _submit_answer_to_web_impl(year, day, part, answer):
     print('Bad request!')
     assert(False)
 
-def submit_answer(year, day, part, answer):
+def _submit_answer(year, day, part, answer):
     answer_file_path = _get_cache_directory() / str(year) / f'answers-day-{day}.json'
     try:
         with open(answer_file_path) as f:
@@ -251,7 +254,7 @@ def submit_answer(year, day, part, answer):
 
         if day == 25 and part == 1:
             # Immediately auto-submit day 25 part 2 for maximum efficiency
-            submit_answer(year, 25, 2, 1)
+            _submit_answer(year, 25, 2, 1)
 
         if day != 25 or part != 2:
             if _account_selection is None:
@@ -259,6 +262,45 @@ def submit_answer(year, day, part, answer):
                 _auto_commit(year, day, part, good_answer_line)
 
     return good_answer
+
+def give_answer(year, day, part, answer):
+    solution_cache_path = _get_solution_cache_file(year, day)
+    if os.path.exists(solution_cache_path):
+        with open(solution_cache_path) as f:
+            solutions = json.loads(f.read())
+    else:
+        # TODO: Maybe query the page? (Only if this isn't a live problem!)
+        solutions = [None, None]
+
+    target = solutions[part-1]
+
+    if part == 1:
+        print(f'The answer to part one is {answer}')
+    else:
+        assert(part == 2)
+        print(f'The answer to part two is {answer}')
+
+    if target is not None:
+        if str(answer) != target:
+            print('Invalid answer!')
+            assert(False)
+    else:
+        if _account_selection is None:
+            if input('Submit answer? ').lower() not in ('y', 'yes', '1'):
+                print('Aborting...')
+                assert(False)
+
+        assert(_submit_answer(year, day, part, answer))
+
+        # If we get here then the answer must have been good
+        solutions[part-1] = str(answer)
+
+        with open(solution_cache_path, 'w+') as f:
+            f.write(json.dumps(solutions))
+
+        if _account_selection is not None:
+            # Wait 6 seconds for server timeout between answer submissions
+            time.sleep(6)
 
 def begin_time_trial(year, day):
     trial_path = _get_time_trial_file(year, day)

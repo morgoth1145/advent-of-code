@@ -14,13 +14,13 @@ def part1(s):
     def validator(mint, maxt, c, password):
         return mint <= password.count(c) <= maxt
     answer = count_valid_password(s, validator)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 2, 1, answer)
 
 def part2(s):
     def validator(a, b, c, password):
         return (password[a-1] == c) ^ (password[b-1] == c)
     answer = count_valid_password(s, validator)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 2, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 2)
 part1(INPUT)

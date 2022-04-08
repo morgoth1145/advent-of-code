@@ -40,14 +40,14 @@ def part1(s):
         order.append(current)
         current = cups[current]
     answer = ''.join(map(str, order))
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 23, 1, answer)
 
 def part2(s):
     cups = play_cups(list(map(int, s)), 1000000, 10000000)
     a = cups[1]
     b = cups[a]
     answer = a*b
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 23, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 23)
 

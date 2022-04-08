@@ -31,7 +31,7 @@ def part1(s):
             if availb >= useda:
                 answer += 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 22, 1, answer)
 
 def part2(s):
     nodes = parse_nodes(s)
@@ -96,7 +96,7 @@ def part2(s):
 
     answer = steps + extra_steps
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 22, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 22)
 part1(INPUT)

@@ -28,7 +28,7 @@ def part1(s):
 
     answer = ''.join(map(str, nums[:8]))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 16, 1, answer)
 
 def part2(s):
     nums = list(map(int, s))
@@ -49,7 +49,7 @@ def part2(s):
 
     answer = ''.join(map(str, reverse_nums[-8:]))[::-1]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 16)
 part1(INPUT)

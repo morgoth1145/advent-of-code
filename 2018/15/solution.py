@@ -163,7 +163,7 @@ def run_game(s, elf_strength, elves_must_survive):
 def part1(s):
     answer = run_game(s, elf_strength=3, elves_must_survive=False)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 15, 1, answer)
 
 def part2(s):
     answer = None
@@ -173,7 +173,7 @@ def part2(s):
         elf_power += 1
         answer = run_game(s, elf_strength=elf_power, elves_must_survive=True)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 15, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 15)
 part1(INPUT)

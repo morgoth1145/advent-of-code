@@ -14,7 +14,7 @@ def part1(s):
 
     answer = x*d
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 2, 1, answer)
 
 def part2(s):
     x, d = 0, 0
@@ -32,7 +32,7 @@ def part2(s):
 
     answer = x*d
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 2, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 2)
 part1(INPUT)

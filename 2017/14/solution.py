@@ -37,7 +37,7 @@ def part1(s):
     for row in rows:
         answer += bin(row).count('1')
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 14, 1, answer)
 
 def part2(s):
     rows = [knot_hash(f'{s}-{row_n}') for row_n in range(128)]
@@ -66,7 +66,7 @@ def part2(s):
                     on_positions.remove(n)
                     to_process.append(n)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 14, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 14)
 part1(INPUT)

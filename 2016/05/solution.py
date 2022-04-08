@@ -19,7 +19,7 @@ def part1(s):
         if len(answer) == 8:
             break
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 5, 1, answer)
 
 def part2(s):
     answer = [None] * 8
@@ -39,7 +39,7 @@ def part2(s):
 
     answer = ''.join(answer)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 5, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 5)
 part1(INPUT)

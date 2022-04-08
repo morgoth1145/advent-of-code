@@ -24,7 +24,7 @@ def part1(s):
                  for score, _ in map(validate_line, s.splitlines())
                  if score is not None)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 10, 1, answer)
 
 def autocomplete_score(to_finish):
     score = 0
@@ -43,7 +43,7 @@ def part2(s):
 
     answer = auto_scores[len(auto_scores)//2]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 10, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 10)
 part1(INPUT)

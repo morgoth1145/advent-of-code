@@ -13,7 +13,7 @@ def part1(s):
     answer = sum(count_matching_combinations(containers, n)
                  for n in range(len(containers)))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 17, 1, answer)
 
 def part2(s):
     containers = list(map(int, s.splitlines()))
@@ -24,7 +24,7 @@ def part2(s):
             # This is the minimum number of containers required!
             break
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 17, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 17)
 part1(INPUT)

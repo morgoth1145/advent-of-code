@@ -35,7 +35,7 @@ def part1(s):
                 if j not in handled:
                     to_handle.append(j)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 25, 1, answer)
 
 def part2(s):
     print('There is no part two for Christmas!')

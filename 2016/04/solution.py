@@ -36,7 +36,7 @@ def real_rooms(s):
 def part1(s):
     answer = sum(sector for room, sector in real_rooms(s))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 4, 1, answer)
 
 def part2(s):
     candidates = list(sector
@@ -45,7 +45,7 @@ def part2(s):
     assert(len(candidates) == 1)
     answer = candidates[0]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 4)
 part1(INPUT)

@@ -45,12 +45,12 @@ def solve(s, area_of_interest=None):
 def part1(s):
     answer = solve(s, (range(-50, 51), range(-50, 51), range(-50, 51)))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 22, 1, answer)
 
 def part2(s):
     answer = solve(s)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 22, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 22)
 part1(INPUT)

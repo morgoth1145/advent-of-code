@@ -41,7 +41,7 @@ def part1(s):
     for _ in range(64):
         _, answer = next(keys)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 14, 1, answer)
 
 def gen_superhashes(s):
     idx = 0
@@ -58,7 +58,7 @@ def part2(s):
     for _ in range(64):
         h, answer = next(keys)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 14, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 14)
 part1(INPUT)

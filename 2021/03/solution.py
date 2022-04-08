@@ -25,7 +25,7 @@ def part1(s):
 
     answer = gamma * epsilon
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 3, 1, answer)
 
 def part2(s):
     nums, masks = parse(s)
@@ -48,7 +48,7 @@ def part2(s):
 
     answer = oxy_cands[0]*co2_cands[0]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 3, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 3)
 part1(INPUT)

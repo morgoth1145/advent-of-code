@@ -27,7 +27,7 @@ def part1(s):
 
     answer = best[1]
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 8, 1, answer)
 
 def part2(s):
     composite = [2] * LAYER_LENGTH
@@ -48,7 +48,7 @@ def part2(s):
 
     answer = lib.ocr.parse_coord_set(white_cells)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 8, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 8)
 part1(INPUT)

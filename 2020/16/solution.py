@@ -28,7 +28,7 @@ def part1(s):
             if not any(n in nums for nums in rules.values()):
                 answer += n
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 16, 1, answer)
 
 def part2(s):
     rules, my_ticket, nearby = parse_input(s)
@@ -61,7 +61,7 @@ def part2(s):
         if name.startswith('departure'):
             answer *= val
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 16)
 

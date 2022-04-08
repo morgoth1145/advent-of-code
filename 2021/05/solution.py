@@ -25,11 +25,11 @@ def count_coord_hits(lines):
 def part1(s):
     answer = count_coord_hits(filter(lambda l: l[0] == l[2] or l[1] == l[3],
                                      parse_lines(s)))
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 5, 1, answer)
 
 def part2(s):
     answer = count_coord_hits(parse_lines(s))
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 5, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 5)
 part1(INPUT)

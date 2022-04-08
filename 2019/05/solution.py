@@ -8,7 +8,7 @@ def part1(s):
     in_chan.send(1)
     answer = list(out_chan)[-1]
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 5, 1, answer)
 
 def part2(s):
     in_chan, out_chan = intcode.Program(s).run()
@@ -16,7 +16,7 @@ def part2(s):
     in_chan.send(5)
     answer = out_chan.recv()
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 5, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 5)
 part1(INPUT)

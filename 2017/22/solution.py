@@ -23,7 +23,7 @@ def part1(s):
         x += dx
         y += dy
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 22, 1, answer)
 
 def part2(s):
     grid = lib.grid.FixedGrid.parse(s)
@@ -63,7 +63,7 @@ def part2(s):
         x += dx
         y += dy
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 22, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 22)
 part1(INPUT)

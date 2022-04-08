@@ -15,7 +15,7 @@ def part1(s):
 
     answer = twice * thrice
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 2, 1, answer)
 
 def part2(s):
     ids = list(s.splitlines())
@@ -31,7 +31,7 @@ def part2(s):
                     if c1 != c2:
                         answer = a[:idx] + a[idx+1:]
     
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 2, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 2)
 part1(INPUT)

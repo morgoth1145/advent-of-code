@@ -13,7 +13,7 @@ def part1(s):
 
     answer = (20151125 * pow(252533, idx-1, MOD)) % MOD
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 25, 1, answer)
 
 def part2(s):
     print('There is no part two for Christmas!')

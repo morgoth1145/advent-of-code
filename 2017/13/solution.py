@@ -17,7 +17,7 @@ def part1(s):
             # Caught!
             answer += depth * layers
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 13, 1, answer)
 
 def part2(s):
     incongruencies = [(cycle, depth % cycle)
@@ -25,7 +25,7 @@ def part2(s):
 
     answer = lib.math.offset_chinese_remainder_incongruence(incongruencies)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 13)
 part1(INPUT)

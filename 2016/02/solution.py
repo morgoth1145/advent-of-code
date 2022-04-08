@@ -20,7 +20,7 @@ def map_key(directions):
 def part1(s):
     answer = int(''.join(map(map_key, s.splitlines())))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 2, 1, answer)
 
 KEYLIST = string.digits + string.ascii_uppercase
 
@@ -53,7 +53,7 @@ def map_diamond_key(directions):
 def part2(s):
     answer = ''.join(map(map_diamond_key, s.splitlines()))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 2, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 2)
 part1(INPUT)

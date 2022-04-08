@@ -43,7 +43,7 @@ def part1(s):
 
     answer = wooded * lumber
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 18, 1, answer)
 
 def part2(s):
     TARGET = 1000000000
@@ -76,7 +76,7 @@ def part2(s):
 
     answer = wooded * lumber
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 18, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 18)
 part1(INPUT)

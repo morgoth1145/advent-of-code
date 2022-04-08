@@ -9,7 +9,7 @@ def part1(s):
 
     answer = pos.steps_to(lib.hex_coord.NSHexCoord())
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 11, 1, answer)
 
 def part2(s):
     answer = 0
@@ -19,7 +19,7 @@ def part2(s):
         pos = pos.move(d)
         answer = max(answer, pos.steps_to(lib.hex_coord.NSHexCoord()))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 11, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 11)
 part1(INPUT)

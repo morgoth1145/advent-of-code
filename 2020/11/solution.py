@@ -48,7 +48,7 @@ def part1(s):
             break
         grid = new_grid
     answer = ''.join(''.join(l) for l in grid).count('#')
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 11, 1, answer)
 
 def compute_seen_neighbors(grid):
     grid_neighbors = [l[:] for l in grid]
@@ -86,7 +86,7 @@ def part2(s):
             break
         grid = new_grid
     answer = ''.join(''.join(l) for l in grid).count('#')
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 11, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 11)
 

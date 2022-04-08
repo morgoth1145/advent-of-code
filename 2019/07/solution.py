@@ -16,7 +16,7 @@ def part1(s):
             signal = out_chan.recv()
         answer = max(answer, signal)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 7, 1, answer)
 
 def part2(s):
     answer = 0
@@ -43,7 +43,7 @@ def part2(s):
         # This is the final signal
         answer = max(answer, signal)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 7)
 part1(INPUT)

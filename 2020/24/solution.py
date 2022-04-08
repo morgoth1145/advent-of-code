@@ -18,7 +18,7 @@ def get_initially_active_tiles(move_list):
 
 def part1(s):
     answer = len(get_initially_active_tiles(s))
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 24, 1, answer)
 
 def iterate(active_tiles):
     neighbor_counts = collections.defaultdict(int)
@@ -38,7 +38,7 @@ def part2(s):
     for _ in range(100):
         active_tiles = iterate(active_tiles)
     answer = len(active_tiles)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 24, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 24)
 

@@ -15,11 +15,11 @@ def get_nth_number_in_game(seed, desired_turn):
 
 def part1(s):
     answer = get_nth_number_in_game(s, 2020)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 15, 1, answer)
 
 def part2(s):
     answer = get_nth_number_in_game(s, 30000000)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 15, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 15)
 

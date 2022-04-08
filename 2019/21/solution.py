@@ -24,7 +24,7 @@ OR T J
 WALK
 ''')
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 21, 1, answer)
 
 def part2(s):
     answer = run_springdroid(s, '''OR E J
@@ -40,7 +40,7 @@ OR T J
 RUN
 ''')
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 21, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 21)
 part1(INPUT)

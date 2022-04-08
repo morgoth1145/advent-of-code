@@ -72,7 +72,7 @@ def part1(s):
 
     answer = magnitude(n)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 18, 1, answer)
 
 def part2(s):
     nums = list(map(reduce_num, map(json.loads, s.splitlines())))
@@ -82,7 +82,7 @@ def part2(s):
                  for ib, b in enumerate(nums)
                  if ia != ib)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 18, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 18)
 part1(INPUT)

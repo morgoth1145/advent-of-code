@@ -35,7 +35,7 @@ def part1(s):
 
     answer = ''.join(order)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 7, 1, answer)
 
 def part2(s):
     dep_graph, all_steps = parse_input(s)
@@ -71,7 +71,7 @@ def part2(s):
             workers[idx] = (step, 60 + ord(step) - ord('A') + 1)
             started.add(step)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 7)
 part1(INPUT)

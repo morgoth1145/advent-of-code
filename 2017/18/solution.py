@@ -67,7 +67,7 @@ def part1(s):
     for val in frequencies:
         answer = val
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 18, 1, answer)
 
 def part2(s):
     a_chan = lib.channels.BufferedChannel()
@@ -88,7 +88,7 @@ def part2(s):
 
     answer = stats.sends
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 18, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 18)
 part1(INPUT)

@@ -15,7 +15,7 @@ def part1(s):
         last = n
     assert(max(diff_counts.keys()) <= 3)
     answer = diff_counts[1] * diff_counts[3]
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 10, 1, answer)
 
 def part2(s):
     nums = list(map(int, s.split()))
@@ -28,7 +28,7 @@ def part2(s):
                     if nums[idx] - nums[i] in (1, 2, 3))
         arrangements.append(count)
     answer = arrangements[-1]
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 10, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 10)
 

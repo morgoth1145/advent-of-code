@@ -35,12 +35,12 @@ def generate_all_paths(s, width, height):
 def part1(s):
     answer = min(generate_all_paths(s, 4, 4), key=len)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 17, 1, answer)
 
 def part2(s):
     answer = max(map(len, generate_all_paths(s, 4, 4)))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 17, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 17)
 part1(INPUT)

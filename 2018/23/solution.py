@@ -21,7 +21,7 @@ def part1(s):
         if abs(x-cx) + abs(y-cy) + abs(z-cz) <= r:
             answer += 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 23, 1, answer)
 
 def bots_in_range(bots, gx, gy, gz):
     count = 0
@@ -93,7 +93,7 @@ def part2(s):
 
     answer = DIST
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 23, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 23)
 part1(INPUT)

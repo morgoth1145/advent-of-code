@@ -9,7 +9,7 @@ def part1(s):
         if a == b:
             answer += a
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 1, 1, answer)
 
 def part2(s):
     nums = list(map(int, s))
@@ -22,7 +22,7 @@ def part2(s):
         if a == b:
             answer += a
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 1)
 part1(INPUT)

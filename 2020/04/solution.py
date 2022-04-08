@@ -17,7 +17,7 @@ def part1(s):
             seen.add('cid')
         if seen == FIELDS:
             answer += 1
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 4, 1, answer)
 
 def validate_hgt(hgt):
     if hgt is None:
@@ -55,7 +55,7 @@ def part2(s):
                                     'oth') and
             validate_pid(passport.get('pid'))):
             answer += 1
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 4)
 part1(INPUT)

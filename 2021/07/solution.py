@@ -12,7 +12,7 @@ def part1(s):
                                                     value_fn)
     answer = value_fn(target)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 7, 1, answer)
 
 def tri_num(n):
     return n*(n+1)//2
@@ -28,7 +28,7 @@ def part2(s):
                                                     value_fn)
     answer = value_fn(target)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 7)
 part1(INPUT)

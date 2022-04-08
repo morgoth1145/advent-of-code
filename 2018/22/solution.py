@@ -35,7 +35,7 @@ def part1(s):
                  for x in range(tx+1)
                  for y in range(ty+1))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 22, 1, answer)
 
 TORCH = 0
 CLIMBING = 1
@@ -74,7 +74,7 @@ def part2(s):
                                        (0, 0, TORCH),
                                        (tx, ty, TORCH))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 22, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 22)
 part1(INPUT)

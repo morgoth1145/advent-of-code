@@ -52,7 +52,7 @@ def contruct_map(s):
 def part1(s):
     _, answer = lib.graph.longest_minimal_path_length(contruct_map(s), (0, 0))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 20, 1, answer)
 
 def part2(s):
     answer = sum(1
@@ -60,7 +60,7 @@ def part2(s):
                  in lib.graph.all_reachable(contruct_map(s), (0, 0))
                  if dist >= 1000)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 20, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 20)
 part1(INPUT)

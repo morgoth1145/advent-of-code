@@ -8,7 +8,7 @@ def part1(s):
 
         answer += max(nums) - min(nums)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 2, 1, answer)
 
 def part2(s):
     answer = 0
@@ -21,7 +21,7 @@ def part2(s):
                 if a % b == 0 and a != b:
                     answer += a // b
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 2, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 2)
 part1(INPUT)

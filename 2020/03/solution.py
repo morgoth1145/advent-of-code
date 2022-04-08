@@ -11,7 +11,7 @@ def count_tree_hits(s, right, down):
 
 def part1(s):
     answer = count_tree_hits(s, 3, 1)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 3, 1, answer)
 
 def part2(s):
     answer = 1
@@ -21,7 +21,7 @@ def part2(s):
                         (7,1),
                         (1,2)):
         answer *= count_tree_hits(s, right, down)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 3, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 3)
 part1(INPUT)

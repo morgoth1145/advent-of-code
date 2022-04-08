@@ -29,12 +29,12 @@ def parse(s):
 def part1(s):
     answer, _ = parse(s)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 10, 1, answer)
 
 def part2(s):
     _, answer = parse(s)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 10, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 10)
 part1(INPUT)

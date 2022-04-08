@@ -23,7 +23,7 @@ def part1(s):
     max_yv = abs(yrange[0])-1
     answer = tri(max_yv)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 17, 1, answer)
 
 def sum_range(first, last):
     n = abs(first - last) + 1
@@ -155,7 +155,7 @@ def part2(s):
 
         answer += x_match_count
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 17, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 17)
 part1(INPUT)

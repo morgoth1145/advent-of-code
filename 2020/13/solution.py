@@ -16,12 +16,12 @@ def part1(s):
         available_times.append((time_available, b))
     best_time, best_bus = min(available_times)
     answer = (best_time-timestamp) * best_bus
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 13, 1, answer)
 
 def part2(s):
     _, busses, offsets = parse_notes(s)
     answer = lib.math.offset_chinese_remainder(zip(busses, offsets))
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 13)
 

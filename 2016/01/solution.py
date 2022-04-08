@@ -19,7 +19,7 @@ def part1(s):
 
     answer = int(abs(p.real) + abs(p.imag))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 1, 1, answer)
 
 def part2(s):
     seen = {0}
@@ -31,7 +31,7 @@ def part2(s):
 
     answer = int(abs(p.real) + abs(p.imag))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 1)
 part1(INPUT)

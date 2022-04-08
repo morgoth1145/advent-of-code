@@ -14,7 +14,7 @@ def part1(s):
     for idx, c in sorted(columns.items()):
         answer += c.most_common(1)[0][0]
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 6, 1, answer)
 
 def part2(s):
     columns = collections.defaultdict(collections.Counter)
@@ -28,7 +28,7 @@ def part2(s):
     for idx, c in sorted(columns.items()):
         answer += c.most_common()[-1][0]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 6, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 6)
 part1(INPUT)

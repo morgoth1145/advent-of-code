@@ -60,7 +60,7 @@ def part1(s):
 
     answer, _ = find_winning_score(boards, nums)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 4, 1, answer)
 
 def part2(s):
     nums, boards = parse(s)
@@ -71,7 +71,7 @@ def part2(s):
         if 0 == len(boards):
             break
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 4)
 part1(INPUT)

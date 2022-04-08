@@ -30,7 +30,7 @@ def part1_linked_list(s):
 
     answer = solve_linked_list(s, 1, advance_fn)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 19, 1, answer)
 
 def part2_linked_list(s):
     def advance_fn(current, remaining):
@@ -42,7 +42,7 @@ def part2_linked_list(s):
 
     answer = solve_linked_list(s, int(s) // 2, advance_fn)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 19, 2, answer)
 
 def part1_closed(s):
     # Part 1 is actually the Josephus problem and follows a very simple pattern
@@ -51,7 +51,7 @@ def part1_closed(s):
     max_power_of_2 = 1 << (n.bit_length() - 1)
     answer = ((n - max_power_of_2) << 1) + 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 19, 1, answer)
 
 def part2_semi_closed(s):
     # Part 2 also follows a simple sequence. I'm not sure if it has a name, but
@@ -79,7 +79,7 @@ def part2_semi_closed(s):
     else:
         answer = ((remaining - n) << 1) + n
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 19, 2, answer)
 
 part1 = part1_closed
 part2 = part2_semi_closed

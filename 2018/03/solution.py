@@ -25,7 +25,7 @@ def part1(s):
     answer = sum(1 for claims in hits.values()
                  if claims > 1)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 3, 1, answer)
 
 def part2(s):
     hits = collections.Counter()
@@ -39,7 +39,7 @@ def part2(s):
             answer = num
             break
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 3, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 3)
 part1(INPUT)

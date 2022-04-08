@@ -160,7 +160,7 @@ def part1(s):
 
     answer = sum(group.count for group in immune + infection)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 24, 1, answer)
 
 def part2(s):
     min_boost = 0
@@ -179,7 +179,7 @@ def part2(s):
 
     answer = sum(group.count for group in immune + infection)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 24, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 24)
 part1(INPUT)

@@ -120,7 +120,7 @@ def solve(s):
 def part1(s):
     answer = solve(s)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 23, 1, answer)
 
 def part2(s):
     lines = s.splitlines()
@@ -132,7 +132,7 @@ def part2(s):
 
     answer = solve(s)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 23, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 23)
 part1(INPUT)

@@ -66,7 +66,7 @@ def part1(s):
     answer = min(range(len(particles)),
                  key=lambda idx: long_term_manhattan_dist_formulae[idx].terms)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 20, 1, answer)
 
 def part2(s):
     particles = list(parse_input(s))
@@ -99,7 +99,7 @@ def part2(s):
 
     answer = len(particles)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 20, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 20)
 part1(INPUT)

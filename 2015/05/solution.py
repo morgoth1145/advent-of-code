@@ -23,7 +23,7 @@ def rule3(s):
 def part1(s):
     answer = count_matching(s, rule1, rule2, rule3)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 5, 1, answer)
 
 def rule4(s):
     return any(s[idx-1:idx+1] in s[idx+1:]
@@ -36,7 +36,7 @@ def rule5(s):
 def part2(s):
     answer = count_matching(s, rule4, rule5)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 5, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 5)
 part1(INPUT)

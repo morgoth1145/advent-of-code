@@ -34,7 +34,7 @@ def part1(s):
 
         idx += 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 23, 1, answer)
 
 def part2_reverse_engineer(s):
     jump_points = set()
@@ -71,7 +71,7 @@ def part2_reverse_engineer(s):
     print('Please reverse-engineer the code and find the answer')
     answer = input('Answer? ')
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 23, 2, answer)
 
 def part2_general(s):
     registers = {r:0
@@ -166,7 +166,7 @@ def part2_general(s):
 
     answer = registers['h']
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 23, 2, answer)
 
 def is_prime(n):
     if n == 2:
@@ -194,7 +194,7 @@ def part2_hardcoded(s):
         if not is_prime(n):
             answer += 1
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 23, 2, answer)
 
 ##part2 = part2_reverse_engineer
 ##part2 = part2_general

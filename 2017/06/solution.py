@@ -20,7 +20,7 @@ def part1(s):
             break
         seen.add(nums)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 6, 1, answer)
 
 def part2(s):
     nums = tuple(map(int, s.split()))
@@ -36,7 +36,7 @@ def part2(s):
             break
         seen_steps[nums] = len(seen_steps)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 6, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 6)
 part1(INPUT)

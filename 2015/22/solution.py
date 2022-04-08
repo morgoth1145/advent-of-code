@@ -97,14 +97,14 @@ def part1(s):
 
     answer = player_turn(boss_hp, boss_dmg, 50, 500, Effects(0, 0, 0, hard=False))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 22, 1, answer)
 
 def part2(s):
     boss_hp, boss_dmg = parse_input(s)
 
     answer = player_turn(boss_hp, boss_dmg, 50, 500, Effects(0, 0, 0, hard=True))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 22, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 22)
 part1(INPUT)

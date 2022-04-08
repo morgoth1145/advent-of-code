@@ -57,12 +57,12 @@ def solve(s, required_end_node=None):
 def part1(s):
     answer = solve(s)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 24, 1, answer)
 
 def part2(s):
     answer = solve(s, 0)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 24, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 24)
 part1(INPUT)

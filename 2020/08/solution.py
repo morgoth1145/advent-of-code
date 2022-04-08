@@ -29,7 +29,7 @@ def run(program, return_accumulator_on_looping=False):
 def part1(s):
     program = list(s.splitlines())
     answer = run(program, True)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 8, 1, answer)
 
 def part2(s):
     program = list(s.splitlines())
@@ -47,7 +47,7 @@ def part2(s):
         if answer is not None:
             break
     assert(answer is not None)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 8, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 8)
 

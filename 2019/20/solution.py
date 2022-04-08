@@ -99,7 +99,7 @@ def part1(s):
 
     answer = lib.graph.dijkstra_length(graph, 'AA', 'ZZ')
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 20, 1, answer)
 
 def part2(s):
     base_graph = parse_graph(s)
@@ -132,7 +132,7 @@ def part2(s):
 
     answer = lib.graph.dijkstra_length(graph, ('AA', 0), ('ZZ', 0))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 20, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 20)
 part1(INPUT)

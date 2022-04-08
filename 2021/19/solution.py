@@ -86,7 +86,7 @@ def part1(s):
     beacons, scanners = solve(s)
     answer = len(beacons)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 19, 1, answer)
 
 def part2(s):
     beacons, scanners = solve(s)
@@ -94,7 +94,7 @@ def part2(s):
                  for s0 in scanners
                  for s1 in scanners)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 19, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 19)
 part1(INPUT)

@@ -25,7 +25,7 @@ def part1(s):
     while len(p1) > 0 and len(p2) > 0:
         p1, p2 = iter_game(p1, p2)
     answer = score(p1 + p2)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 22, 1, answer)
 
 def play_recursive(p1, p2):
     seen = set()
@@ -60,7 +60,7 @@ def part2(s):
     p2 = list(map(int, p2.splitlines()[1:]))
     p1, p2 = play_recursive(p1, p2)
     answer = score(p1 + p2)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 22, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 22)
 

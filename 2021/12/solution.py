@@ -26,11 +26,11 @@ def solve(s, allow_second_visit=False):
 
 def part1(s):
     answer = solve(s)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 12, 1, answer)
 
 def part2(s):
     answer = solve(s, True)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 12, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 12)
 part1(INPUT)

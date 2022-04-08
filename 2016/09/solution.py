@@ -33,7 +33,7 @@ def decompress(s):
 def part1(s):
     answer = len(decompress(s))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 9, 1, answer)
 
 @functools.cache
 def decompress_2_length(s):
@@ -68,7 +68,7 @@ def decompress_2_length(s):
 def part2(s):
     answer = decompress_2_length(s)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 9, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 9)
 part1(INPUT)

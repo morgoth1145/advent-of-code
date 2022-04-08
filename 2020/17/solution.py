@@ -38,11 +38,11 @@ def run_simulation(s, dims, steps):
 
 def part1(s):
     answer = run_simulation(s, dims=3, steps=6)
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2020, 17, 1, answer)
 
 def part2(s):
     answer = run_simulation(s, dims=4, steps=6)
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2020, 17, 2, answer)
 
 INPUT = lib.aoc.get_input(2020, 17)
 

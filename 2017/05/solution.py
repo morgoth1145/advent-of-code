@@ -11,7 +11,7 @@ def part1(s):
         nums[idx] += 1
         idx += jump
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2017, 5, 1, answer)
 
 def part2(s):
     nums = list(map(int, s.splitlines()))
@@ -27,7 +27,7 @@ def part2(s):
             nums[idx] += 1
         idx += jump
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2017, 5, 2, answer)
 
 INPUT = lib.aoc.get_input(2017, 5)
 part1(INPUT)

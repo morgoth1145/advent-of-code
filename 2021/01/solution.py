@@ -7,7 +7,7 @@ def part1(s):
         if nums[i] < nums[i+1]:
             answer += 1
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 1, 1, answer)
 
 def part2(s):
     nums = list(map(int, s.split()))
@@ -16,7 +16,7 @@ def part2(s):
         if nums[i] < nums[i+3]:
             answer += 1
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 1)
 part1(INPUT)

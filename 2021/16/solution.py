@@ -57,7 +57,7 @@ def sum_versions(packet):
 def part1(s):
     answer = sum_versions(parse(s))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2021, 16, 1, answer)
 
 OPERATORS = [
     sum,
@@ -79,7 +79,7 @@ def eval_packet(p):
 def part2(s):
     answer = eval_packet(parse(s))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2021, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2021, 16)
 part1(INPUT)

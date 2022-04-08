@@ -58,7 +58,7 @@ def part1(s):
 
     answer = ore_required_for_fuel(recipes, 1)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2019, 14, 1, answer)
 
 def part2(s):
     recipes = parse_recipes(s)
@@ -84,7 +84,7 @@ def part2(s):
 
     answer = low_fuel
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2019, 14, 2, answer)
 
 INPUT = lib.aoc.get_input(2019, 14)
 part1(INPUT)

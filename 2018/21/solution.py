@@ -190,12 +190,12 @@ def gen_solutions_programmatically(s):
 def part1(s):
     answer = next(gen_solutions_programmatically(s))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2018, 21, 1, answer)
 
 def part2(s):
     answer = list(gen_solutions_programmatically(s))[-1]
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2018, 21, 2, answer)
 
 INPUT = lib.aoc.get_input(2018, 21)
 part1(INPUT)

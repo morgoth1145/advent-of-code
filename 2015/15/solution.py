@@ -48,12 +48,12 @@ def optimize(s, teaspoons, calorie_requirement=None):
 def part1(s):
     answer = optimize(s, 100)
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2015, 15, 1, answer)
 
 def part2(s):
     answer = optimize(s, 100, 500)
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2015, 15, 2, answer)
 
 INPUT = lib.aoc.get_input(2015, 15)
 part1(INPUT)

@@ -43,7 +43,7 @@ def supports_tls(ip):
 def part1(s):
     answer = len(list(filter(supports_tls, s.splitlines())))
 
-    print(f'The answer to part one is {answer}')
+    lib.aoc.give_answer(2016, 7, 1, answer)
 
 def supports_ssl(ip):
     supernets, hypernets = split_ip(ip)
@@ -63,7 +63,7 @@ def supports_ssl(ip):
 def part2(s):
     answer = len(list(filter(supports_ssl, s.splitlines())))
 
-    print(f'The answer to part two is {answer}')
+    lib.aoc.give_answer(2016, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2016, 7)
 part1(INPUT)
