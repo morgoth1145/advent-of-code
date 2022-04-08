@@ -10,7 +10,7 @@ def parse_input(s):
 Effects = collections.namedtuple('Effects',
                                  ('shield', 'poison', 'recharge', 'hard'))
 
-def iter_effects(boss_hp, self_hp, mana, effects):
+def iter_effects(boss_hp, mana, effects):
     armor = 0
     if effects.shield:
         armor += 7
@@ -21,17 +21,12 @@ def iter_effects(boss_hp, self_hp, mana, effects):
     if effects.recharge:
         mana += 101
         effects = effects._replace(recharge=effects.recharge-1)
-    if effects.hard:
-        self_hp -= 1
 
-    return boss_hp, self_hp, mana, armor, effects
+    return boss_hp, mana, armor, effects
 
 @functools.cache
 def boss_turn(boss_hp, boss_dmg, self_hp, mana, effects):
-    boss_hp, self_hp, mana, armor, effects = iter_effects(boss_hp, self_hp, mana, effects)
-
-    if self_hp <= 0:
-        return None
+    boss_hp, mana, armor, effects = iter_effects(boss_hp, mana, effects)
 
     if boss_hp <= 0:
         return 0
@@ -44,10 +39,13 @@ def boss_turn(boss_hp, boss_dmg, self_hp, mana, effects):
 
 @functools.cache
 def player_turn(boss_hp, boss_dmg, self_hp, mana, effects):
-    boss_hp, self_hp, mana, armor, effects = iter_effects(boss_hp, self_hp, mana, effects)
+    if effects.hard:
+        self_hp -= 1
 
     if self_hp <= 0:
         return None
+
+    boss_hp, mana, armor, effects = iter_effects(boss_hp, mana, effects)
 
     if boss_hp <= 0:
         return 0
