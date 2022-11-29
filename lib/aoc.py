@@ -523,3 +523,24 @@ If it is not, it forgets the cookie and asks for a new one.
         _forget_session_cookie()
         _load_session_cookie()
         assert(currently_logged_in())
+
+def cache_solutions(year, day):
+    solution_cache_path = _get_solution_cache_file(year, day)
+    if os.path.exists(solution_cache_path):
+        with open(solution_cache_path) as f:
+            solutions = json.loads(f.read())
+
+        if all(s is not None
+               for s in solutions):
+            # The solutions are already cached
+            return
+
+    solutions = _get_puzzle_answers(year, day)
+
+    if all(s is None
+           for s in solutions):
+        # No known solutions (yet)
+        return
+
+    with open(solution_cache_path, 'w+') as f:
+        f.write(json.dumps(solutions))
