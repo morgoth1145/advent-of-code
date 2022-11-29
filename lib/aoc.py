@@ -43,10 +43,15 @@ def _load_session_cookie():
     cookie_cache_file = _get_cookie_cache_file()
 
     if not cookie_cache_file.exists():
-        cookie_cache_file.write_text('''A new Advent of Code session cookie is needed. Please do the following:
-1) Open this in chrome: chrome://settings/cookies/detail?site=adventofcode.com
-2) Look at the session cookie and copy the value/content
-3) Replace this file with that cookie''')
+        account_desc = _account_selection
+        if account_desc is None:
+            account_desc = 'Main'
+
+        cookie_cache_file.write_text(f'''A new Advent of Code session cookie is needed. Please do the following:
+1) Log into your {account_desc} account in chrome
+2) Open this in chrome: chrome://settings/cookies/detail?site=adventofcode.com
+3) Look at the session cookie and copy the value/content
+4) Replace this file with that cookie''')
 
         subprocess.check_call(['notepad', cookie_cache_file])
 
@@ -325,3 +330,29 @@ def begin_time_trial(year, day):
     # Open the web pages
     webbrowser.open(f'https://adventofcode.com/{year}/day/{day}')
     webbrowser.open(f'https://adventofcode.com/{year}/day/{day}/input')
+
+def ensure_valid_session_cookie():
+    '''
+ensure_valid_session_cookie checks to see if the current session cookie is valid.
+If it is not, it forgets the cookie and asks for a new one.
+    '''
+    def currently_logged_in():
+        r = _s.get('https://adventofcode.com/support')
+
+        # Check the status 4 ways to be paranoid
+        logged_out = '[Log In]' in r.text
+        logged_out_2 = 'You are not logged in.' in r.text
+        logged_in = '[Log Out]' in r.text
+        logged_in_2 = 'Because you are logged in,' in r.text
+
+        assert(logged_out == logged_out_2)
+        assert(logged_in == (not logged_out))
+        assert(logged_in_2 == (not logged_out_2))
+
+        return logged_in
+
+    _load_session_cookie()
+    if not currently_logged_in():
+        _forget_session_cookie()
+        _load_session_cookie()
+        assert(currently_logged_in())

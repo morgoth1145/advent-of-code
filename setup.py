@@ -105,6 +105,8 @@ if not os.path.exists(path):
 
 open_editor(path)
 
+lib.aoc.ensure_valid_session_cookie()
+
 if time_to_release <= datetime.timedelta(days=-1):
     print(f'{year} Day {day} is more than a day in the past!')
     if input('Begin time trial? ').lower() in ('y', 'yes', '1'):
