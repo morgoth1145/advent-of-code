@@ -14,8 +14,19 @@ import webbrowser
 
 _s = requests.Session()
 
+_account_selection = None
+
+def select_account(account=None):
+    global _account_selection
+    _account_selection = account
+    del _s.cookies['session']
+
 def _get_cache_directory():
-    return pathlib.Path.home() / '.advent-of-code'
+    p = pathlib.Path.home() / '.advent-of-code'
+    if _account_selection is None:
+        return p
+
+    return p / _account_selection
 
 def _read_file_as_string(path):
     with open(path) as f:
@@ -147,7 +158,7 @@ def clear_input_cache():
             continue
         shutil.rmtree(child)
 
-def auto_commit(year, day, part, good_answer_line):
+def _auto_commit(year, day, part, good_answer_line):
     repo_root = pathlib.Path(__file__).parent.parent
 
     subprocess.check_call(['git', 'stage', '.'],
@@ -243,8 +254,9 @@ def submit_answer(year, day, part, answer):
             submit_answer(year, 25, 2, 1)
 
         if day != 25 or part != 2:
-            # Auto-commit to save the human time!
-            auto_commit(year, day, part, good_answer_line)
+            if _account_selection is None:
+                # Auto-commit to save the human time!
+                _auto_commit(year, day, part, good_answer_line)
 
     return good_answer
 
