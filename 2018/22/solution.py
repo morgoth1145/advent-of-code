@@ -15,7 +15,7 @@ def parse_cave(s):
     @functools.cache
     def erosion_level(x, y):
         if (x, y) in [(0, 0), (tx, ty)]:
-            return 0
+            return depth % MOD
         if y == 0:
             return (x * 16807 + depth) % MOD
         if x == 0:
