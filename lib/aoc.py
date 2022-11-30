@@ -307,6 +307,20 @@ def give_answer(year, day, part, answer):
             # Wait 6 seconds for server timeout between answer submissions
             time.sleep(6)
 
+def knows_solutions_for(year, day):
+    solution_cache_path = _get_solution_cache_file(year, day)
+    if not os.path.exists(solution_cache_path):
+        return False
+
+    with open(solution_cache_path) as f:
+        solutions = json.loads(f.read())
+
+    return None not in solutions
+
+def open_pages_for(year, day):
+    webbrowser.open(f'https://adventofcode.com/{year}/day/{day}')
+    webbrowser.open(f'https://adventofcode.com/{year}/day/{day}/input')
+
 def begin_time_trial(year, day):
     trial_path = _get_time_trial_file(year, day)
     if os.path.exists(trial_path):
@@ -327,9 +341,7 @@ def begin_time_trial(year, day):
     with open(trial_path, 'w+') as f:
         f.write(json.dumps(trial))
 
-    # Open the web pages
-    webbrowser.open(f'https://adventofcode.com/{year}/day/{day}')
-    webbrowser.open(f'https://adventofcode.com/{year}/day/{day}/input')
+    open_pages_for(year, day)
 
 def ensure_valid_session_cookie():
     '''

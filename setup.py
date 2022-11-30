@@ -2,6 +2,7 @@ import datetime
 import os
 import subprocess
 import sys
+import time
 
 import lib.aoc
 
@@ -81,35 +82,91 @@ part1(INPUT)
 part2(INPUT)
 '''
 
-year = int(input('Year: '))
+try:
+    year = input('Year ("warmup" for warmup): ')
+    if year == 'warmup':
+        day = int(input('Day: '))
 
-if year < 2015:
-    error_exit(f'Advent of Code started in 2015! Year {year} is invalid')
+        if day not in range(1, 26):
+            error_exit(f'Advent of code runs from December 1st through 25th. Day {day} is invalid')
 
-day = int(input('Day: '))
+        previous_solutions = {}
 
-if day not in range(1, 26):
-    error_exit(f'Advent of code runs from December 1st through 25th. Day {day} is invalid')
+        year = 2015
+        while True:
+            time_to_release = lib.aoc.time_to_release(year, day)
+            if time_to_release > datetime.timedelta(days=-1):
+                # This is a future (or current) problem!
+                break
 
-time_to_release = lib.aoc.time_to_release(year, day)
-if time_to_release >= datetime.timedelta(days=1):
-    error_exit(f'{year} Day {day} is more than a day in the future!')
+            if not lib.aoc.knows_solutions_for(year, day):
+                year += 1
+                continue
 
-path = f'{year}/{day:02}/solution.py'
+            if input(f'Warm up with {year} Day {day}? ').lower() in ('y', 'yes', '1'):
+                path = f'{year}/{day:02}/solution.py'
+                if os.path.exists(path):
+                    with open(path, 'rb') as f:
+                        previous_solutions[year] = f.read()
 
-if not os.path.exists(path):
-    print(f'Writing template for {year} Day {day}')
-    os.makedirs(os.path.split(path)[0], exist_ok=True)
-    with open(path, 'w+') as f:
-        f.write(get_template(year, day))
+                os.makedirs(os.path.split(path)[0], exist_ok=True)
+                with open(path, 'w+') as f:
+                    f.write(get_template(year, day))
 
-open_editor(path)
+                lib.aoc.ensure_valid_session_cookie()
 
-lib.aoc.ensure_valid_session_cookie()
+                open_editor(path)
 
-if time_to_release <= datetime.timedelta(days=-1):
-    print(f'{year} Day {day} is more than a day in the past!')
-    if input('Begin time trial? ').lower() in ('y', 'yes', '1'):
-        lib.aoc.begin_time_trial(year, day)
-else:
-    lib.aoc.download_input_when_live(year, day)
+                # Give a moment for the editor to open properly
+                time.sleep(5)
+
+                lib.aoc.open_pages_for(year, day)
+
+            year += 1
+
+        print('Finished with warmups. Waiting to restore old solutions...')
+        os.system('pause')
+
+        for year, old_solution in previous_solutions.items():
+            path = f'{year}/{day:02}/solution.py'
+            with open(path, 'wb') as f:
+                f.write(old_solution)
+    else:
+        year = int(year)
+
+        if year < 2015:
+            error_exit(f'Advent of Code started in 2015! Year {year} is invalid')
+
+        day = int(input('Day: '))
+
+        if day not in range(1, 26):
+            error_exit(f'Advent of code runs from December 1st through 25th. Day {day} is invalid')
+
+        time_to_release = lib.aoc.time_to_release(year, day)
+        if time_to_release >= datetime.timedelta(days=1):
+            error_exit(f'{year} Day {day} is more than a day in the future!')
+
+        path = f'{year}/{day:02}/solution.py'
+
+        if not os.path.exists(path):
+            print(f'Writing template for {year} Day {day}')
+            os.makedirs(os.path.split(path)[0], exist_ok=True)
+            with open(path, 'w+') as f:
+                f.write(get_template(year, day))
+
+        open_editor(path)
+
+        lib.aoc.ensure_valid_session_cookie()
+
+        if time_to_release <= datetime.timedelta(days=-1):
+            print(f'{year} Day {day} is more than a day in the past!')
+            if input('Begin time trial? ').lower() in ('y', 'yes', '1'):
+                lib.aoc.begin_time_trial(year, day)
+        else:
+            lib.aoc.download_input_when_live(year, day)
+except SystemExit:
+    raise
+except:
+    import traceback
+    traceback.print_exc()
+    error_exit('Unhandled exception')
