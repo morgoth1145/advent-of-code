@@ -10,7 +10,9 @@ def part1(s):
     lib.aoc.give_answer(2022, 1, 1, answer)
 
 def part2(s):
-    pass
+    answer = sum(sorted(parse_input(s))[-3:])
+
+    lib.aoc.give_answer(2022, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 1)
 part1(INPUT)
