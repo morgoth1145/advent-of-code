@@ -14,6 +14,10 @@ import webbrowser
 
 _s = requests.Session()
 
+_s.headers.update({
+    'User-Agent': 'github.com/morgoth1145/advent-of-code by phogg@novamoon.net'
+})
+
 _account_selection = None
 
 def select_account(account=None):
