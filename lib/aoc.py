@@ -298,6 +298,11 @@ def give_answer(year, day, part, answer):
             if input('Submit answer? ').lower() not in ('y', 'yes', '1'):
                 print('Aborting...')
                 assert(False)
+        else:
+            today = datetime.datetime.now(dateutil.tz.tzutc())
+            if year == today.year:
+                print('Alternate accounts are for stress testing solution code, not running on the current year\'s problems while they are still live! Please wait until January to run on alternate accounts.')
+                assert(False)
 
         assert(_submit_answer(year, day, part, answer))
 
