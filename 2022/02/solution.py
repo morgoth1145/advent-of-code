@@ -1,51 +1,24 @@
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
-        a, b = line.split()
-        yield a, b
-
-SCORES = {
-    'X': 1,
-    'Y': 2,
-    'Z': 3,
-}
-
-RESULTS = {
-    'AX': 3,
-    'BY': 3,
-    'CZ': 3,
-    'AY': 6,
-    'BZ': 6,
-    'CX': 6,
-}
-
 def part1(s):
-    answer = 0
+    SCORES = {
+        'A X': 4, 'A Y': 8, 'A Z': 3,
+        'B X': 1, 'B Y': 5, 'B Z': 9,
+        'C X': 7, 'C Y': 2, 'C Z': 6,
+    }
 
-    for a, b in parse_input(s):
-        answer += SCORES[b] + RESULTS.get(a+b, 0)
+    answer = sum(map(SCORES.get, s.splitlines()))
 
     lib.aoc.give_answer(2022, 2, 1, answer)
 
-CHOICES = {
-    'AX': 'Z',
-    'BX': 'X',
-    'CX': 'Y',
-    'AY': 'X',
-    'BY': 'Y',
-    'CY': 'Z',
-    'AZ': 'Y',
-    'BZ': 'Z',
-    'CZ': 'X',
-}
-
 def part2(s):
-    answer = 0
+    SCORES = {
+        'A X': 3, 'A Y': 4, 'A Z': 8,
+        'B X': 1, 'B Y': 5, 'B Z': 9,
+        'C X': 2, 'C Y': 6, 'C Z': 7,
+    }
 
-    for a, b in parse_input(s):
-        b = CHOICES[a+b]
-        answer += SCORES[b] + RESULTS.get(a+b, 0)
+    answer = sum(map(SCORES.get, s.splitlines()))
 
     lib.aoc.give_answer(2022, 2, 2, answer)
 
