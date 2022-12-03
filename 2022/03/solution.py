@@ -1,38 +1,30 @@
 import lib.aoc
 
+def score_shared_item(*groups):
+    shared = set(groups[0])
+    for s in groups[1:]:
+        shared &= set(s)
+
+    shared = list(shared)[0]
+    if shared.islower():
+        return ord(shared) - ord('a') + 1
+    else:
+        assert(shared.isupper())
+        return ord(shared) - ord('A') + 27
+
 def part1(s):
-    lines = s.splitlines()
-
-    answer = 0
-
-    for sack in lines:
-        a = sack[:len(sack)//2]
-        b = sack[len(sack)//2:]
-        shared = set(a) & set(b)
-        assert(len(shared) == 1)
-
-        shared = list(shared)[0]
-
-        answer += 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.index(shared) + 1
+    answer = sum(score_shared_item(sack[:len(sack)//2],
+                                   sack[len(sack)//2:])
+                 for sack in s.splitlines())
 
     lib.aoc.give_answer(2022, 3, 1, answer)
 
 def part2(s):
-    lines = s.splitlines()
+    sacks = s.splitlines()
 
-    answer = 0
-
-    while lines:
-        a = lines.pop(0)
-        b = lines.pop(0)
-        c = lines.pop(0)
-
-        shared = set(a) & set(b) & set(c)
-        assert(len(shared) == 1)
-
-        shared = list(shared)[0]
-
-        answer += 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.index(shared) + 1
+    answer = sum(score_shared_item(a, b, c)
+                 for (a, b, c) in (sacks[i:i+3]
+                                   for i in range(0, len(sacks), 3)))
 
     lib.aoc.give_answer(2022, 3, 2, answer)
 
