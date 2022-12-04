@@ -9,24 +9,16 @@ def parse_input(s):
         yield range(a0, a1+1), range(b0, b1+1)
 
 def part1(s):
-    data = parse_input(s)
-
-    answer = 0
-
-    for a, b in data:
-        if all(i in b for i in a) or all(i in a for i in b):
-            answer += 1
+    answer = sum(1
+                 for a, b in parse_input(s)
+                 if all(i in b for i in a) or all(i in a for i in b))
 
     lib.aoc.give_answer(2022, 4, 1, answer)
 
 def part2(s):
-    data = parse_input(s)
-
-    answer = 0
-
-    for a, b in data:
-        if any(i in b for i in a):
-            answer += 1
+    answer = sum(1
+                 for a, b in parse_input(s)
+                 if any(i in b for i in a))
 
     lib.aoc.give_answer(2022, 4, 2, answer)
 
