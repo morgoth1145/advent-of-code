@@ -20,7 +20,15 @@ def part1(s):
     lib.aoc.give_answer(2022, 4, 1, answer)
 
 def part2(s):
-    pass
+    data = parse_input(s)
+
+    answer = 0
+
+    for a, b in data:
+        if any(i in b for i in a):
+            answer += 1
+
+    lib.aoc.give_answer(2022, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 4)
 part1(INPUT)
