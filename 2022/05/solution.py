@@ -38,7 +38,22 @@ def part1(s):
     lib.aoc.give_answer(2022, 5, 1, answer)
 
 def part2(s):
-    pass
+    stacks, moves = parse_input(s)
+
+    for n, source, target in moves:
+        # zero index
+        source -= 1
+        target -= 1
+
+        moved = stacks[source][-n:]
+        stacks[source] = stacks[source][:-n]
+        stacks[target] += moved
+
+    answer = ''
+    for s in stacks:
+        answer += s[-1]
+
+    lib.aoc.give_answer(2022, 5, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 5)
 part1(INPUT)
