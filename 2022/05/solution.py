@@ -2,56 +2,39 @@ import parse
 
 import lib.aoc
 
-def parse_input(s):
-    a, b = s.split('\n\n')
+def solve(s, move_handler):
+    stacks, moves = s.split('\n\n')
 
-    lines = a.splitlines()
+    stack_lines = stacks.splitlines()
 
-    stacks = [[] for _ in range(len(lines.pop().split()))]
+    stacks = [[] for _ in range(len(stack_lines.pop().split()))]
 
-    while lines:
-        row = lines.pop()
-        for i in range(len(stacks)):
-            entry = row[4*i+1]
+    for row in stack_lines[::-1]:
+        for i, entry in enumerate(row[1::4]):
             if entry != ' ':
                 stacks[i].append(entry)
 
-    moves = list(parse.findall('move {:d} from {:d} to {:d}', b))
+    for n, source, target in parse.findall('move {:d} from {:d} to {:d}', moves):
+        move_handler(stacks, n, source-1, target-1)
 
-    return stacks, moves
+    return ''.join(s[-1] for s in stacks)
 
 def part1(s):
-    stacks, moves = parse_input(s)
-
-    for n, source, target in moves:
-        # zero index
-        source -= 1
-        target -= 1
-
+    def move_blocks(stacks, n, source, target):
         for _ in range(n):
             stacks[target].append(stacks[source].pop(-1))
 
-    answer = ''
-    for s in stacks:
-        answer += s[-1]
+    answer = solve(s, move_blocks)
 
     lib.aoc.give_answer(2022, 5, 1, answer)
 
 def part2(s):
-    stacks, moves = parse_input(s)
-
-    for n, source, target in moves:
-        # zero index
-        source -= 1
-        target -= 1
-
+    def move_blocks(stacks, n, source, target):
         moved = stacks[source][-n:]
         stacks[source] = stacks[source][:-n]
         stacks[target] += moved
 
-    answer = ''
-    for s in stacks:
-        answer += s[-1]
+    answer = solve(s, move_blocks)
 
     lib.aoc.give_answer(2022, 5, 2, answer)
 
