@@ -60,7 +60,30 @@ def part1(s):
     lib.aoc.give_answer(2022, 7, 1, answer)
 
 def part2(s):
-    pass
+    folders = parse_input(s)
+
+    @functools.cache
+    def get_folder_size(name):
+        contents = folders[name]
+        dir_size = 0
+        for size, item in contents:
+            if size == 'dir':
+                dir_size += get_folder_size(posixpath.join(name, item))
+            else:
+                dir_size += size
+        return dir_size
+
+    TOT_SPACE = 70000000
+    REQUIRED_FREE = 30000000
+    USED = get_folder_size('/')
+    UNUSED = TOT_SPACE - USED
+    TO_FREE = REQUIRED_FREE - UNUSED
+
+    answer = min(get_folder_size(name)
+                 for name in folders.keys()
+                 if get_folder_size(name) >= TO_FREE)
+
+    lib.aoc.give_answer(2022, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 7)
 part1(INPUT)
