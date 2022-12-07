@@ -1,87 +1,56 @@
-import functools
-import posixpath
+import collections
 
 import lib.aoc
 
-def parse_input(s):
-    folders = {}
+def get_folder_sizes(s):
+    folders = collections.defaultdict(int)
 
-    cwd = '~'
+    cwd = []
 
-    lines = s.splitlines()
-    while lines:
-        line = lines.pop(0)
-        assert(line[0] == '$')
-        cmd = line[1:].strip()
-        if cmd == 'ls':
-            contents = []
-            while lines:
-                if lines[0][0] == '$':
-                    break
-                item = lines.pop(0)
-                size, item = item.split(maxsplit=1)
-                if size != 'dir':
-                    size = int(size)
-                contents.append((size, item))
-            folders[cwd] = contents
-        else:
-            assert(cmd.startswith('cd '))
-            rest = cmd[3:]
-            if rest == '/':
-                cwd = '/'
-            elif rest == '..':
-                cwd = posixpath.split(cwd)[0]
+    for line in s.splitlines():
+        parts = line.split()
+        if parts[0] == '$':
+            if parts[1] == 'cd':
+                if parts[2] == '..':
+                    cwd.pop()
+                elif parts[2] == '/':
+                    # Special handling to avoid double slash
+                    cwd = ['']
+                else:
+                    cwd.append(parts[2])
+            elif parts[1] == 'ls':
+                pass
             else:
-                cwd = posixpath.join(cwd, rest)
+                assert(False)
+        elif parts[0] == 'dir':
+            pass # Handled implicitly when adding up sizes
+        else:
+            size = int(parts[0])
+            name = ''
+            for fold in cwd:
+                if name != '/':
+                    # Special handling to avoid double slash
+                    name += '/'
+                name += fold
+                folders[name] += size
 
     return folders
 
 def part1(s):
-    folders = parse_input(s)
-
-    @functools.cache
-    def get_folder_size(name):
-        contents = folders[name]
-        dir_size = 0
-        for size, item in contents:
-            if size == 'dir':
-                dir_size += get_folder_size(posixpath.join(name, item))
-            else:
-                dir_size += size
-        return dir_size
-
-    answer = 0
-
-    for name in folders.keys():
-        size = get_folder_size(name)
-        if size <= 100000:
-            answer += size
+    answer = sum(size
+                 for size in get_folder_sizes(s).values()
+                 if size <= 100000)
 
     lib.aoc.give_answer(2022, 7, 1, answer)
 
 def part2(s):
-    folders = parse_input(s)
+    folders = get_folder_sizes(s)
 
-    @functools.cache
-    def get_folder_size(name):
-        contents = folders[name]
-        dir_size = 0
-        for size, item in contents:
-            if size == 'dir':
-                dir_size += get_folder_size(posixpath.join(name, item))
-            else:
-                dir_size += size
-        return dir_size
+    TO_FREE = 30000000 - (70000000 - folders['/'])
 
-    TOT_SPACE = 70000000
-    REQUIRED_FREE = 30000000
-    USED = get_folder_size('/')
-    UNUSED = TOT_SPACE - USED
-    TO_FREE = REQUIRED_FREE - UNUSED
-
-    answer = min(get_folder_size(name)
-                 for name in folders.keys()
-                 if get_folder_size(name) >= TO_FREE)
+    answer = min(size
+                 for size in folders.values()
+                 if size >= TO_FREE)
 
     lib.aoc.give_answer(2022, 7, 2, answer)
 
