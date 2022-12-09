@@ -7,47 +7,32 @@ def solve(s, rope_length):
     seen.add(rope[-1])
 
     def do_move(dx, dy, c):
-        nonlocal rope
-        x, y = rope[0]
         for _ in range(c):
-            x += dx
-            y += dy
-            new_rope = [(x, y)]
+            x, y = rope[0]
+            rope[0] = x, y = x+dx, y+dy
             for i, (nx, ny) in enumerate(rope[1:]):
-                i += 1
-                ax, ay = new_rope[i-1]
-                bx, by = rope[i]
-                if max(abs(ax-bx), abs(ay-by)) == 2:
-                    if ax == bx:
-                        by = (ay + by) // 2
-                    elif ay == by:
-                        bx = (ax + bx) // 2
-                    else:
-                        # Diagonal
-                        ldx = ax - bx
-                        ldy = ay - by
-                        ldx //= abs(ldx)
-                        ldy //= abs(ldy)
-                        bx += ldx
-                        by += ldy
-                new_rope.append((bx, by))
-            rope = new_rope
+                ldx, ldy = x - nx, y - ny
+
+                if max(abs(ldx), abs(ldy)) == 2:
+                    # Move in the same row/column if possible,
+                    # or move diagonally if necessary
+                    if ldx != 0:
+                        nx += ldx // abs(ldx)
+                    if ldy != 0:
+                        ny += ldy // abs(ldy)
+
+                x, y = rope[i+1] = nx, ny
+
             seen.add(rope[-1])
 
     for line in s.splitlines():
         d, c = line.split()
         c = int(c)
 
-        if d == 'U':
-            do_move(0, -1, c)
-        elif d == 'D':
-            do_move(0, 1, c)
-        elif d == 'L':
-            do_move(-1, 0, c)
-        elif d == 'R':
-            do_move(1, 0, c)
-        else:
-            assert(False)
+        if d == 'U': do_move(0, -1, c)
+        elif d == 'D': do_move(0, 1, c)
+        elif d == 'L': do_move(-1, 0, c)
+        elif d == 'R': do_move(1, 0, c)
 
     return len(seen)
 
