@@ -1,48 +1,46 @@
 import lib.aoc
 
-def solve(s, rope_length):
-    rope = [(0, 0)] * rope_length
-
-    seen = set()
-    seen.add(rope[-1])
-
-    def do_move(dx, dy, c):
-        for _ in range(c):
-            x, y = rope[0]
-            rope[0] = x, y = x+dx, y+dy
-            for i, (nx, ny) in enumerate(rope[1:]):
-                ldx, ldy = x - nx, y - ny
-
-                if max(abs(ldx), abs(ldy)) == 2:
-                    # Move in the same row/column if possible,
-                    # or move diagonally if necessary
-                    if ldx != 0:
-                        nx += ldx // abs(ldx)
-                    if ldy != 0:
-                        ny += ldy // abs(ldy)
-
-                x, y = rope[i+1] = nx, ny
-
-            seen.add(rope[-1])
+def head_positions(s):
+    x, y = 0, 0
+    yield x, y
 
     for line in s.splitlines():
         d, c = line.split()
-        c = int(c)
 
-        if d == 'U': do_move(0, -1, c)
-        elif d == 'D': do_move(0, 1, c)
-        elif d == 'L': do_move(-1, 0, c)
-        elif d == 'R': do_move(1, 0, c)
+        if d == 'U': dx, dy = 0, -1
+        elif d == 'D': dx, dy = 0, 1
+        elif d == 'L': dx, dy = -1, 0
+        elif d == 'R': dx, dy = 1, 0
 
-    return len(seen)
+        for _ in range(int(c)):
+            x, y = x+dx, y+dy
+            yield x, y
+
+def next_segment_positions(positions):
+    x, y = 0, 0
+    yield x, y
+
+    for prev_x, prev_y in positions:
+        dx, dy = prev_x-x, prev_y-y
+
+        if max(abs(dx), abs(dy)) == 2:
+            # This segment needs to move to catch up!
+            if dx != 0:
+                x += dx // abs(dx)
+            if dy != 0:
+                y += dy // abs(dy)
+            yield x, y
 
 def part1(s):
-    answer = solve(s, 2)
+    answer = len(set(next_segment_positions(head_positions(s))))
 
     lib.aoc.give_answer(2022, 9, 1, answer)
 
 def part2(s):
-    answer = solve(s, 10)
+    rope = head_positions(s)
+    for _ in range(9):
+        rope = next_segment_positions(rope)
+    answer = len(set(rope))
 
     lib.aoc.give_answer(2022, 9, 2, answer)
 
