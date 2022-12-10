@@ -1,5 +1,5 @@
 import lib.aoc
-##import lib.ocr
+import lib.ocr
 
 def parse_input(s):
     for line in s.splitlines():
@@ -42,24 +42,14 @@ def part2(s):
             continue
         assert(False)
 
-##    lit_pixels = set()
-
-    out = ''
+    lit_pixels = set()
 
     for x, pos in enumerate(pos_per_cycle):
-##        y = x // 40
+        y = x // 40
         if x % 40 in (pos-1, pos, pos+1):
-##            lit_pixels.add((x, y))
-            out += '#'
-        else:
-            out += '.'
-        if x % 40 == 39:
-            out += '\n'
+            lit_pixels.add((x%40, y))
 
-    print(out)
-
-##    answer = lib.ocr.parse_coord_set(lit_pixels)
-    answer = input('lib.ocr is having issues. What is the answer? ')
+    answer = lib.ocr.parse_coord_set(lit_pixels)
 
     lib.aoc.give_answer(2022, 10, 2, answer)
 
