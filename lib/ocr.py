@@ -53,6 +53,8 @@ def parse_coord_set(coords):
 
     height = len(y_domain)
 
+    showed_full_image = False
+
     output = ''
     for char_coords, char_x_domain in _isolate_chars(coords, x_domain, y_domain):
         width = len(char_x_domain)
@@ -75,6 +77,12 @@ def parse_coord_set(coords):
         options = known[dimensions]
         char = options.get(pattern)
         if char is None:
+            if not showed_full_image:
+                showed_full_image = True
+                print('Unknown character detected. Trying to parse this output:')
+                _do_print(coords, x_domain, y_domain)
+                print('If this looks invalid, verify the incoming data')
+
             print('Unknown character:')
             _do_print(char_coords, char_x_domain, y_domain)
             char = input('What is this character? ')
