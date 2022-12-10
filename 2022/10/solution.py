@@ -1,53 +1,36 @@
 import lib.aoc
 import lib.ocr
 
-def parse_input(s):
-    for line in s.splitlines():
-        inst = line.split()
-        if len(inst) > 1:
-            inst[1] = int(inst[1])
-        yield inst
-
-def part1(s):
-    strengths_per_cycle = []
+def register_per_cycle(s):
+    val_per_cycle = []
 
     x = 1
-    for inst in parse_input(s):
-        strengths_per_cycle.append(x * len(strengths_per_cycle) + x)
+    for line in s.splitlines():
+        inst = line.split()
         if inst[0] == 'noop':
-            continue
-        if inst[0] == 'addx':
-            # Takes two cycles
-            strengths_per_cycle.append(x * len(strengths_per_cycle) + x)
-            x += inst[1]
-            continue
-        assert(False)
+            # Single cycle instruction
+            val_per_cycle += [x]
+        elif inst[0] == 'addx':
+            # Two cycle instruction
+            val_per_cycle += [x, x]
+            x += int(inst[1])
+        else:
+            assert(False)
 
-    answer = strengths_per_cycle[19] + strengths_per_cycle[59] + strengths_per_cycle[99] + strengths_per_cycle[139] + strengths_per_cycle[179] + strengths_per_cycle[219]
+    return val_per_cycle
+
+def part1(s):
+    x_per_cycle = register_per_cycle(s)
+
+    answer = sum(cycle * x_per_cycle[cycle-1]
+                 for cycle in (20, 60, 100, 140, 180, 220))
 
     lib.aoc.give_answer(2022, 10, 1, answer)
 
 def part2(s):
-    pos_per_cycle = []
-
-    x = 1
-    for inst in parse_input(s):
-        pos_per_cycle.append(x)
-        if inst[0] == 'noop':
-            continue
-        if inst[0] == 'addx':
-            # Takes two cycles
-            pos_per_cycle.append(x)
-            x += inst[1]
-            continue
-        assert(False)
-
-    lit_pixels = set()
-
-    for x, pos in enumerate(pos_per_cycle):
-        y = x // 40
-        if x % 40 in (pos-1, pos, pos+1):
-            lit_pixels.add((x%40, y))
+    lit_pixels = {(cycle % 40, cycle // 40)
+                  for cycle, pos in enumerate(register_per_cycle(s))
+                  if cycle % 40 in (pos-1, pos, pos+1)}
 
     answer = lib.ocr.parse_coord_set(lit_pixels)
 
