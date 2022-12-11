@@ -19,7 +19,13 @@ def open_editor(path):
                      shell=True)
 
 def get_template(year, day):
-    parse_template = '''def parse_input(s):
+    parse_template = '''def parse_all_ints(s):
+    return list(map(lambda r:r[0], parse.findall('{:d}', s)))
+
+def parse_input(s):
+    for group in s.split('\\n\\n'):
+        pass
+
     for line in s.splitlines():
         pass
 
@@ -48,7 +54,7 @@ import lib.parsing'''
 intcode = __import__('2019.intcode').intcode'''
 
     part_1_template = f'''def part1(s):
-##    nums = list(map(lambda r:r[0], parse.findall('{{:d}}', s)))
+##    nums = parse_all_ints(s)
 ##    lines = s.splitlines()
 ##    groups = s.split('\\n\\n')
 ##    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
