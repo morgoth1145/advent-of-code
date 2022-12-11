@@ -17,14 +17,18 @@ def parse_input(s):
 
         yield n, items, op, divisible_test, true_dest, false_dest
 
-def run_round(monkey_items, monkey_meta, inspect_counts):
+def run_round(monkey_items, monkey_meta, inspect_counts,
+              mod_by=None):
     for n, (op, divisible_test, true_dest, false_dest) in monkey_meta.items():
         items = monkey_items.pop(n, [])
         monkey_items[n] = []
         inspect_counts[n] += len(items)
         for worry in items:
             worry = eval(op, None, {'old': worry})
-            worry //= 3
+            if mod_by is None:
+                worry //= 3
+            else:
+                worry = worry % mod_by
             if worry % divisible_test == 0:
                 monkey_items[true_dest].append(worry)
             else:
@@ -50,7 +54,31 @@ def part1(s):
     lib.aoc.give_answer(2022, 11, 1, answer)
 
 def part2(s):
-    pass
+    monkeys = list(parse_input(s))
+
+    monkey_items = {n: items
+                    for n, items, op, divisible_test, true_dest, false_dest
+                    in monkeys}
+    monkey_meta = {n: (op, divisible_test, true_dest, false_dest)
+                   for n, items, op, divisible_test, true_dest, false_dest
+                   in monkeys}
+    inspect_counts = collections.Counter()
+
+    divisors = [divisible_test
+                for n, items, op, divisible_test, true_dest, false_dest
+                in monkeys]
+    divisor_product = 1
+    for d in divisors:
+        divisor_product *= d
+
+    for _ in range(10000):
+        run_round(monkey_items, monkey_meta, inspect_counts,
+                  mod_by=divisor_product)
+
+    most_active = inspect_counts.most_common(2)
+    answer = most_active[0][1] * most_active[1][1]
+
+    lib.aoc.give_answer(2022, 11, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 11)
 part1(INPUT)
