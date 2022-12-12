@@ -54,14 +54,14 @@ import lib.parsing'''
 intcode = __import__('2019.intcode').intcode'''
 
     part_1_template = f'''def part1(s):
-##    nums = parse_all_ints(s)
-##    lines = s.splitlines()
-##    groups = s.split('\\n\\n')
+    nums = parse_all_ints(s)
+    lines = s.splitlines()
+    groups = s.split('\\n\\n')
+    data = parse_input(s)
 ##    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
 ##    grid = lib.grid.FixedGrid.parse(s,
 ##                                    linesplit_fn=lambda line: line.split(),
 ##                                    value_fn=int)
-##    data = parse_input(s)
 
     print(f'The answer to part one is {{answer}}')
     lib.aoc.give_answer({year}, {day}, 1, answer)'''
