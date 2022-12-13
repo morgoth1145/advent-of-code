@@ -19,12 +19,12 @@ def parse_graph_for_reverse_search(s):
     def neighbor_fn(pos):
         self = grid[pos]
         for n in grid.neighbors(*pos):
-            if ord(self) - ord(grid[n]) <= 1:
+            if ord(grid[n]) - ord(self) <= 1:
                 yield n, 1
 
     graph = lib.graph.make_lazy_graph(neighbor_fn)
 
-    return grid, graph, end, start
+    return grid, graph, start, end
 
 def part1(s):
     _, graph, start, end = parse_graph_for_reverse_search(s)
@@ -33,8 +33,8 @@ def part1(s):
 
 def part2(s):
     grid, graph, start, end = parse_graph_for_reverse_search(s)
-    answer = lib.graph.dijkstra_length_fuzzy_end(graph, start,
-                                                 lambda pos: grid[pos] == 'a')
+    start = [c for c,val in grid.items() if val == 'a']
+    answer = lib.graph.dijkstra_length(graph, start, end)
     lib.aoc.give_answer(2022, 12, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 12)

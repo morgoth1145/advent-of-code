@@ -75,6 +75,7 @@ def dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic=None):
     graph[node] must return a list of (neighbor, distance) pairs
 
     Arguments:
+    start - Either the starting state or a list of starting states
     end_fn - Function accepting a state. Returns True if this is an end state
     and False otherwise
     heuristic - If supplied, provides an estimate of the remaining distance
@@ -83,8 +84,12 @@ def dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic=None):
     if heuristic is None:
         heuristic = lambda n: 0
 
+    if not isinstance(start, list):
+        start = [start]
+
     seen = set()
-    queue = [(heuristic(start), 0, start)]
+    queue = [(heuristic(s), 0, s) for s in start]
+    heapq.heapify(queue)
     while len(queue) > 0:
         _, current_dist, current_node = heapq.heappop(queue)
 
@@ -111,17 +116,24 @@ def dijkstra_length(graph, start, end, heuristic=None):
     graph[node] must return a list of (neighbor, distance) pairs
 
     Arguments:
+    start - Either the starting state or a list of starting states
+    end - Either the ending state or a list of possible ending states
     heuristic - If supplied, provides an estimate of the remaining distance
     from a given node to the end
     '''
-    def end_fn(state):
-        return state == end
+    if not isinstance(end, list):
+        end = [end]
 
-    # Verify that end is a valid node. I ran into dumb bugs when refactoring
-    # when passing in a list that should have been a tuple!
-    hash(end)
-    if heuristic is not None:
-        assert(heuristic(end) == 0)
+    # Verify that all end states are valid nodes. I ran into dumb bugs once
+    # when refactoring when passing in a list instead of a tuple!
+    for e in end:
+        hash(e)
+        if heuristic is not None:
+            assert(heuristic(e) == 0)
+
+    end_candidates = set(end)
+    def end_fn(state):
+        return state in end_candidates
 
     return dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic)
 
