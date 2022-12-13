@@ -53,8 +53,32 @@ def part1(s):
 
     lib.aoc.give_answer(2022, 13, 1, answer)
 
+class Wrapper:
+    def __init__(self, item):
+        self.item = item
+
+    def __lt__(self, other):
+        return is_right_order(self.item, other.item)
+
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    all_items = []
+    for a, b in data:
+        all_items += [a, b]
+
+    all_items.append([[2]])
+    all_items.append([[6]])
+
+    all_items = sorted(all_items, key=Wrapper)
+    assert(is_right_order(all_items[0], all_items[1]))
+
+    a = all_items.index([[2]]) + 1
+    b = all_items.index([[6]]) + 1
+
+    answer = a * b
+
+    lib.aoc.give_answer(2022, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 13)
 part1(INPUT)
