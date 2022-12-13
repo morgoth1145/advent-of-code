@@ -7,30 +7,15 @@ def parse_packets_as_flat_list(s):
     return map(json.loads, s.replace('\n\n', '\n').splitlines())
 
 def packet_cmp(a, b):
-    for aval, bval in zip(a, b):
-        if isinstance(aval, int):
-            if isinstance(bval, int):
-                if aval < bval:
-                    return -1
-                if aval > bval:
-                    return 1
-                continue
-            # bval is a list, make aval a list to match for subsequent checks
-            aval = [aval]
-
-        # aval is a list
-        if isinstance(bval, int):
-            bval = [bval]
-
-        subcmp = packet_cmp(aval, bval)
-        if subcmp != 0:
-            return subcmp
-
-    if len(a) < len(b):
-        return -1
-    if len(b) < len(a):
-        return 1
-    return 0
+    match a, b:
+        case int(), int(): return -1 if a < b else 1 if a > b else 0
+        case list(), int(): return packet_cmp(a, [b])
+        case int(), list(): return packet_cmp([a], b)
+        case [], []: return 0
+        case [], list(): return -1
+        case list(), []: return 1
+        case [a, *rest_a], [b, *rest_b]: return (packet_cmp(a, b)
+                                                 or packet_cmp(rest_a, rest_b))
 
 def part1(s):
     packets = list(parse_packets_as_flat_list(s))
