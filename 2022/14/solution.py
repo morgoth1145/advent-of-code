@@ -57,7 +57,22 @@ def part1(s):
     lib.aoc.give_answer(2022, 14, 1, answer)
 
 def part2(s):
-    pass
+    cave = parse_cave(s)
+
+    max_y = max(y for x,y in cave.keys())
+
+    floor = max_y + 2
+
+    for x in range(500-floor-2, 500+floor+3):
+        cave[x,floor] = '#'
+
+    answer = 0
+
+    while cave.get((500,0)) is None:
+        assert(generate_sand(cave, 500, 0, floor))
+        answer += 1
+
+    lib.aoc.give_answer(2022, 14, 2, answer)
 
 INPUT = lib.aoc.get_input(2022, 14)
 part1(INPUT)
