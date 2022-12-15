@@ -1,58 +1,62 @@
-import parse
-
 import lib.aoc
 
-def parse_all_ints(s):
-    return list(map(lambda r:r[0], parse.findall('{:d}', s)))
-
-def parse_input(s):
-    for line in s.splitlines():
-        sens_x, sens_y, beacon_x, beacon_y = parse_all_ints(line)
-        yield (sens_x, sens_y), (beacon_x, beacon_y)
+class Sensor:
+    def __init__(self, line):
+        parts = line.split()
+        self.position = tuple(map(int, (parts[2][2:-1], parts[3][2:-1])))
+        self.beacon = tuple(map(int, (parts[8][2:-1], parts[9][2:])))
+        self.scan_dist = sum(abs(p-b)
+                             for p, b in zip(self.position, self.beacon))
 
 def part1(s):
-    data = list(parse_input(s))
+    sensors = list(map(Sensor, s.splitlines()))
 
     TARGET_Y = 2000000
 
-    beacons = set((beac_x, beac_y)
-                  for (sens_x, sens_y), (beac_x, beac_y) in data)
+    beacons_in_row = len(set(s.beacon[0] for s in sensors
+                             if s.beacon[1] == TARGET_Y))
 
-    no_beacons = set()
+    visible_ranges = []
+    for s in sensors:
+        half_width = s.scan_dist - abs(s.position[1] - TARGET_Y)
+        if half_width < 0:
+            continue
 
-    for (sens_x, sens_y), (beac_x, beac_y) in data:
-        min_manhattan = abs(sens_x-beac_x) + abs(sens_y-beac_y)
+        visible_ranges.append((s.position[0] - half_width,
+                               s.position[0] + half_width))
 
-        for dx in (1, -1):
-            dist = abs(sens_y - TARGET_Y)
-            x = sens_x
-            while dist <= min_manhattan:
-                no_beacons.add((x, TARGET_Y))
-                x += dx
-                dist += 1
+    visible_ranges.sort()
 
-    answer = len(no_beacons - beacons)
+    compact = []
+    low_x, high_x = visible_ranges[0]
+    for n_low_x, n_high_x in visible_ranges[1:]:
+        if n_low_x-1 <= high_x:
+            high_x = max(high_x, n_high_x)
+        else:
+            compact.append((low_x, high_x))
+            low_x, high_x = n_low_x, n_high_x
+    compact.append((low_x, high_x))
+
+    answer = sum(high-low+1 for low, high in compact) - beacons_in_row
 
     lib.aoc.give_answer(2022, 15, 1, answer)
 
 # Probably super inefficient but I don't care! It worked!
 def part2_search(s):
-    data = list(parse_input(s))
+    sensors = list(map(Sensor, s.splitlines()))
 
     MIN_COORD = 0
     MAX_COORD = 4000000
 
     for y in range(MIN_COORD, MAX_COORD+1):
         ranges = []
-        for (sens_x, sens_y), (beac_x, beac_y) in data:
-            min_manhattan = abs(sens_x-beac_x) + abs(sens_y-beac_y)
-
-            dist = abs(sens_y - y)
-            mult = min_manhattan - dist
-            if mult < 0:
+        for s in sensors:
+            half_width = s.scan_dist - abs(s.position[1] - y)
+            if half_width < 0:
                 continue
 
-            ranges.append((sens_x - mult, sens_x + mult))
+            ranges.append((s.position[0] - half_width,
+                           s.position[0] + half_width))
 
         ranges.sort()
 
@@ -73,6 +77,12 @@ def part2_search(s):
             x = b+1
             return x * 4000000 + y
 
+# TODO: It turns out that we can get all pairs of sensors (there are only a few
+# dozen!) and find the couple candidate tiles that are 1 tile outside both
+# of their ranges. Unless the distress beacon is in a corner (easy to check)
+# then the distress beacon *must* be in one of those candidate tiles.
+# That will run *way* faster, though it's also more to think through than I'm
+# up for at this point.
 def part2(s):
     answer = part2_search(s)
 
