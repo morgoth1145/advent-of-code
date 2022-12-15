@@ -8,6 +8,14 @@ class Sensor:
         self.scan_dist = sum(abs(p-b)
                              for p, b in zip(self.position, self.beacon))
 
+    def in_range(self, x, y):
+        dist = sum(abs(p-c) for p, c in zip(self.position, (x, y)))
+        return dist <= self.scan_dist
+
+    def potential_candidates(self, other):
+        # TODO
+        return []
+
 def part1(s):
     sensors = list(map(Sensor, s.splitlines()))
 
@@ -41,12 +49,33 @@ def part1(s):
 
     lib.aoc.give_answer(2022, 15, 1, answer)
 
-# Probably super inefficient but I don't care! It worked!
-def part2_search(s):
+# TODO: It turns out that we can get all pairs of sensors (there are only a few
+# dozen!) and find the couple candidate tiles that are 1 tile outside both
+# of their ranges. Unless the distress beacon is in a corner (easy to check)
+# then the distress beacon *must* be in one of those candidate tiles.
+# That will run *way* faster, though it's also more to think through than I'm
+# up for at this point.
+def part2(s):
     sensors = list(map(Sensor, s.splitlines()))
 
     MIN_COORD = 0
     MAX_COORD = 4000000
+
+    # Make sure to check the 4 corners
+    candidates = {(x, y)
+                  for x in (MIN_COORD, MAX_COORD)
+                  for y in (MIN_COORD, MAX_COORD)}
+
+    # Add candidate positions for all pairs of scanners
+    for idx, s0 in enumerate(sensors):
+        for s1 in sensors[idx+1:]:
+            candidates.update(s0.potential_candidates(s1))
+
+    for x, y in candidates:
+        if (MIN_COORD <= x <= MAX_COORD and MIN_COORD <= y <= MAX_COORD
+            and not any(s.in_range(x, y) for s in sensors)):
+            print(f'Valid solution at {x},{y}')
+            print(f'Answer would be {x * 4000000 + y}')
 
     for y in range(MIN_COORD, MAX_COORD+1):
         ranges = []
@@ -75,16 +104,8 @@ def part2_search(s):
             (a, b), (c, d) = compact
             assert(b+2 == c)
             x = b+1
-            return x * 4000000 + y
-
-# TODO: It turns out that we can get all pairs of sensors (there are only a few
-# dozen!) and find the couple candidate tiles that are 1 tile outside both
-# of their ranges. Unless the distress beacon is in a corner (easy to check)
-# then the distress beacon *must* be in one of those candidate tiles.
-# That will run *way* faster, though it's also more to think through than I'm
-# up for at this point.
-def part2(s):
-    answer = part2_search(s)
+            answer = x * 4000000 + y
+            break
 
     lib.aoc.give_answer(2022, 15, 2, answer)
 
