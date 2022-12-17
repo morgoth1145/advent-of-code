@@ -1,4 +1,3 @@
-import itertools
 import numpy
 
 import lib.aoc
@@ -75,23 +74,21 @@ def find_best_pressures_per_valve_combo(s, total_time):
 
     # Remove the offset used above
     best -= 1
-    return list(zip(map(int, numpy.nonzero(best > 0)[0]),
-                    map(int, best[best > 0])))
+
+    return best[best > 0], numpy.nonzero(best > 0)[0]
 
 def part1(s):
-    answer = max(pressure
-                 for _, pressure
-                 in find_best_pressures_per_valve_combo(s, 30))
+    answer = max(find_best_pressures_per_valve_combo(s, 30)[0])
 
     lib.aoc.give_answer(2022, 16, 1, answer)
 
 def part2(s):
-    best_pressure_per_valve_combo = find_best_pressures_per_valve_combo(s, 26)
+    pressures, valve_combos = find_best_pressures_per_valve_combo(s, 26)
 
-    answer = max(self_pressure + elephant_pressure
-                 for (self, self_pressure), (elephant, elephant_pressure)
-                 in itertools.combinations(best_pressure_per_valve_combo, 2)
-                 if self & elephant == 0)
+    valid_pairs = (numpy.tile(valve_combos, len(valve_combos)) &
+                   numpy.repeat(valve_combos, len(valve_combos))) == 0
+    answer = numpy.amax(numpy.tile(pressures, len(pressures))[valid_pairs] +
+                        numpy.repeat(pressures, len(pressures))[valid_pairs])
 
     lib.aoc.give_answer(2022, 16, 2, answer)
 
