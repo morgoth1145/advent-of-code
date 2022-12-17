@@ -2,8 +2,6 @@ import collections
 
 import lib.aoc
 
-TOWER_WIDTH = 7
-
 ROCKS = [
     [(2, 0), (3, 0), (4, 0), (5, 0)], # Horizontal Line
     [(3, 0), (2, 1), (3, 1), (4, 1), (3, 2)], # Plus
@@ -12,129 +10,96 @@ ROCKS = [
     [(2, 0), (2, 1), (3, 0), (3, 1)], # Square
 ]
 
-def run_sim(s, tower, start_rock_idx, jet_idx, total_rocks):
-    for rock_idx in range(start_rock_idx, total_rocks):
-        rock = ROCKS[rock_idx % len(ROCKS)]
-        y_off = max(y for x,y in tower) + 4
-        rock = [(x, y+y_off) for x, y in rock]
+def solve(s, CYCLE_COUNT):
+    TOWER_WIDTH = 7
 
-        while True:
-            jet = s[jet_idx % len(s)]
-            if jet == '<':
-                dx = -1
-            else:
-                dx = 1
-            jet_idx += 1
-            new_rock = [(x+dx, y) for x, y in rock]
-            if any(x < 0 or x >= TOWER_WIDTH for x, y in new_rock):
-                new_rock = rock
-            elif any(c in tower for c in new_rock):
-                new_rock = rock
-            rock = new_rock
-            new_rock = [(x, y-1) for x,y in rock]
-            if any(c in tower for c in new_rock):
-                # It settled
-                tower.update(rock)
-                break
-
-            rock = new_rock
-
-    return tower
-
-def part1(s):
     tower = {(x, 0) for x in range(TOWER_WIDTH)}
+    tower_height = 0
 
-    tower = run_sim(s, tower, 0, 0, 2022)
-
-    answer = max(y for x,y in tower)
-
-    lib.aoc.give_answer(2022, 17, 1, answer)
-
-def part2_impl(s):
-    tower = {(x, 0) for x in range(TOWER_WIDTH)}
-
+    cycle_idx = 0
     jet_idx = 0
 
-    TIMES = 1000000000000
+    history = collections.defaultdict(list)
 
-    tower_heights = collections.defaultdict(list)
+    while cycle_idx < CYCLE_COUNT:
+        current_cycle = cycle_idx
+        cycle_idx += 1
 
-    for rock_idx in range(TIMES):
-        start_key = (rock_idx % len(ROCKS), jet_idx % len(s))
-
-        rock = ROCKS[rock_idx % len(ROCKS)]
-        y_off = max(y for x,y in tower) + 4
+        rock_idx = current_cycle % len(ROCKS)
+        rock = ROCKS[rock_idx]
+        y_off = tower_height + 4
         rock = [(x, y+y_off) for x, y in rock]
+
+        cycle_key = (rock_idx, jet_idx)
 
         move_x, move_y = 0, 0
 
+        # Make it rain!
         while True:
-            jet = s[jet_idx % len(s)]
-            if jet == '<':
-                dx = -1
+            jet = -1 if s[jet_idx] == '<' else 1
+            jet_idx = (jet_idx + 1) % len(s)
+
+            test_rock = [(x+jet, y) for x, y in rock]
+            if any(x < 0 or x >= TOWER_WIDTH for x, y in test_rock):
+                test_rock = rock
+            elif any(c in tower for c in test_rock):
+                test_rock = rock
             else:
-                dx = 1
-            jet_idx += 1
-            new_rock = [(x+dx, y) for x, y in rock]
-            if any(x < 0 or x >= TOWER_WIDTH for x, y in new_rock):
-                new_rock = rock
-            elif any(c in tower for c in new_rock):
-                new_rock = rock
-            else:
-                move_x += dx
-            rock = new_rock
-            new_rock = [(x, y-1) for x,y in rock]
-            if any(c in tower for c in new_rock):
+                move_x += jet
+
+            rock = test_rock
+            test_rock = [(x, y-1) for x,y in rock]
+            if any(c in tower for c in test_rock):
                 # It settled
                 tower.update(rock)
+                tower_height = max(tower_height, max(y for x,y in rock))
 
-                key = (start_key, move_x, move_y)
-                current_height = max(y for x,y in tower)
+                if history is None:
+                    # We must be wrapping up at this point
+                    break
 
-                info_for_move = tower_heights[key]
+                key = (cycle_key, move_x, move_y)
 
-                layout = tuple(max(y-current_height
-                                   for x,y in tower
-                                   if x == tx)
-                               for tx in range(TOWER_WIDTH))
+                cycle_history = history[key]
 
-                stats = (current_height, rock_idx, layout)
+                if len(cycle_history) > 1:
+                    last_y_diff = cycle_history[-1][0] - cycle_history[-2][0]
+                    curr_y_diff = tower_height - cycle_history[-1][0]
 
-                if len(info_for_move) > 1:
-                    last_diff = info_for_move[-1][0] - info_for_move[-2][0]
-                    curr_diff = current_height - info_for_move[-1][0]
+                    if last_y_diff == curr_y_diff:
+                        cycle_diff = current_cycle - cycle_history[-1][1]
 
-                    last_move_diff = info_for_move[-1][1] - info_for_move[-2][1]
-                    curr_move_diff = rock_idx - info_for_move[-1][1]
+                        remaining_cycles = CYCLE_COUNT - current_cycle - 1
 
-                    last_layout = info_for_move[-1][2]
+                        supercycles = remaining_cycles // cycle_diff
+                        skipped_cycles = supercycles * cycle_diff
 
-                    if (curr_diff == last_diff and
-                        last_move_diff == curr_move_diff):
-                        assert(stats[2] == info_for_move[-1][2])
-                        remaining_times = TIMES - rock_idx - 1
+                        height_mod = supercycles * curr_y_diff
 
-                        cycle_length = rock_idx - info_for_move[-1][1]
-                        cycles = remaining_times // cycle_length
-                        total_jumpahead = cycles * cycle_length
+                        tower = {(x, y+height_mod) for x, y in tower}
+                        tower_height += height_mod
 
-                        jumped_tower = run_sim(s, tower,
-                                               rock_idx + 1 + total_jumpahead,
-                                               jet_idx, TIMES)
+                        cycle_idx += skipped_cycles
 
-                        return max(y for x,y in jumped_tower) + curr_diff * cycles
+                        # We jumped ahead once, no need to do it again!
+                        history = None
+                        break
 
-                info_for_move.append(stats)
+                cycle_history.append((tower_height, current_cycle))
                 break
 
             move_y -= 1
+            rock = test_rock
 
-            rock = new_rock
+    return tower_height
 
-    assert(False)
+def part1(s):
+    answer = solve(s, 2022)
+
+    lib.aoc.give_answer(2022, 17, 1, answer)
 
 def part2(s):
-    answer = part2_impl(s)
+    answer = solve(s, 1000000000000)
 
     lib.aoc.give_answer(2022, 17, 2, answer)
 
