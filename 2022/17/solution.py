@@ -15,6 +15,7 @@ def solve(s, CYCLE_COUNT):
 
     tower = {(x, 0) for x in range(TOWER_WIDTH)}
     tower_height = 0
+    column_heights = [0] * TOWER_WIDTH
 
     cycle_idx = 0
     jet_idx = 0
@@ -53,12 +54,17 @@ def solve(s, CYCLE_COUNT):
                 # It settled
                 tower.update(rock)
                 tower_height = max(tower_height, max(y for x,y in rock))
+                for x, y in rock:
+                    column_heights[x] = max(column_heights[x], y)
 
                 if history is None:
                     # We must be wrapping up at this point
                     break
 
-                key = (cycle_key, move_x, move_y)
+                top_characteristic = tuple(y-tower_height
+                                           for y in column_heights)
+
+                key = (cycle_key, move_x, move_y, top_characteristic)
 
                 cycle_history = history[key]
 
