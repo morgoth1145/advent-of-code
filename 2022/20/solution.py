@@ -2,48 +2,19 @@ import collections
 
 import lib.aoc
 
-class Wrapper:
-    def __init__(self, n):
-        self.n = n
+def solve(s, times=1, num_mult=1):
+    class Wrapper:
+        def __init__(self, n):
+            self.n = n
 
-    def __repr__(self):
-        return str(self.n)
-
-def parse_all_ints(s):
-    return list(map(int, s.split()))
-
-def mix(nums):
-    nums = collections.deque(map(Wrapper, nums))
-
-    for n in list(nums):
-        idx = nums.index(n)
-        nums.rotate(-idx)
-        nums.popleft()
-        nums.rotate(-n.n)
-        nums.insert(0, n)
-
-    return [n.n for n in nums]
-
-def part1(s):
-    nums = parse_all_ints(s)
-
-    nums = mix(nums)
-
-    zero_idx = nums.index(0)
-
-    answer = sum(nums[(zero_idx + off) % len(nums)]
-                 for off in (1000, 2000, 3000))
-
-    lib.aoc.give_answer(2022, 20, 1, answer)
-
-def part2(s):
-    nums = collections.deque(map(Wrapper, parse_all_ints(s)))
-    for n in nums:
-        n.n *= 811589153
-
+    nums = collections.deque(map(Wrapper, map(int, s.split())))
     order = list(nums)
 
-    for _ in range(10):
+    # Multiplier for part 2
+    for n in nums:
+        n.n *= num_mult
+
+    for _ in range(times):
         for n in order:
             idx = nums.index(n)
             nums.rotate(-idx)
@@ -55,8 +26,16 @@ def part2(s):
 
     zero_idx = nums.index(0)
 
-    answer = sum(nums[(zero_idx + off) % len(nums)]
-                 for off in (1000, 2000, 3000))
+    return sum(nums[(zero_idx + off) % len(nums)]
+               for off in (1000, 2000, 3000))
+
+def part1(s):
+    answer = solve(s)
+
+    lib.aoc.give_answer(2022, 20, 1, answer)
+
+def part2(s):
+    answer = solve(s, 10, num_mult=811589153)
 
     lib.aoc.give_answer(2022, 20, 2, answer)
 
