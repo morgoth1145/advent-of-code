@@ -273,6 +273,12 @@ def _submit_answer(year, day, part, answer):
     return good_answer
 
 def give_answer(year, day, part, answer):
+    if isinstance(answer, float):
+        print(f'Warning: Provided answer ({answer}) is a float! That is not expected')
+        alternate = int(answer)
+        if input(f'Use {alternate} instead? ').lower() in ('y', 'yes', '1'):
+            answer = alternate
+
     solution_cache_path = _get_solution_cache_file(year, day)
     if os.path.exists(solution_cache_path):
         with open(solution_cache_path) as f:
