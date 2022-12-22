@@ -34,11 +34,15 @@ def parse_input(s):
     import_template = '''import collections
 import functools
 import itertools
+import json
 import math
 import parse
 import re
+import sympy # sympy.parse_expr, sympy.solve, sympy.Eq
+import z3 # z3.Solver, z3.Int, solver.add(constraint), solver.check(), solver.model()[variable].as_long()
 
 import lib.aoc
+import lib.cyk
 import lib.graph
 from lib.graphics import *
 import lib.grid

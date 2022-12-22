@@ -5,3 +5,5 @@ parse
 python-dateutil
 requests
 sympy
+z3
+z3-solver
