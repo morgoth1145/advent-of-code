@@ -4,3 +4,4 @@ numpy
 parse
 python-dateutil
 requests
+sympy

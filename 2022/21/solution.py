@@ -1,36 +1,23 @@
-import operator
+import sympy
 
 import lib.aoc
 
 def parse_monkeys(s):
     barrel = {}
     for line in s.splitlines():
-        monkey, rest = line.split(': ')
-        rest = rest.split()
-        if len(rest) == 1:
-            rest = int(rest[0])
-        barrel[monkey] = rest
+        monkey, job = line.split(': ')
+        barrel[monkey] = job
     return barrel
 
-def simplify(barrel, monkey):
-    op = barrel[monkey]
-    if isinstance(op, int) or isinstance(op, str):
-        return op
-
-    a, o, b = op
-    a = simplify(barrel, a)
-    b = simplify(barrel, b)
-    if isinstance(a, int) and isinstance(b, int):
-        return {'+': operator.add,
-                '-': operator.sub,
-                '*': operator.mul,
-                '/': operator.ifloordiv}[o](a, b)
-    return [a, o, b]
+def to_expr(barrel, monkey):
+    job = barrel[monkey].split()
+    if len(job) == 1:
+        return job[0]
+    left, op, right = job
+    return f'({to_expr(barrel, left)}) {op} ({to_expr(barrel, right)})'
 
 def part1(s):
-    barrel = parse_monkeys(s)
-
-    answer = simplify(barrel, 'root')
+    answer = sympy.parse_expr(to_expr(parse_monkeys(s), 'root'))
 
     lib.aoc.give_answer(2022, 21, 1, answer)
 
@@ -38,45 +25,12 @@ def part2(s):
     barrel = parse_monkeys(s)
 
     barrel['humn'] = 'humn'
-    barrel['root'][1] = '=='
+    left, _, right = barrel['root'].split()
 
-    target, _, test = simplify(barrel, 'root')
+    left = sympy.parse_expr(to_expr(barrel, left))
+    right = sympy.parse_expr(to_expr(barrel, right))
 
-    if isinstance(test, int):
-        target, test = test, target
-    else:
-        assert(isinstance(target, int))
-
-    while isinstance(test, list):
-        a, op, b = test
-        if isinstance(a, int):
-            if op == '*':
-                assert(target % a == 0)
-                target //= a
-            elif op == '+':
-                target -= a
-            elif op == '-':
-                target = a - target
-            else:
-                assert(op == '/')
-                assert(a % target == 0)
-                target = a // target
-            test = b
-        else:
-            assert(isinstance(b, int))
-            if op == '*':
-                assert(target % b == 0)
-                target //= b
-            elif op == '+':
-                target -= b
-            elif op == '-':
-                target += b
-            else:
-                assert(op == '/')
-                target *= b
-            test = a
-
-    answer = target
+    answer = sympy.solve(sympy.Eq(left, right))[0]
 
     lib.aoc.give_answer(2022, 21, 2, answer)
 
