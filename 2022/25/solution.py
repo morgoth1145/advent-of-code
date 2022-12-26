@@ -1,11 +1,9 @@
 import lib.aoc
 
 def parse_snafu(num):
-    place = 1
     total = 0
-    for c in num[::-1]:
-        total += ('=-012'.index(c) - 2) * place
-        place *= 5
+    for c in num:
+        total = total * 5 + ('=-012'.index(c) - 2)
 
     return total
 
