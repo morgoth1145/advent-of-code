@@ -1,68 +1,62 @@
 import lib.aoc
 
-def parse_input(s):
-    groups = s.split('\n\n')
+def parse_path(path):
+    step = ''
 
-    start = None
-
-    grid = {}
-    for y, row in enumerate(groups[0].splitlines(), start=1):
-        for x, val in enumerate(row, start=1):
-            if val in '.#':
-                if start is None:
-                    start = (x, y)
-                grid[x,y] = val
-
-    path = []
-    last = ''
-    for c in groups[1]:
+    for c in path:
         if c in 'LR':
-            if last != '':
-                path.append(int(last))
-                last = ''
-            path.append(c)
+            if step != '':
+                yield int(step), c
+                step = ''
+            else:
+                yield 0, c
         else:
-            last += c
-    if last != '':
-        path.append(int(last))
+            step += c
 
-    return grid, path, start
+    if len(step):
+        yield int(step), ''
 
 def solve(s, wrap_fn_factory):
-    grid, path, start = parse_input(s)
+    grid, path = s.split('\n\n')
+    grid_lines = grid.splitlines()
 
-    width = max(x for x,y in grid)
-    height = max(y for x,y in grid)
+    grid = {(x,y): val
+            for y, row in enumerate(grid_lines, start=1)
+            for x, val in enumerate(row, start=1)
+            if val != ' '}
+
+    width = max(map(len, grid_lines))
+    height = len(grid_lines)
 
     wrapper = wrap_fn_factory(grid, width, height)
 
     x, y = s.index('.')+1, 1
     dx, dy = 1, 0
 
-    for step in path:
-        if isinstance(step, int):
-            for _ in range(step):
-                val = grid.get((x+dx, y+dy))
-                if val == '.':
-                    x, y = x+dx, y+dy
+    for step, turn in parse_path(path):
+        for _ in range(step):
+            val = grid.get((x+dx, y+dy))
+            if val == '.':
+                x, y = x+dx, y+dy
+                continue
+
+            if val is None:
+                # Fell off the edge, wrap around
+                n, nd = wrapper(x, y, dx, dy)
+
+                if grid[n] == '.':
+                    (x, y), (dx, dy) = n, nd
                     continue
 
-                if val is None:
-                    # Fell off the edge, wrap around
-                    n, nd = wrapper(x, y, dx, dy)
+            # Hit a wall
+            break
 
-                    if grid[n] == '.':
-                        (x, y), (dx, dy) = n, nd
-                        continue
-
-                # Hit a wall
-                break
-        elif step == 'R':
+        if turn == 'R':
             dy, dx = dx, -dy
-        elif step == 'L':
+        elif turn == 'L':
             dx, dy = dy, -dx
         else:
-            assert(False)
+            assert(turn == '')
 
     facing_val = {
         (1, 0): 0,
