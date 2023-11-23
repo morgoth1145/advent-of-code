@@ -1,3 +1,5 @@
+import math
+
 import lib.aoc
 
 def parse_path(path):
@@ -68,12 +70,15 @@ def solve(s, wrap_fn_factory):
     return 1000 * y + 4 * x + facing_val[dx,dy]
 
 def simple_wrap_factory(grid, width, height):
+    square_dim = math.isqrt(len(grid)//6)
+
     def wrap_fn(x, y, dx, dy):
-        nnx, nny = x, y
-        while (nnx, nny) in grid:
-            nx, ny = nnx, nny
-            nnx -= dx
-            nny -= dy
+        # Change nx to the opposite side of the map (plus 1 to be in bounds)
+        nx, ny = x - dx * width + dx, y - dy * height + dy
+
+        while (nx, ny) not in grid:
+            nx, ny = nx + dx * square_dim, ny + dy * square_dim
+
         return (nx, ny), (dx, dy)
 
     return wrap_fn
