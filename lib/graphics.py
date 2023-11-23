@@ -28,6 +28,11 @@ class _Vec3D:
     def magnitude(self):
         return numpy.linalg.norm(self._data)
 
+    def normalized(self):
+        v = _Vec3D(self._data[:])
+        v //= v.magnitude
+        return v
+
     def __neg__(self):
         return _Vec3D(-self._data)
 
@@ -104,6 +109,9 @@ class _Mat3D:
 
     def __init__(self, matrix):
         self._data = matrix
+
+    def transposed(self):
+        return _Mat3D(self._data.transpose())
 
     def __mul__(self, other):
         t = type(other)
