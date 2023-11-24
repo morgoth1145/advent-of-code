@@ -29,7 +29,10 @@ class Monkey:
         inspected = map(self.op, self.items)
         if div_by is not None:
             inspected = [worry // div_by for worry in inspected]
-        inspected = [worry % mod_by for worry in inspected]
+        else:
+            # Only apply mod_by if we are *not* repeatedly dividing
+            # Division and mod_by can conflict with each other due to repeated division!
+            inspected = [worry % mod_by for worry in inspected]
 
         self.items = []
         self.inspections += len(inspected)
