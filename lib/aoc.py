@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import dateutil.tz
 import jsonplus as json
@@ -35,6 +36,63 @@ def _get_cache_directory():
 
     return p / _account_selection
 
+# Used to ensure that multiple Python instances don't bypass the rate limits!
+@contextlib.contextmanager
+def _locked_file(path, mode, timeout=None):
+    # Borrows heavily from a file locking mechanism from Stack Overflow
+    # https://stackoverflow.com/questions/489861/locking-a-file-in-python/498505#498505
+    import errno
+
+    class FileLockException(Exception):
+        pass
+
+    printed_long_wait_warning = False
+    TIME_UNTIL_LONG_WAIT_WARNING = datetime.timedelta(seconds=15)
+
+    lock_path = path + '.lock'
+
+    start_time = datetime.datetime.now()
+
+    fd = None
+    try:
+        exists = False
+        while fd is None:
+            try:
+                fd = os.open(lock_path, os.O_CREAT|os.O_EXCL|os.O_RDWR)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+
+                if not printed_long_wait_warning:
+                    now = datetime.datetime.now()
+                    waited = now - start_time
+
+                    if waited > TIME_UNTIL_LONG_WAIT_WARNING:
+                        try:
+                            with open(lock_path, 'r') as lock_f:
+                                lock_desc = lock_f.read()
+                        except FileNotFoundError:
+                            # Maybe the file was unlocked in the interim?
+                            continue
+
+                        printed_long_wait_warning = True
+                        print(f'Warning: Waiting a long time to lock file {path}...')
+                        print(f'Lock file contents: {lock_desc}')
+
+                time.sleep(0.05)
+
+        if printed_long_wait_warning:
+            print(f'Finally locked file {path}!')
+
+        with os.fdopen(fd, 'a') as lock_f:
+            lock_f.write(f'Locked by Python process {os.getpid()}')
+            lock_f.flush()
+            with open(path, mode) as f:
+                yield f
+    finally:
+        if fd is not None:
+            os.unlink(lock_path)
+
 _RATE_LIMIT_MIN_TIMES = {
     'fetch_input': datetime.timedelta(seconds=5),
     'submit_answer': datetime.timedelta(milliseconds=500), # In practice shouldn't get hit (rate limiting due to bad answers and just solving part 2 will take time) but just in case
@@ -52,27 +110,34 @@ def _rate_limit(action_type):
 
     required_wait_time = _RATE_LIMIT_MIN_TIMES.get(action_type, datetime.timedelta(seconds=1))
 
-    rate_limited_actions_file = _get_root_cache_directory() / 'last-rate-limited-actions.json'
+    file_path = _get_root_cache_directory() / '.rate-limiting' / action_type
 
-    rate_limited_actions = {}
-    if rate_limited_actions_file.exists():
-        rate_limited_actions = json.loads(rate_limited_actions_file.read_text())
+    os.makedirs(file_path.parent, exist_ok=True)
 
-    now = datetime.datetime.now(dateutil.tz.tzutc())
+    # Ensure that no other Python process slips through while rate limiting
+    with _locked_file(str(file_path), 'a+') as actions_f:
+        actions_f.seek(0)
+        contents = actions_f.read()
 
-    if action_type in rate_limited_actions:
-        last_time = rate_limited_actions[action_type]
-        time_since = datetime.datetime.now(dateutil.tz.tzutc()) - last_time
+        last_time = None
+        if contents:
+            last_time = json.loads(contents)
 
-        to_wait = required_wait_time - time_since
+        if last_time is not None:
+            time_since = datetime.datetime.now(dateutil.tz.tzutc()) - last_time
 
-        if to_wait > datetime.timedelta():
-            print(f'Waiting {to_wait} until performing action {action_type}...')
-            time.sleep(to_wait.total_seconds())
+            to_wait = required_wait_time - time_since
 
-    rate_limited_actions[action_type] = datetime.datetime.now(dateutil.tz.tzutc())
+            if to_wait > datetime.timedelta():
+                print(f'Waiting {to_wait} until performing action {action_type}...')
+                time.sleep(to_wait.total_seconds())
 
-    rate_limited_actions_file.write_text(json.dumps(rate_limited_actions))
+        now = datetime.datetime.now(dateutil.tz.tzutc())
+
+        # Replace entire file
+        actions_f.seek(0)
+        actions_f.truncate()
+        actions_f.write(json.dumps(now))
 
 def _get_cookie_cache_file():
     return _get_cache_directory() / 'session-cookie.txt'

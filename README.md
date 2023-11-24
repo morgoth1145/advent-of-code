@@ -4,7 +4,7 @@ This repo houses all of my Advent of Code adventures!
 
 ---
 
-The automation tooling in `lib.aoc` follows (barring bugs and oversights) the automation guidelines on the [/r/adventofcode community wiki](https://www.reddit.com/r/adventofcode/wiki/faqs/automation) as of November 23rd, 2023. Specifically:
+The automation tooling in `lib.aoc` follows (barring bugs and oversights) the automation guidelines on the [/r/adventofcode community wiki](https://www.reddit.com/r/adventofcode/wiki/faqs/automation) as of November 24rd, 2023. Specifically:
 - Outbound calls are throttled by `_rate_limit`. The limits vary based on the call type:
   - Fetching inputs is throttled to 5 seconds.
   - Answer submission is throttled to 0.5 seconds. (In practice this throttle shouldn't get hit due to human solving time and other limits below.)
@@ -24,3 +24,5 @@ The automation tooling in `lib.aoc` follows (barring bugs and oversights) the au
 One note on the alternate accounts mentioned above. This is a feature in the library to support validate and timing on a slightly larger set of inputs to check that the solution code is correct and to help check for performance issues. On occasion bugs have crept in that got found with alternate accounts, helping me keep my solutions robust!
 
 However, the purpose of those accounts (3 alts at most, one per login method) is solely that validation and timing. As such (and as stated above) the core functionality of submitting answers is blocked on those accounts until January of the next calendar year. This should help preserve the integrity of Advent of Code during the December season in case of human error somewhere (though extra steps are needed to activate the alternate accounts in the script making this highly unlikely in the first place).
+
+Update November 24th, 2023: After an unfortunate mishap while experimenting with the multiprocessing module an issue arose with the `_rate_limit` mechanism. It has been revamped to utilize file locks to ensure that two (or more) parallel processes all respect the same rate limiting rather than racing (and possibly bypassing the rate limits).
