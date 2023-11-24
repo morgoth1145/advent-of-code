@@ -25,16 +25,54 @@ def select_account(account=None):
     _account_selection = account
     del _s.cookies['session']
 
+def _get_root_cache_directory():
+    return pathlib.Path.home() / '.advent-of-code'
+
 def _get_cache_directory():
-    p = pathlib.Path.home() / '.advent-of-code'
+    p = _get_root_cache_directory()
     if _account_selection is None:
         return p
 
     return p / _account_selection
 
-def _read_file_as_string(path):
-    with open(path) as f:
-        return f.read().rstrip('\n')
+_RATE_LIMIT_MIN_TIMES = {
+    'fetch_input': datetime.timedelta(seconds=5),
+    'submit_answer': datetime.timedelta(milliseconds=500), # In practice shouldn't get hit (rate limiting due to bad answers and just solving part 2 will take time) but just in case
+    'submit_answer_alt_account': datetime.timedelta(seconds=10), # May be hit in alt account testing/timings
+    'get_puzzle_page': datetime.timedelta(seconds=1), # In practice other throttles should delay things
+    'verify_login': datetime.timedelta(seconds=1), # In practice shouldn't be issued to often, but rate limit just in case
+}
+
+def _rate_limit(action_type):
+    if action_type == 'submit_answer' and _account_selection is not None:
+        action_type = 'submit_answer_alt_account'
+
+    if action_type not in _RATE_LIMIT_MIN_TIMES:
+        print(f'Warning: Rate limiter does not know about {action_type}, will default to 1 second rate limit')
+
+    required_wait_time = _RATE_LIMIT_MIN_TIMES.get(action_type, datetime.timedelta(seconds=1))
+
+    rate_limited_actions_file = _get_root_cache_directory() / 'last-rate-limited-actions.json'
+
+    rate_limited_actions = {}
+    if rate_limited_actions_file.exists():
+        rate_limited_actions = json.loads(rate_limited_actions_file.read_text())
+
+    now = datetime.datetime.now(dateutil.tz.tzutc())
+
+    if action_type in rate_limited_actions:
+        last_time = rate_limited_actions[action_type]
+        time_since = datetime.datetime.now(dateutil.tz.tzutc()) - last_time
+
+        to_wait = required_wait_time - time_since
+
+        if to_wait > datetime.timedelta():
+            print(f'Waiting {to_wait} until performing action {action_type}...')
+            time.sleep(to_wait.total_seconds())
+
+    rate_limited_actions[action_type] = datetime.datetime.now(dateutil.tz.tzutc())
+
+    rate_limited_actions_file.write_text(json.dumps(rate_limited_actions))
 
 def _get_cookie_cache_file():
     return _get_cache_directory() / 'session-cookie.txt'
@@ -73,6 +111,8 @@ def _get_solution_cache_file(year, day):
 def _get_puzzle_page(year, day):
     url = f'https://adventofcode.com/{year}/day/{day}'
     _load_session_cookie()
+
+    _rate_limit('get_puzzle_page')
 
     r = _s.get(url)
     r.raise_for_status()
@@ -120,6 +160,8 @@ login issues and premature inputs
 
     url = f'https://adventofcode.com/{year}/day/{day}/input'
     _load_session_cookie()
+
+    _rate_limit('fetch_input')
 
     r = _s.get(url)
     if r.status_code != 400:
@@ -187,6 +229,11 @@ def _auto_commit(year, day, part, good_answer_line):
 def _submit_answer_to_web_impl(year, day, part, answer):
     _load_session_cookie()
 
+    # Day 25 Part 2 is allowed to not be rate limited due to being the final star and
+    # being immediately "solvable". Every moment counts for the leaderboard!
+    if day != 25 or part != 2:
+        _rate_limit('submit_answer')
+
     url = f'https://adventofcode.com/{year}/day/{day}/answer'
     r = _s.post(url, data={'level': part, 'answer': str(answer)})
     r.raise_for_status()
@@ -212,7 +259,7 @@ def _submit_answer_to_web_impl(year, day, part, answer):
         for k in BAD_ANSWER_KEYS:
             if k in line:
                 print(line)
-                return False, None
+                return False, line
 
     print('Bad request!')
     assert(False)
@@ -229,9 +276,22 @@ def _submit_answer(year, day, part, answer):
         print(f'You already submitted {answer} for {year} day {day} part {part}!')
         return
 
+    timeout_until = tried_answers.pop('timeout_until', None)
+
     now = datetime.datetime.now(dateutil.tz.tzutc())
 
-    tried_answers[str(part)][str(answer)] = now
+    if timeout_until is not None:
+        to_wait = timeout_until - now
+        if to_wait > datetime.timedelta():
+            print(f'Waiting for timeout due to bad answer. {to_wait} remains...')
+            time.sleep(to_wait.total_seconds())
+
+            # Make sure to record when the answer was *actually* submitted!
+            now = datetime.datetime.now(dateutil.tz.tzutc())
+
+    # Don't overwrite times during trials
+    if str(answer) not in tried_answers[str(part)]:
+        tried_answers[str(part)][str(answer)] = now
 
     trial = None
     trial_path = _get_time_trial_file(year, day)
@@ -241,12 +301,29 @@ def _submit_answer(year, day, part, answer):
 
     if trial is not None and trial['answers'][str(part)] is not None:
         good_answer = (str(answer) == trial['answers'][str(part)])
-        good_answer_line = None
+        answer_line = None
     else:
-        good_answer, good_answer_line = _submit_answer_to_web_impl(year,
-                                                                   day,
-                                                                   part,
-                                                                   answer)
+        good_answer, answer_line = _submit_answer_to_web_impl(year,
+                                                              day,
+                                                              part,
+                                                              answer)
+
+    if not good_answer:
+        m = re.search('Please wait (.*) before trying again', answer_line)
+        if m is None:
+            print('Warning: Cannot detect timeout from answer line. Defaulting to 1 minute.')
+            timeout = datetime.timedelta(minutes=1)
+        else:
+            timeout = {'one minute': datetime.timedelta(minutes=1),
+                       '5 minutes': datetime.timedelta(minutes=5)}.get(m.group(1))
+            if timeout is None:
+                print(f'Warning: Cannot detect timeout from "{m.group(1)}". Defaulting to 1 minute.')
+                timeout = datetime.timedelta(minutes=1)
+            else:
+                print(f'Timeout of {timeout} due to bad answer...')
+
+        timeout_until = datetime.datetime.now(dateutil.tz.tzutc()) + timeout
+        tried_answers['timeout_until'] = timeout_until
 
     with open(answer_file_path, 'w+') as f:
         f.write(json.dumps(tried_answers))
@@ -258,7 +335,7 @@ def _submit_answer(year, day, part, answer):
             with open(trial_path, 'w+') as f:
                 f.write(json.dumps(trial))
 
-            good_answer_line = f'Time: {delta}'
+            answer_line = f'Time: {delta}'
             print(f'It took {delta} to finish {year} Day {day} Part {part}')
 
         if day == 25 and part == 1:
@@ -268,7 +345,7 @@ def _submit_answer(year, day, part, answer):
         if day != 25 or part != 2:
             if _account_selection is None:
                 # Auto-commit to save the human time!
-                _auto_commit(year, day, part, good_answer_line)
+                _auto_commit(year, day, part, answer_line)
 
     return good_answer
 
@@ -317,10 +394,6 @@ def give_answer(year, day, part, answer):
 
         with open(solution_cache_path, 'w+') as f:
             f.write(json.dumps(solutions))
-
-        if _account_selection is not None:
-            # Wait 6 seconds for server timeout between answer submissions
-            time.sleep(6)
 
 def knows_solutions_for(year, day):
     solution_cache_path = _get_solution_cache_file(year, day)
@@ -377,6 +450,8 @@ If it is not, it forgets the cookie and asks for a new one.
         assert(logged_in_2 == (not logged_out_2))
 
         return logged_in
+
+    _rate_limit('verify_login')
 
     _load_session_cookie()
     if not currently_logged_in():
