@@ -1,69 +1,48 @@
-import parse
-
 import lib.aoc
 
-def parse_all_ints(s):
-    return list(map(lambda r:r[0], parse.findall('{:d}', s)))
+def find_first_num(line, mapping, reverse_key):
+    best = None
+    best_idx = len(line)
 
-def parse_input(s):
-    for line in s.splitlines():
-        nums = parse_all_ints(line)
-        a = nums[0]
-        b = nums[-1]
-        while a > 10:
-            a //= 10
-        if b > 10:
-            b = b % 10
-        yield a * 10 + b
+    for search, d in mapping.items():
+        if reverse_key:
+            search = search[::-1]
+        if search in line:
+            idx = line.index(search)
+            if idx < best_idx:
+                best_idx = idx
+                best = d
+
+    return best
+
+def find_calibration_value(line, mapping):
+    return (find_first_num(line, mapping, False) * 10 +
+            find_first_num(line[::-1], mapping, True))
+
+def make_mapping(digit_sequence):
+    mapping = {}
+    for d, c in enumerate(digit_sequence):
+        mapping[c] = d
+    return mapping
 
 def part1(s):
-    answer = sum(parse_input(s))
+    mapping = make_mapping('0123456789')
+
+    answer = sum(find_calibration_value(line, mapping)
+                 for line in s.splitlines())
 
     lib.aoc.give_answer(2023, 1, 1, answer)
 
-MAP = {'one': 1,
-       'two': 2,
-       'three': 3,
-       'four': 4,
-       'five': 5,
-       'six': 6,
-       'seven': 7,
-       'eight': 8,
-       'nine': 9,
-       'zero': 0}
-for d in '0123456789':
-    MAP[d] = int(d)
-
 def part2(s):
-    answer = 0
+    mapping = make_mapping('0123456789')
+    mapping |= make_mapping(('zero', 'one',
+                             'two', 'three',
+                             'four', 'five',
+                             'six', 'seven',
+                             'eight', 'nine'))
 
-    for line in s.splitlines():
-        best = None
-        best_idx = None
-        for a, d in MAP.items():
-            if a in line:
-                idx = line.index(a)
-                if best_idx is None or best_idx > idx:
-                    best = d
-                    best_idx = idx
-
-        val = best * 10
-
-        line = line[::-1]
-
-        best = None
-        best_idx = None
-        for a, d in MAP.items():
-            a = a[::-1]
-            if a in line:
-                idx = line.index(a)
-                if best_idx is None or best_idx > idx:
-                    best = d
-                    best_idx = idx
-
-        val += best
-
-        answer += val
+    answer = sum(find_calibration_value(line, mapping)
+                 for line in s.splitlines())
 
     lib.aoc.give_answer(2023, 1, 2, answer)
 
