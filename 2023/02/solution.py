@@ -1,4 +1,5 @@
 import collections
+import math
 
 import lib.aoc
 
@@ -33,15 +34,7 @@ def part1(s):
     lib.aoc.give_answer(2023, 2, 1, answer)
 
 def part2(s):
-    answer = 0
-
-    for _, cubes in parse_games(s):
-        power = 1
-
-        for count in cubes.values():
-            power *= count
-
-        answer += power
+    answer = sum(math.prod(cubes.values()) for _, cubes in parse_games(s))
 
     lib.aoc.give_answer(2023, 2, 2, answer)
 
