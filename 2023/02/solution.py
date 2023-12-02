@@ -2,66 +2,43 @@ import collections
 
 import lib.aoc
 
-def parse_input(s):
+def parse_games(s):
     for line in s.splitlines():
         left, right = line.split(':')
         n = int(left.split()[1])
 
-        bits = right.split(';')
-        parsed_bits = []
-        for b in bits:
-            b = b.split(',')
-            b = [i.split() for i in b]
-            b = [(int(a), color) for a, color in b]
-            parsed_bits.append(tuple(b))
+        # We don't care about the rounds, just the maximum color counts!
+        right = right.replace(';', ',')
 
-        yield n, parsed_bits
+        cubes = collections.Counter()
+
+        for count in right.split(', '):
+            count, color = count.split()
+            cubes[color] = max(int(count), cubes[color])
+
+        yield n, cubes
 
 def part1(s):
-    data = list(parse_input(s))
-
-    answer = 0
-
     LIMITS = {
         'red': 12,
         'green': 13,
         'blue': 14,
     }
 
-    for game_n, game in data:
-        color_reveals = collections.Counter()
-
-        for group in game:
-            for count, color in group:
-                color_reveals[color] = max(count, color_reveals[color])
-
-        good = True
-
-        for color, count in color_reveals.items():
-            if count > LIMITS.get(color, 0):
-                good = False
-                break
-
-        if good:
-            answer += game_n
+    answer = sum(n
+                 for n, cubes in parse_games(s)
+                 if all(LIMITS[color] >= count
+                        for color, count in cubes.items()))
 
     lib.aoc.give_answer(2023, 2, 1, answer)
 
 def part2(s):
-    data = list(parse_input(s))
-
     answer = 0
 
-    for _, game in data:
-        color_reveals = collections.Counter()
-
-        for group in game:
-            for count, color in group:
-                color_reveals[color] = max(count, color_reveals[color])
-
+    for _, cubes in parse_games(s):
         power = 1
 
-        for count in color_reveals.values():
+        for count in cubes.values():
             power *= count
 
         answer += power
