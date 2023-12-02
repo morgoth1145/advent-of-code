@@ -48,7 +48,25 @@ def part1(s):
     lib.aoc.give_answer(2023, 2, 1, answer)
 
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    answer = 0
+
+    for _, game in data:
+        color_reveals = collections.Counter()
+
+        for group in game:
+            for count, color in group:
+                color_reveals[color] = max(count, color_reveals[color])
+
+        power = 1
+
+        for count in color_reveals.values():
+            power *= count
+
+        answer += power
+
+    lib.aoc.give_answer(2023, 2, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 2)
 part1(INPUT)
