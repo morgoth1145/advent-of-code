@@ -11,42 +11,31 @@ def parse_schematic(s):
     numbers = []
 
     for y in range(grid.height):
-        num = None
-        num_start_x = None
-
-        def handle_num(end_x):
-            nonlocal num, num_start_x
-
-            num = int(num)
-
-            border = {(num_start_x-1, y),
-                      (end_x, y)}
-            for check_x in range(num_start_x-1, end_x+1):
-                border.add((check_x, y-1))
-                border.add((check_x, y+1))
-
-            numbers.append((int(num), border))
-
-            num = None
-            num_start_x = None
+        num = 0
+        num_border = set()
 
         for x in range(grid.width):
             c = grid[x,y]
             if c.isdigit():
-                if num is None:
-                    num = c
-                    num_start_x = x
-                else:
-                    num += c
+                if num == 0:
+                    # Start of number, get the border on the left
+                    num_border |= {(x-1, y-1), (x-1, y), (x-1, y+1)}
+
+                num = 10 * num + int(c)
+                num_border |= {(x, y-1), (x, y+1)}
             else:
-                if num is not None:
-                    # x is one past the number's end
-                    handle_num(x)
+                if num > 0:
+                    # Add the border on the right
+                    num_border |= {(x, y-1), (x, y), (x, y+1)}
+                    numbers.append((num, num_border))
+                    num = 0
+                    num_border = set()
                 if c != '.':
                     symbol_positions[c].add((x, y))
 
-        if num is not None:
-            handle_num(grid.width)
+        if num > 0:
+            num_border |= {(grid.width, y-1), (grid.width, y), (grid.width, y+1)}
+            numbers.append((num, num_border))
 
     return symbol_positions, numbers
 
