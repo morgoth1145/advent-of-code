@@ -1,39 +1,31 @@
 import collections
+import math
 
 import lib.aoc
 import lib.grid
 
-def part1(s):
+def parse_schematic(s):
     grid = lib.grid.FixedGrid.parse(s)
 
-    symbol_positions = set()
-
-    for coord, c in grid.items():
-        if c == '.' or c.isdigit():
-            continue
-        symbol_positions.add(coord)
-
-    answer = 0
+    symbol_positions = collections.defaultdict(set)
+    numbers = []
 
     for y in range(grid.height):
         num = None
         num_start_x = None
+
         def handle_num(end_x):
             nonlocal num, num_start_x
-            nonlocal answer
 
             num = int(num)
 
-            border = set()
-            for check_x in range(num_start_x-1, x+1):
+            border = {(num_start_x-1, y),
+                      (end_x, y)}
+            for check_x in range(num_start_x-1, end_x+1):
                 border.add((check_x, y-1))
                 border.add((check_x, y+1))
-            border.add((num_start_x-1, y))
-            border.add((x, y))
 
-            if len(border & symbol_positions) > 0:
-                # Borders a symbol!
-                answer += num
+            numbers.append((int(num), border))
 
             num = None
             num_start_x = None
@@ -50,67 +42,38 @@ def part1(s):
                 if num is not None:
                     # x is one past the number's end
                     handle_num(x)
+                if c != '.':
+                    symbol_positions[c].add((x, y))
 
         if num is not None:
             handle_num(grid.width)
+
+    return symbol_positions, numbers
+
+def part1(s):
+    symbol_positions, numbers = parse_schematic(s)
+
+    symbols = set()
+    for places in symbol_positions.values():
+        symbols |= places
+
+    answer = sum(n for n, border in numbers
+                 if len(border & symbols) > 0)
 
     lib.aoc.give_answer(2023, 3, 1, answer)
 
 def part2(s):
-    grid = lib.grid.FixedGrid.parse(s)
+    symbol_positions, numbers = parse_schematic(s)
 
-    possible_gears = set()
+    gears = collections.defaultdict(list)
 
-    for coord, c in grid.items():
-        if c == '*':
-            possible_gears.add(coord)
+    for n, border in numbers:
+        for coord in border & symbol_positions['*']:
+            gears[coord].append(n)
 
-    gear_nums = collections.defaultdict(list)
-
-    for y in range(grid.height):
-        num = None
-        num_start_x = None
-        def handle_num(end_x):
-            nonlocal num, num_start_x
-            nonlocal answer
-
-            num = int(num)
-
-            border = set()
-            for check_x in range(num_start_x-1, x+1):
-                border.add((check_x, y-1))
-                border.add((check_x, y+1))
-            border.add((num_start_x-1, y))
-            border.add((x, y))
-
-            for gear in border & possible_gears:
-                gear_nums[gear].append(num)
-
-            num = None
-            num_start_x = None
-
-        for x in range(grid.width):
-            c = grid[x,y]
-            if c.isdigit():
-                if num is None:
-                    num = c
-                    num_start_x = x
-                else:
-                    num += c
-            else:
-                if num is not None:
-                    # x is one past the number's end
-                    handle_num(x)
-
-        if num is not None:
-            handle_num(grid.width)
-
-    answer = 0
-
-    for num_list in gear_nums.values():
-        if len(num_list) == 2:
-            a, b = num_list
-            answer += a * b
+    answer = sum(math.prod(gear_nums)
+                 for gear_nums in gears.values()
+                 if len(gear_nums) == 2)
 
     lib.aoc.give_answer(2023, 3, 2, answer)
 
