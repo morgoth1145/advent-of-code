@@ -1,3 +1,5 @@
+import collections
+
 import lib.aoc
 import lib.grid
 
@@ -55,7 +57,62 @@ def part1(s):
     lib.aoc.give_answer(2023, 3, 1, answer)
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+
+    possible_gears = set()
+
+    for coord, c in grid.items():
+        if c == '*':
+            possible_gears.add(coord)
+
+    gear_nums = collections.defaultdict(list)
+
+    for y in range(grid.height):
+        num = None
+        num_start_x = None
+        def handle_num(end_x):
+            nonlocal num, num_start_x
+            nonlocal answer
+
+            num = int(num)
+
+            border = set()
+            for check_x in range(num_start_x-1, x+1):
+                border.add((check_x, y-1))
+                border.add((check_x, y+1))
+            border.add((num_start_x-1, y))
+            border.add((x, y))
+
+            for gear in border & possible_gears:
+                gear_nums[gear].append(num)
+
+            num = None
+            num_start_x = None
+
+        for x in range(grid.width):
+            c = grid[x,y]
+            if c.isdigit():
+                if num is None:
+                    num = c
+                    num_start_x = x
+                else:
+                    num += c
+            else:
+                if num is not None:
+                    # x is one past the number's end
+                    handle_num(x)
+
+        if num is not None:
+            handle_num(grid.width)
+
+    answer = 0
+
+    for num_list in gear_nums.values():
+        if len(num_list) == 2:
+            a, b = num_list
+            answer += a * b
+
+    lib.aoc.give_answer(2023, 3, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 3)
 
