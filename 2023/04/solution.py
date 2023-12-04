@@ -26,7 +26,23 @@ def part1(s):
     lib.aoc.give_answer(2023, 4, 1, answer)
 
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    copies = [1] * len(data)
+
+    for num, winning, have in data:
+        num -= 1
+        mult = copies[num]
+        n = len(winning & have)
+        for off in range(1, n+1):
+            off = num + off
+            if off >= len(copies):
+                continue
+            copies[off] += mult
+
+    answer = sum(copies)
+
+    lib.aoc.give_answer(2023, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 4)
 part1(INPUT)
