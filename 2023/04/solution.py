@@ -1,46 +1,35 @@
+import collections
+
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
-        a, b = line.split(': ')
-        left, right = b.split(' | ')
-        left = set(map(int, left.split()))
-        right = set(map(int, right.split()))
+def parse_cards(s):
+    for idx, line in enumerate(s.splitlines()):
+        card, nums = line.split(': ')
+        assert(card.split() == ['Card', str(idx+1)])
 
-        assert(a.startswith('Card '))
-        a = int(a.split()[1])
+        winning, have = nums.split(' | ')
+        num_match = len(set(map(int, winning.split())) &
+                        set(map(int, have.split())))
 
-        yield a, left, right
+        yield num_match
 
 def part1(s):
-    data = list(parse_input(s))
-
-    answer = 0
-
-    for _, winning, have in data:
-        n = len(winning & have)
-        if n == 0:
-            continue
-        answer += 2 ** (n-1)
+    answer = sum(2 ** (num_match-1)
+                 for num_match
+                 in parse_cards(s)
+                 if num_match > 0)
 
     lib.aoc.give_answer(2023, 4, 1, answer)
 
 def part2(s):
-    data = list(parse_input(s))
+    extra_copies = collections.Counter()
+    answer = 0
 
-    copies = [1] * len(data)
-
-    for num, winning, have in data:
-        num -= 1
-        mult = copies[num]
-        n = len(winning & have)
-        for off in range(1, n+1):
-            off = num + off
-            if off >= len(copies):
-                continue
-            copies[off] += mult
-
-    answer = sum(copies)
+    for idx, num_match in enumerate(parse_cards(s)):
+        copies = 1 + extra_copies.get(idx, 0)
+        answer += copies
+        for win_idx in range(idx+1, idx+num_match+1):
+            extra_copies[win_idx] += copies
 
     lib.aoc.give_answer(2023, 4, 2, answer)
 
