@@ -70,8 +70,66 @@ def part1(s):
 
     lib.aoc.give_answer(2023, 5, 1, answer)
 
+def do_mapping_2_help(vals, mapping):
+    new_vals = []
+
+    while len(vals) > 0:
+        handled = False
+        best_off = len(vals)
+
+        for dst, src, size in mapping:
+            if src <= vals[0] < src+size:
+                assert(not handled)
+                off = vals[0] - src
+                new_start = dst + off
+                new_len = min(size - off, len(vals))
+                new_vals.append(range(new_start, new_start+new_len))
+                vals = vals[new_len:]
+                handled = True
+                break
+            elif src < vals[0]:
+                off = vals[0] - src
+                best_off = min(best_off, off)
+
+        assert(best_off > 0)
+
+        if not handled:
+            new_vals.append(vals[:best_off])
+            vals = vals[best_off:]
+
+    return new_vals
+
+def do_mapping_2(val_ranges, maps, seq):
+    seq = seq[:]
+    while len(seq) > 1:
+        a = seq.pop(0)
+        b = seq[0]
+        mapping = maps[a,b]
+
+        new_ranges = []
+
+        for r in val_ranges:
+            new_ranges += do_mapping_2_help(r, mapping)
+
+        val_ranges = new_ranges
+
+        assert(len(val_ranges) < 100)
+
+    return val_ranges
+
 def part2(s):
-    pass
+    seeds, maps = parse_input(s)
+
+    seq = find_sequence(maps, 'seed', 'location')
+
+    final_sequences = []
+
+    for a, b in zip(seeds[::2], seeds[1::2]):
+        final_sequences += do_mapping_2([range(a, a+b)], maps, seq)
+
+    answer = min(r.start for r in final_sequences)
+
+    lib.aoc.give_answer(2023, 5, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 5)
 part1(INPUT)
