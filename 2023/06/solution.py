@@ -28,7 +28,12 @@ def part1(s):
     lib.aoc.give_answer(2023, 6, 1, answer)
 
 def part2(s):
-    pass
+    s = s.replace(' ', '')
+    time, dist = parse_all_ints(s)
+
+    answer = ways_to_beat(time, dist)
+
+    lib.aoc.give_answer(2023, 6, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 6)
 part1(INPUT)
