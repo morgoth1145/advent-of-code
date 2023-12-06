@@ -8,14 +8,22 @@ def solve(s):
     answer = 1
 
     for time, dist in zip(times, distances):
-        for t in range(1, time):
-            remaining = time - t
-            if remaining * t > dist:
-                # All times between t and remaining (inclusive) will win
-                # As such we just need to count how many times that is to know
-                # how many winning options there are
-                answer *= (remaining - t + 1)
-                break
+        # Binary search to find the minimum time which wins
+        low, high = 1, (time+1) // 2
+        while high - low > 1:
+            mid = (low + high) // 2
+            if mid * (time - mid) > dist:
+                high = mid
+            else:
+                low = mid
+
+        # high is the lowest time which wins the race
+        t = high
+        remaining = time - t
+        # All times between t and remaining (inclusive) will win
+        # As such we just need to count how many times that is to know
+        # how many winning options there are
+        answer *= (remaining - t + 1)
 
     return answer
 
