@@ -1,37 +1,31 @@
-import math
-import parse
-
 import lib.aoc
 
-def parse_all_ints(s):
-    return list(map(lambda r:r[0], parse.findall('{:d}', s)))
+def solve(s):
+    times, distances = s.splitlines()
+    times = map(int, times.split(':')[1].split())
+    distances = map(int, distances.split(':')[1].split())
 
-def parse_input(s):
-    for line in s.splitlines():
-        yield parse_all_ints(line)
+    answer = 1
 
-def ways_to_beat(time, dist):
-    ways = 0
+    for time, dist in zip(times, distances):
+        for t in range(1, time):
+            remaining = time - t
+            if remaining * t > dist:
+                # All times between t and remaining (inclusive) will win
+                # As such we just need to count how many times that is to know
+                # how many winning options there are
+                answer *= (remaining - t + 1)
+                break
 
-    for t in range(1, time):
-        rem = time - t
-        if rem * t > dist:
-            ways += 1
-
-    return ways
+    return answer
 
 def part1(s):
-    times, distances = parse_input(s)
-
-    answer = math.prod(ways_to_beat(t, d) for t, d in zip(times, distances))
+    answer = solve(s)
 
     lib.aoc.give_answer(2023, 6, 1, answer)
 
 def part2(s):
-    s = s.replace(' ', '')
-    time, dist = parse_all_ints(s)
-
-    answer = ways_to_beat(time, dist)
+    answer = solve(s.replace(' ', ''))
 
     lib.aoc.give_answer(2023, 6, 2, answer)
 
