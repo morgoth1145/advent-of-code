@@ -2,52 +2,48 @@ import math
 
 import lib.aoc
 
-def parse_input(s):
-    groups = s.split('\n\n')
+class Map:
+    def __init__(self, s):
+        inst, network = s.split('\n\n')
+        self.inst = [c == 'R' for c in inst] # True == 1
 
-    seq, b = groups
+        self.net = {}
 
-    out = {}
+        # These just get in the way of parsing
+        network = network.replace('(', '').replace(')', '')
 
-    for line in b.splitlines():
-       a, b = line.split(' = ')
-       b = b.replace('(', '').replace(')', '')
-       b, c = b.split(', ')
-       out[a] = (b, c)
+        for line in network.splitlines():
+            node, fork = line.split(' = ')
+            self.net[node] = fork.split(', ')
 
-    return seq, out
+    def count_steps(self, pos, end_fn):
+        steps = 0
 
-def count_steps(seq, mapping, pos, end_fn):
-    steps = 0
+        while True:
+            for side in self.inst:
+                steps += 1
+                pos = self.net[pos][side]
+                if end_fn(pos):
+                    return steps
 
-    while True:
-        for side in seq:
-            steps += 1
-            side = 1 if side == 'R' else 0
-            pos = mapping[pos][side]
-            if end_fn(pos):
-                return steps
+    @property
+    def nodes(self):
+        return self.net.keys()
 
 def part1(s):
-    seq, out = parse_input(s)
-
-    answer = count_steps(seq, out, 'AAA', lambda pos: pos == 'ZZZ')
+    answer = Map(s).count_steps('AAA', lambda pos: pos == 'ZZZ')
 
     lib.aoc.give_answer(2023, 8, 1, answer)
 
 def part2(s):
-    seq, mapping = parse_input(s)
-
-    positions = []
-    for pos in mapping:
-        if pos[-1] == 'A':
-            positions.append(pos)
-
-    min_steps = [count_steps(seq, mapping, pos, lambda pos: pos[-1] == 'Z')
-                 for pos in positions]
+    # TODO: Solve the generic problem
+    # That likely requires something like lib.math.chinese_remainder_incongruence
+    m = Map(s)
 
     # Wait, this is right?! That's hilarous!
-    answer = math.lcm(*min_steps)
+    answer = math.lcm(*(m.count_steps(pos, lambda pos: pos[-1] == 'Z')
+                        for pos in m.nodes
+                        if pos[-1] == 'A'))
 
     lib.aoc.give_answer(2023, 8, 2, answer)
 
