@@ -28,7 +28,13 @@ def part1(s):
     lib.aoc.give_answer(2023, 9, 1, answer)
 
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    data = [l[::-1] for l in data]
+
+    answer = sum(map(extrapolate, data))
+
+    lib.aoc.give_answer(2023, 9, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 9)
 part1(INPUT)
