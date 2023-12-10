@@ -1,198 +1,109 @@
 import lib.aoc
 import lib.grid
 
-def part1(s):
-    grid = lib.grid.FixedGrid.parse(s)
-
-    start = [coord
-             for coord, c in grid.items()
-             if c == 'S'][0]
-
-    positions = [start]
-    seen = set()
-
-    answer = 0
+def find_loop(grid):
+    start = next(coord
+                 for coord, c in grid.items()
+                 if c == 'S')
 
     def get_connections(x,y):
         c = grid[x,y]
         if c == '|':
-            return [(x,y-1),
-                     (x,y+1)]
+            return [(x,y-1), (x,y+1)]
         elif c == '-':
-            return [(x-1,y),
-                     (x+1,y)]
+            return [(x-1,y), (x+1,y)]
         elif c == 'L':
-            return [(x,y-1),
-                     (x+1,y)]
+            return [(x,y-1), (x+1,y)]
         elif c == 'J':
-            return [(x,y-1),
-                     (x-1,y)]
+            return [(x-1,y), (x,y-1)]
         elif c == '7':
-            return [(x-1,y),
-                     (x,y+1)]
+            return [(x-1,y), (x,y+1)]
         elif c == 'F':
-            return [(x+1,y),
-                     (x,y+1)]
+            return [(x,y+1), (x+1,y)]
         else:
             assert(False)
 
+    positions = [start]
+    loop = set()
+
+    steps = 0
+
     while positions:
-        seen.update(positions)
+        loop.update(positions)
         next_positions = set()
 
         for x,y in positions:
-            c = grid[x,y]
-            cands = []
-            if c == 'S':
-                for n in [(x-1,y),
-                         (x+1,y),
-                         (x,y-1),
-                         (x,y+1)]:
-                    if n not in grid:
-                        continue
-                    if grid[n] == '.':
-                        continue
-                    if (x,y) in get_connections(*n):
-                        cands.append(n)
+            if grid[x,y] == 'S':
+                cands = set(n
+                            for n in [(x-1,y),
+                                      (x,y-1),
+                                      (x,y+1),
+                                      (x+1,y)]
+                            if (n in grid and
+                                grid[n] != '.' and
+                                (x,y) in get_connections(*n)))
+
+                # Update the start tile for part 2 logic
+                for t in '|-LJ7F':
+                    grid[x,y] = t
+                    if set(get_connections(x,y)) == cands:
+                        break
             else:
                 cands = get_connections(x,y)
 
             for n in cands:
-                if n not in grid:
+                if n not in grid or n in loop:
                     continue
-                if n in seen:
-                    continue
-                assert(grid[n] != '.')
                 next_positions.add(n)
 
         positions = list(next_positions)
         if len(positions) > 0:
-            answer += 1
+            steps += 1
+
+    return loop, steps
+
+def part1(s):
+    grid = lib.grid.FixedGrid.parse(s)
+
+    _, answer = find_loop(grid)
 
     lib.aoc.give_answer(2023, 10, 1, answer)
 
 def part2(s):
     grid = lib.grid.FixedGrid.parse(s)
 
-    start = [coord
-             for coord, c in grid.items()
-             if c == 'S'][0]
+    loop, _ = find_loop(grid)
 
-    positions = [start]
-    seen = set()
-    edges = []
+    # Note: FJ and L7 are functionally a single vertical pipe.
+    # Don't over-count!
+    VERTICAL_SECTIONS = ('FJ', 'L7', '|')
+    SECTION_BEGINS = 'FL'
+    SECTION_ENDS = 'J7|'
 
-    def get_connections(x,y):
-        c = grid[x,y]
-        if c == '|':
-            return [(x,y-1),
-                     (x,y+1)]
-        elif c == '-':
-            return [(x-1,y),
-                     (x+1,y)]
-        elif c == 'L':
-            return [(x,y-1),
-                     (x+1,y)]
-        elif c == 'J':
-            return [(x,y-1),
-                     (x-1,y)]
-        elif c == '7':
-            return [(x-1,y),
-                     (x,y+1)]
-        elif c == 'F':
-            return [(x+1,y),
-                     (x,y+1)]
-        else:
-            assert(False)
+    answer = 0
 
-    while positions:
-        seen.update(positions)
-        next_positions = set()
-
-        for x,y in positions:
-            c = grid[x,y]
-            cands = []
-            if c == 'S':
-                for n in [(x-1,y),
-                         (x+1,y),
-                         (x,y-1),
-                         (x,y+1)]:
-                    if n not in grid:
-                        continue
-                    if grid[n] == '.':
-                        continue
-                    if (x,y) in get_connections(*n):
-                        cands.append(n)
+    # Count enclosed tiles by tracking parity per row.
+    # If an odd number of vertical tiles have been seen then any ground tiles
+    # are enclosed, otherwise they are outside. This is similar to checking
+    # if an arbitrary point is enclosed n an arbitrary polygon.
+    for y in range(grid.height):
+        is_enclosed = False
+        current_section = ''
+        for x in range(grid.width):
+            if (x,y) in loop:
+                c = grid[x,y]
+                if c in SECTION_BEGINS:
+                    current_section = c
+                elif c in SECTION_ENDS:
+                    current_section += c
+                    if current_section in VERTICAL_SECTIONS:
+                        is_enclosed = not is_enclosed
+                    current_section = ''
             else:
-                cands = get_connections(x,y)
+                if is_enclosed:
+                    answer += 1
 
-            for n in cands:
-                if n not in grid:
-                    continue
-                if n in seen:
-                    continue
-                assert(grid[n] != '.')
-                next_positions.add(n)
-                edges.append(((x,y),n))
-
-        positions = list(next_positions)
-
-    loop = set()
-    for (x, y), (x2, y2) in edges:
-        loop.add((2*x,2*y))
-        loop.add((2*x2,2*y2))
-        loop.add((x+x2,y+y2))
-
-    handled = set(loop)
-
-    contained = set()
-
-    for (x,y), c in grid.items():
-        x *= 2
-        y *= 2
-        if (x,y) in handled:
-            continue
-
-        coord = x,y
-
-        expanded = {(x,y)}
-        to_handle = [(x,y)]
-        escaped = False
-
-        while to_handle:
-            x,y = to_handle.pop(-1)
-
-            for nx,ny in [(x-1,y),
-                      (x+1,y),
-                      (x,y+1),
-                      (x,y-1)]:
-                n = nx,ny
-                if nx < 0 or nx > (grid.width * 2) - 2:
-                    escaped = True
-                    continue
-                if ny < 0 or ny > (grid.height * 2) - 2:
-                    escaped = True
-                    continue
-                if n in handled:
-                    continue
-                if n in expanded:
-                    continue
-                to_handle.append(n)
-                expanded.add(n)
-
-        handled.update(expanded)
-
-        if coord == (6,6):
-            print(escaped)
-
-        if not escaped:
-            contained.update(expanded)
-
-    real_contained = [(x//2,y//2)
-                      for x,y in contained
-                      if x % 2 == 0 and y % 2 == 0]
-
-    answer = len(real_contained)
+        assert(not is_enclosed)
 
     lib.aoc.give_answer(2023, 10, 2, answer)
 
