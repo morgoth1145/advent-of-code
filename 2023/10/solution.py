@@ -74,12 +74,6 @@ def part2(s):
 
     loop, _ = find_loop(grid)
 
-    # Note: FJ and L7 are functionally a single vertical pipe.
-    # Don't over-count!
-    VERTICAL_SECTIONS = ('FJ', 'L7', '|')
-    SECTION_BEGINS = 'FL'
-    SECTION_ENDS = 'J7|'
-
     answer = 0
 
     # Count enclosed tiles by tracking parity per row.
@@ -88,22 +82,17 @@ def part2(s):
     # if an arbitrary point is enclosed n an arbitrary polygon.
     for y in range(grid.height):
         is_enclosed = False
-        current_section = ''
         for x in range(grid.width):
             if (x,y) in loop:
-                c = grid[x,y]
-                if c in SECTION_BEGINS:
-                    current_section = c
-                elif c in SECTION_ENDS:
-                    current_section += c
-                    if current_section in VERTICAL_SECTIONS:
-                        is_enclosed = not is_enclosed
-                    current_section = ''
+                # Note: | is obviously a vertical pipe
+                # A "complex" vertical pipe must have one of (but not both of)
+                # F and 7. FJ and L7 are "complex" vertical pipes, but F7 and
+                # LJ are both turnarounds and should *not* count!
+                if grid[x,y] in '|F7':
+                    is_enclosed = not is_enclosed
             else:
                 if is_enclosed:
                     answer += 1
-
-        assert(not is_enclosed)
 
     lib.aoc.give_answer(2023, 10, 2, answer)
 
