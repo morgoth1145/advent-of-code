@@ -1,67 +1,39 @@
 import lib.aoc
 import lib.grid
 
-def part1(s):
+def solve(s, expansion_factor):
     grid = lib.grid.FixedGrid.parse(s)
 
-    rows_without_galaxies = []
-    for y in range(grid.height):
-        if all(grid[x,y] == '.' for x in range(grid.width)):
-            rows_without_galaxies.append(y)
+    rows_to_expand = [y
+                      for y in range(grid.height)
+                      if all(grid[x,y] == '.'
+                             for x in range(grid.width))]
 
-    cols_without_galaxies = []
-    for x in range(grid.width):
-        if all(grid[x,y] == '.' for y in range(grid.height)):
-            cols_without_galaxies.append(x)
+    cols_to_expand = [x
+                      for x in range(grid.width)
+                      if all(grid[x,y] == '.'
+                             for y in range(grid.height))]
 
-    def adjust(x,y):
-        x += sum(c < x
-                 for c in cols_without_galaxies)
-        y += sum(r < y
-                 for r in rows_without_galaxies)
+    def expand(x,y):
+        x += sum(c < x for c in cols_to_expand) * (expansion_factor-1)
+        y += sum(r < y for r in rows_to_expand) * (expansion_factor-1)
         return x,y
 
-    galaxies = [adjust(x,y)
+    galaxies = [expand(x,y)
                 for (x,y), c in grid.items()
                 if c == '#']
 
-    answer = 0
+    return sum(abs(x-x2) + abs(y-y2)
+               for idx, (x, y) in enumerate(galaxies)
+               for x2, y2 in galaxies[idx+1:])
 
-    for idx, (x, y) in enumerate(galaxies):
-        for x2, y2 in galaxies[idx+1:]:
-            answer += abs(x-x2) + abs(y-y2)
+def part1(s):
+    answer = solve(s, 2)
 
     lib.aoc.give_answer(2023, 11, 1, answer)
 
 def part2(s):
-    grid = lib.grid.FixedGrid.parse(s)
-
-    rows_without_galaxies = []
-    for y in range(grid.height):
-        if all(grid[x,y] == '.' for x in range(grid.width)):
-            rows_without_galaxies.append(y)
-
-    cols_without_galaxies = []
-    for x in range(grid.width):
-        if all(grid[x,y] == '.' for y in range(grid.height)):
-            cols_without_galaxies.append(x)
-
-    def adjust(x,y):
-        x += sum(c < x
-                 for c in cols_without_galaxies) * (1000000-1)
-        y += sum(r < y
-                 for r in rows_without_galaxies) * (1000000-1)
-        return x,y
-
-    galaxies = [adjust(x,y)
-                for (x,y), c in grid.items()
-                if c == '#']
-
-    answer = 0
-
-    for idx, (x, y) in enumerate(galaxies):
-        for x2, y2 in galaxies[idx+1:]:
-            answer += abs(x-x2) + abs(y-y2)
+    answer = solve(s, 1000000)
 
     lib.aoc.give_answer(2023, 11, 2, answer)
 
