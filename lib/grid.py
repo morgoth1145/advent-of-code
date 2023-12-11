@@ -63,8 +63,16 @@ class FixedGrid:
         return self._width
 
     @property
+    def x_range(self):
+        return range(self.width)
+
+    @property
     def height(self):
         return self._height
+
+    @property
+    def y_range(self):
+        return range(self._height)
 
     @property
     def area(self):
@@ -83,6 +91,12 @@ class FixedGrid:
         x, y = c
         assert(0 <= x < self._width and 0 <= y < self._height)
         self._grid[x][y] = val
+
+    def row(self, y):
+        return [self._grid[x][y] for x in self.x_range]
+
+    def col(self, x):
+        return self._grid[x][:]
 
     def items(self, column_first = False):
         '''Generates all coordinate,value pairs in the grid for iteration.

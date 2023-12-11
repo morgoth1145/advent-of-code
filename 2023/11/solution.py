@@ -5,14 +5,12 @@ def solve(s, expansion_factor):
     grid = lib.grid.FixedGrid.parse(s)
 
     rows_to_expand = [y
-                      for y in range(grid.height)
-                      if all(grid[x,y] == '.'
-                             for x in range(grid.width))]
+                      for y in grid.y_range
+                      if set(grid.row(y)) == {'.'}]
 
     cols_to_expand = [x
-                      for x in range(grid.width)
-                      if all(grid[x,y] == '.'
-                             for y in range(grid.height))]
+                      for x in grid.x_range
+                      if set(grid.col(x)) == {'.'}]
 
     def expand(x,y):
         x += sum(c < x for c in cols_to_expand) * (expansion_factor-1)
