@@ -43,8 +43,40 @@ def part1(s):
 
     lib.aoc.give_answer(2023, 12, 1, answer)
 
+def count_matches2(pattern, splits):
+    @functools.cache
+    def gen(rem_pattern, rem_len, rem_splits):
+        if len(rem_splits) == 0:
+            if all(c in '.?' for c in rem_pattern):
+                return 1
+            return 0
+
+        a = rem_splits[0]
+        rest = rem_splits[1:]
+        after = sum(rest) + len(rest)
+
+        count = 0
+
+        for before in range(rem_len-after-a+1):
+            cand = '.' * before + '#' * a + '.'
+            if all(c0 == c1 or c0=='?'
+                   for c0,c1 in zip(rem_pattern, cand)):
+                rest_pattern = rem_pattern[len(cand):]
+                count += gen(rest_pattern, rem_len-a-before-1, rest)
+
+        return count
+
+    return gen(pattern, len(pattern), tuple(splits))
+
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    answer = 0
+
+    for a, b in data:
+        answer += count_matches2('?'.join((a,a,a,a,a)), b*5)
+
+    lib.aoc.give_answer(2023, 12, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 12)
 part1(INPUT)
