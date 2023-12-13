@@ -53,8 +53,38 @@ def part1(s):
 
     lib.aoc.give_answer(2023, 13, 1, answer)
 
+def fix_smudge(g):
+    orig_vert, orig_horiz = find_reflection(g)
+    for coord, c in g.items():
+        if c == '.':
+            g[coord] = '#'
+        else:
+            g[coord] = '.'
+        vert, horiz = find_reflection(g)
+        vert = list(set(vert) - set(orig_vert))
+        horiz = list(set(horiz) - set(orig_horiz))
+        g[coord] = c
+
+        if len(vert) + len(horiz) == 1:
+            return vert, horiz
+
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    answer = 0
+
+    for idx, g in enumerate(data):
+        print(f'{idx}/{len(data)}')
+        vert, horiz = fix_smudge(g)
+        if len(vert) == 1:
+            assert(len(horiz) == 0)
+            answer += vert[0]
+        else:
+            assert(len(vert) == 0)
+            assert(len(horiz) == 1)
+            answer += horiz[0] * 100
+
+    lib.aoc.give_answer(2023, 13, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 13)
 part1(INPUT)
