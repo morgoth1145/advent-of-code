@@ -1,62 +1,38 @@
 import lib.aoc
 
-def the_hash(s):
+def HASH(s):
     v = 0
     for c in s:
-        v += ord(c)
-        v *= 17
-        v %= 256
-
+        v = ((v + ord(c)) * 17) % 256
     return v
 
 def part1(s):
-    bits = s.split(',')
-
-    answer = sum(map(the_hash, bits))
+    answer = sum(map(HASH, s.split(',')))
 
     lib.aoc.give_answer(2023, 15, 1, answer)
 
 def part2(s):
-    bits = s.split(',')
-
     hashmap = [[] for _ in range(256)]
 
-    for part in bits:
-        if '=' in part:
-            label = part[:part.index('=')]
-            op = '='
-            rest = part[part.index('=')+1:]
-            focal = int(rest)
-
-            box_idx = the_hash(label)
-            box = hashmap[box_idx]
-            replaced = False
-            for i in range(len(box)):
-                if box[i][0] == label:
-                    box[i] = (label, focal)
-                    replaced = True
-            if not replaced:
-                box.append((label, focal))
-        elif '-' in part:
-            label = part[:part.index('-')]
-            op = '-'
-            rest = part[part.index('-')+1:]
-            assert(len(rest) == 0)
-
-            box_idx = the_hash(label)
-            box = hashmap[box_idx]
-            for i in range(len(box)):
-                if box[i][0] == label:
-                    box.pop(i)
-                    break
+    for step in s.replace('=','-').split(','):
+        label, focal = step.split('-')
+        box = hashmap[HASH(label)]
+        if focal == '':
+            # Was a dash, remove from the box
+            box[:] = [entry for entry in box
+                      if entry[0] != label]
         else:
-            assert(False)
+            # Was an equals sign, add to the box
+            focal = int(focal)
+            if label in [entry[0] for entry in box]:
+                box[:] = [(label, focal) if entry[0] == label else entry
+                          for entry in box]
+            else:
+                box.append((label, focal))
 
-    answer = 0
-
-    for box_idx, box in enumerate(hashmap, start=1):
-        for idx, (_, focal) in enumerate(box, start=1):
-            answer += box_idx * idx * focal
+    answer = sum(box_idx * idx * focal
+                 for box_idx, box in enumerate(hashmap, start=1)
+                 for idx, (_, focal) in enumerate(box, start=1))
 
     lib.aoc.give_answer(2023, 15, 2, answer)
 
