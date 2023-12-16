@@ -1,14 +1,12 @@
 import lib.aoc
 import lib.grid
 
-def part1(s):
-    grid = lib.grid.FixedGrid.parse(s)
-
+def energize(grid, x, y, dx, dy):
     seen = set()
 
     handled = set()
 
-    todo = [(0, 0, 1, 0)]
+    todo = [(x, y, dx, dy)]
 
     def visit(x, y, dx, dy):
         key = (x, y, dx, dy)
@@ -73,12 +71,30 @@ def part1(s):
         else:
             assert(False)
 
-    answer = len(seen)
+    return len(seen)
+
+def part1(s):
+    grid = lib.grid.FixedGrid.parse(s)
+
+    answer = energize(grid, 0, 0, 1, 0)
 
     lib.aoc.give_answer(2023, 16, 1, answer)
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+
+    options = []
+    for x in grid.x_range:
+        options.append((x, 0, 0, 1))
+        options.append((x, grid.height-1, 0, -1))
+    for y in grid.y_range:
+        options.append((0, y, 1, 0))
+        options.append((grid.width-1, y, -1, 0))
+
+    answer = max(energize(grid, *start)
+                 for start in options)
+
+    lib.aoc.give_answer(2023, 16, 2, answer)
 
 INPUT = lib.aoc.get_input(2023, 16)
 part1(INPUT)
