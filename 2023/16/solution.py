@@ -2,18 +2,13 @@ import lib.aoc
 import lib.grid
 
 def energize(grid, x, y, dx, dy):
-    seen = set()
-
+    good = set()
     handled = set()
 
     todo = [(x, y, dx, dy)]
 
-    def visit(x, y, dx, dy):
-        key = (x, y, dx, dy)
-        todo.append(key)
-
     while todo:
-        key = todo.pop(-1)
+        key = todo.pop()
         if key in handled:
             continue
         handled.add(key)
@@ -23,55 +18,32 @@ def energize(grid, x, y, dx, dy):
             continue
         if y < 0 or y >= grid.height:
             continue
-        seen.add((x,y))
+
+        good.add((x,y))
 
         c = grid[x,y]
         if c == '.':
-            visit(x+dx, y+dy, dx, dy)
-            continue
-        elif c in '/\\':
-            # Mirror
-            if c == '/':
-                if dx != 0:
-                    # Left turn
-                    dx, dy = 0, -dx
-                else:
-                    # Right turn
-                    dx, dy = -dy, 0
-            elif c == '\\':
-                if dy != 0:
-                    # Left turn
-                    dx, dy = dy, 0
-                else:
-                    # Right turn
-                    dx, dy = 0, dx
-            visit(x+dx, y+dy, dx, dy)
-            continue
-        elif c in '|-':
-            # Splitter
-            if c == '|':
-                if dy != 0:
-                    visit(x+dx, y+dy, dx, dy)
-                    continue
-                else:
-                    visit(x, y-1, 0, -1)
-                    visit(x, y+1, 0, 1)
-                    continue
-            elif c == '-':
-                if dx != 0:
-                    visit(x+dx, y+dy, dx, dy)
-                    continue
-                else:
-                    visit(x-1, y, -1, 0)
-                    visit(x+1, y, 1, 0)
-                    continue
+            todo.append((x+dx, y+dy, dx, dy))
+        elif c == '/':
+            todo.append((x-dy, y-dx, -dy, -dx))
+        elif c == '\\':
+            todo.append((x+dy, y+dx, dy, dx))
+        elif c == '|':
+            if dx == 0:
+                todo.append((x, y+dy, 0, dy))
             else:
-                assert(False)
-            pass
+                todo.append((x, y-1, 0, -1))
+                todo.append((x, y+1, 0, 1))
+        elif c == '-':
+            if dx == 0:
+                todo.append((x-1, y, -1, 0))
+                todo.append((x+1, y, 1, 0))
+            else:
+                todo.append((x+dx, y, dx, 0))
         else:
             assert(False)
 
-    return len(seen)
+    return len(good)
 
 def part1(s):
     grid = lib.grid.FixedGrid.parse(s)
