@@ -24,45 +24,57 @@ def solve(s, min_steps, max_steps):
     # Avoid repeatedly calling the property getter for performance
     g_width, g_height = grid.width, grid.height
 
+    # This graph *always* turns at every node. To compensate, every possible
+    # number of forward steps is returned as an option for each state
+    # Overall this actually reduces the state space a good bit!
     def neighbor_fn(state):
-        x, y, dx, dy, num_in_dir = state
+        x, y, horizontal = state
 
-        if num_in_dir < max_steps:
-            nx, ny = x+dx, y+dy
-            if 0 <= nx < g_width and 0 <= ny < g_height:
-                new_state = (nx, ny, dx, dy, num_in_dir+1)
-                yield new_state, grid[nx,ny]
-
-        if num_in_dir >= min_steps:
-            # Left turn
-            nx, ny = x+dy, y-dx
-            if 0 <= nx < g_width and 0 <= ny < g_height:
-                new_state = (nx, ny, dy, -dx, 1)
-                yield new_state, grid[nx,ny]
-
-            # Right turn
-            nx, ny = x-dy, y+dx
-            if 0 <= nx < g_width and 0 <= ny < g_height:
-                new_state = (nx, ny, -dy, dx, 1)
-                yield new_state, grid[nx,ny]
+        if horizontal:
+            # Turning to vertical
+            for ndy in (1, -1):
+                ny = y
+                cost = 0
+                for steps in range(1, max_steps+1):
+                    ny += ndy
+                    if 0 <= ny < g_height:
+                        cost += grid[x,ny]
+                        if steps >= min_steps:
+                            new_state = (x, ny, False)
+                            yield new_state, cost
+                    else:
+                        break
+        else:
+            # Turning to horizontal
+            for ndx in (1, -1):
+                nx = x
+                cost = 0
+                for steps in range(1, max_steps+1):
+                    nx += ndx
+                    if 0 <= nx < g_width:
+                        cost += grid[nx,y]
+                        if steps >= min_steps:
+                            new_state = (nx, y, True)
+                            yield new_state, cost
+                    else:
+                        break
 
     graph = lib.graph.make_lazy_graph(neighbor_fn)
 
     def end_fn(state):
-        x, y, _, _, num_in_dir = state
+        x, y, _= state
         return (x == g_width-1 and
-                y == g_height-1 and
-                num_in_dir >= min_steps)
+                y == g_height-1)
 
     heuristic_to_end = generate_heuristic_to_end_node(grid)
 
     def heuristic(state):
-        x, y, _, _, _ = state
+        x, y, horizontal = state
         return heuristic_to_end((x,y))
 
     return lib.graph.dijkstra_length_fuzzy_end(graph,
-                                               [(0, 0, 1, 0, 0),
-                                                (0, 0, 0, 1, 0)],
+                                               [(0, 0, True),
+                                                (0, 0, False)],
                                                end_fn=end_fn,
                                                heuristic=heuristic)
 
