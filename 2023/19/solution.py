@@ -1,136 +1,116 @@
+import collections
+import json
+
 import lib.aoc
 
-def make_test(var, op, val):
-    if op == '<':
-        return lambda part: part[var] < val
-    elif op == '>':
-        return lambda part: part[var] > val
-    else:
-        assert(False)
+Part = collections.namedtuple('Part',
+                              ('x', 'm', 'a', 's'))
 
-def make_test_2(op, val):
-    if op == '<':
-        return lambda n: n < val
-    elif op == '>':
-        return lambda n: n > val
-    else:
-        assert(False)
+class Rule:
+    def __init__(self, r):
+        if ':' in r:
+            self.const = False
+
+            pred, self.dest = r.split(':')
+
+            self._var = pred[0]
+            op = pred[1]
+            val = int(pred[2:])
+            self._val = val
+
+            if op == '<':
+                self._test = lambda n: n < val
+                self._filter_good = lambda vals: vals[:vals.index(val)]
+                self._filter_bad = lambda vals: vals[vals.index(val):]
+            elif op == '>':
+                self._test = lambda n: n > val
+                self._filter_good = lambda vals: vals[vals.index(val)+1:]
+                self._filter_bad = lambda vals: vals[:vals.index(val)+1]
+            else:
+                assert(False)
+        else:
+            self.const = True
+            self.dest = r
+
+    def test(self, p):
+        return self.const or self._test(getattr(p, self._var))
+
+    def filter(self, p):
+        if self.const:
+            return p, None
+
+        vals = getattr(p, self._var)
+        if self._val in vals:
+            good = p._replace(**{self._var:self._filter_good(vals)})
+            bad = p._replace(**{self._var:self._filter_bad(vals)})
+            return good, bad
+        elif len(vals) > 0:
+            if self._test(vals[0]):
+                return p, p._replace(**{self._var:range(0)})
+            else:
+                return p._replace(**{self._var:range(0)}), p
+        else:
+            return p, p
 
 def parse_input(s):
     a, b = s.split('\n\n')
 
-    workflows = {}
-    parts = []
-
     a = a.replace('{', ' ').replace('}', '')
 
+    workflows = {}
     for line in a.splitlines():
         name, rules = line.split()
-
-        rule_list = []
-
-        for r in rules.split(','):
-            if ':' in r:
-                pred, dest = r.split(':')
-                var = pred[0]
-                op = pred[1]
-                val = int(pred[2:])
-                rule_list.append((make_test(var, op, val), dest, var, val,
-                                  make_test_2(op, val)))
-            else:
-                rule_list.append(r)
-
-        workflows[name] = rule_list
+        workflows[name] = list(map(Rule, rules.split(',')))
 
     for c in 'xmas':
         b = b.replace(f'{c}=', f'"{c}":')
 
-    for line in b.splitlines():
-        parts.append(eval(line))
+    parts = (Part(**json.loads(line))
+             for line in b.splitlines())
 
     return workflows, parts
 
 def part1(s):
     workflows, parts = parse_input(s)
 
-    answer = 0
+    def accepted(name, p):
+        if name == 'A':
+            return True
+        if name == 'R':
+            return False
+        for r in workflows[name]:
+            if r.test(p):
+                return accepted(r.dest, p)
 
-    for idx, p in enumerate(parts):
-        name = 'in'
-        while True:
-            rules = workflows[name]
-            dest = None
-            for r in rules:
-                if isinstance(r, tuple):
-                    if r[0](p):
-                        dest = r[1]
-                        break
-                else:
-                    dest = r
-                    break
-
-            assert(dest is not None)
-
-            if dest == 'A':
-                answer += sum(p.values())
-                break
-
-            elif dest == 'R':
-                break
-
-            name = dest
+    answer = sum(map(sum, (p for p in parts if accepted('in', p))))
 
     lib.aoc.give_answer(2023, 19, 1, answer)
 
 def part2(s):
     workflows, _ = parse_input(s)
 
-    def count_accepted(w_name, x, m, a, s):
-        if w_name == 'A':
-            return len(x) * len(m) * len(a) * len(s)
-        if w_name == 'R':
+    def count_accepted(name, p):
+        if name == 'A':
+            return len(p.x) * len(p.m) * len(p.a) * len(p.s)
+        if name == 'R':
             return 0
 
-        rules = workflows[w_name]
+        count = 0
 
-        c = 0
+        for r in workflows[name]:
+            good, p = r.filter(p)
+            if good is not None:
+                count += count_accepted(r.dest, good)
+            if p is None:
+                break
 
-        for r in rules:
-            if isinstance(r, tuple):
-                dest = r[1]
-                var = r[2]
-                test2 = r[4]
-
-                if var == 'x':
-                    take_x = tuple(filter(test2, x))
-                    if len(take_x):
-                        c += count_accepted(dest, take_x, m, a, s)
-                    x = tuple(n for n in x if not test2(n))
-                elif var == 'm':
-                    take_m = tuple(filter(test2, m))
-                    if len(take_m):
-                        c += count_accepted(dest, x, take_m, a, s)
-                    m = tuple(n for n in m if not test2(n))
-                elif var == 'a':
-                    take_a = tuple(filter(test2, a))
-                    if len(take_a):
-                        c += count_accepted(dest, x, m, take_a, s)
-                    a = tuple(n for n in a if not test2(n))
-                elif var == 's':
-                    take_s = tuple(filter(test2, s))
-                    if len(take_s):
-                        c += count_accepted(dest, x, m, a, take_s)
-                    s = tuple(n for n in s if not test2(n))
-            else:
-                c += count_accepted(r, x, m, a, s)
-
-        return c
+        return count
 
     answer = count_accepted('in',
-                            tuple(range(1, 4001)),
-                            tuple(range(1, 4001)),
-                            tuple(range(1, 4001)),
-                            tuple(range(1, 4001)))
+                            Part(range(1, 4001),
+                                 range(1, 4001),
+                                 range(1, 4001),
+                                 range(1, 4001)))
 
     lib.aoc.give_answer(2023, 19, 2, answer)
 
