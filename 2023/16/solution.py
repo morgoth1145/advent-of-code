@@ -7,7 +7,7 @@ def parse_contraption(s):
     grid = lib.grid.FixedGrid.parse(s)
 
     @functools.cache
-    def shoot_to_split(x, y, dx, dy):
+    def shoot_ray(x, y, dx, dy):
         traversed = []
 
         while True:
@@ -24,34 +24,36 @@ def parse_contraption(s):
                 dx, dy = dy, dx
                 x, y = x+dx, y+dy
             elif c == '|':
+                out = []
                 if dx == 0:
-                    y += dy
+                    if 0 <= y+dy < grid.height:
+                        out.append((x, y+dy, 0, dy))
                 else:
-                    out = []
                     if y > 0:
                         out.append((x, y-1, 0, -1))
                     if y < grid.height-1:
                         out.append((x, y+1, 0, 1))
-                    return traversed, out
+                return traversed, out
             elif c == '-':
+                out = []
                 if dy == 0:
-                    x += dx
+                    if 0 <= x+dx < grid.width:
+                        out.append((x+dx, y, dx, 0))
                 else:
-                    out = []
                     if x > 0:
                         out.append((x-1, y, -1, 0))
                     if x < grid.width-1:
                         out.append((x+1, y, 1, 0))
-                    return traversed, out
+                return traversed, out
             else:
                 assert(False)
 
             if 0 > x or x >= grid.width or 0 > y or y >= grid.height:
                 return traversed, []
 
-    return grid.width, grid.height, shoot_to_split
+    return grid.width, grid.height, shoot_ray
 
-def energize(shoot_to_split, x, y, dx, dy):
+def energize(shoot_ray, x, y, dx, dy):
     good = set()
     handled = set()
 
@@ -63,21 +65,21 @@ def energize(shoot_to_split, x, y, dx, dy):
             continue
         handled.add(key)
 
-        traversed, out = shoot_to_split(*key)
+        traversed, out = shoot_ray(*key)
         good.update(traversed)
         todo.extend(out)
 
     return len(good)
 
 def part1(s):
-    _, _, shoot_to_split = parse_contraption(s)
+    _, _, shoot_ray = parse_contraption(s)
 
-    answer = energize(shoot_to_split, 0, 0, 1, 0)
+    answer = energize(shoot_ray, 0, 0, 1, 0)
 
     lib.aoc.give_answer(2023, 16, 1, answer)
 
 def part2(s):
-    width, height, shoot_to_split = parse_contraption(s)
+    width, height, shoot_ray = parse_contraption(s)
 
     options = []
     for x in range(width):
@@ -87,7 +89,7 @@ def part2(s):
         options.append((0, y, 1, 0))
         options.append((width-1, y, -1, 0))
 
-    answer = max(energize(shoot_to_split, *start)
+    answer = max(energize(shoot_ray, *start)
                  for start in options)
 
     lib.aoc.give_answer(2023, 16, 2, answer)
