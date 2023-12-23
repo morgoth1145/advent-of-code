@@ -12,16 +12,22 @@ def part1(s):
         if grid[x,end_y] == '.':
             end = x,end_y
 
-    answer = 0
-    best = None
+    def neighbor_fn(coord):
+        x,y = coord
 
-    paths = [((start,),0)]
+        handled = {coord}
+        todo = [(n, 1) for n in grid.neighbors(*coord)
+                if grid[n] != '#']
 
-    while paths:
-        new_paths = set()
+        while todo:
+            coord, d = todo.pop()
+            assert(coord not in handled)
+            handled.add(coord)
 
-        for p, d in paths:
-            coord = p[-1]
+            if coord == end:
+                yield coord, d
+                continue
+
             c = grid[coord]
             if c in '<>v^':
                 x,y = coord
@@ -29,27 +35,50 @@ def part1(s):
                     n = (x-1,y)
                 elif c == '>':
                     n = (x+1,y)
-                elif c == '^':
-                    n = (x,y-1)
                 elif c == 'v':
                     n = (x,y+1)
-                if n not in p:
-                    new_paths.add((p + (n,), d+1))
+                elif c == '^':
+                    n = (x,y-1)
+                if n not in handled:
+                    todo.append((n, d+1))
                 continue
             else:
                 assert(c == '.')
-            for n in grid.neighbors(*coord):
+
+            neighbors = [n for n in grid.neighbors(*coord)
+                         if grid[n] != '#']
+
+            if len(neighbors) > 2:
+                # Intersection
+                yield coord, d
+                continue
+
+            neighbors = [n for n in neighbors
+                         if n not in handled]
+
+            if len(neighbors) == 0:
+                continue
+
+            n = neighbors[0]
+            todo.append((n, d+1))
+
+    graph = lib.graph.make_lazy_graph(neighbor_fn)
+
+    answer = 0
+
+    paths = [((start,),0)]
+
+    while paths:
+        new_paths = set()
+
+        for p, d in paths:
+            for n, n_d in graph[p[-1]]:
                 if n in p:
                     continue
                 if n == end:
-                    dist = d+1
-                    if dist > answer:
-                        answer = dist
-                        best = p + (n,)
+                    answer = max(answer, d+n_d)
                     continue
-                if grid[n] == '#':
-                    continue
-                new_paths.add((p + (n,), d+1))
+                new_paths.add((p + (n,), d+n_d))
 
         paths = new_paths
 
