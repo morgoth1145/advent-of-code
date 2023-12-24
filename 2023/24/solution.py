@@ -53,27 +53,14 @@ def part2(s):
     yv = sympy.var('yv')
     zv = sympy.var('zv')
 
-    t1 = sympy.var('t1')
-    t2 = sympy.var('t2')
-    t3 = sympy.var('t3')
-
-    p1, v1 = data[0]
-    p2, v2 = data[1]
-    p3, v3 = data[3]
-
     equations = []
 
-    equations.append(sympy.Eq(x + t1*xv, p1.x + v1.x*t1))
-    equations.append(sympy.Eq(y + t1*yv, p1.y + v1.y*t1))
-    equations.append(sympy.Eq(z + t1*zv, p1.z + v1.z*t1))
+    for idx, (p, v) in enumerate(data[:3]):
+        t = sympy.var(f't{idx}')
 
-    equations.append(sympy.Eq(x + t2*xv, p2.x + v2.x*t2))
-    equations.append(sympy.Eq(y + t2*yv, p2.y + v2.y*t2))
-    equations.append(sympy.Eq(z + t2*zv, p2.z + v2.z*t2))
-
-    equations.append(sympy.Eq(x + t3*xv, p3.x + v3.x*t3))
-    equations.append(sympy.Eq(y + t3*yv, p3.y + v3.y*t3))
-    equations.append(sympy.Eq(z + t3*zv, p3.z + v3.z*t3))
+        equations.append(sympy.Eq(x + t * xv, p.x + v.x * t))
+        equations.append(sympy.Eq(y + t * yv, p.y + v.y * t))
+        equations.append(sympy.Eq(z + t * zv, p.z + v.z * t))
 
     d = sympy.solve(equations)[0]
 
