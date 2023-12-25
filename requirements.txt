@@ -1,5 +1,6 @@
 gmpy2
 jsonplus
+networkx
 numpy
 parse
 python-dateutil
