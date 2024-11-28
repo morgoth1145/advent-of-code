@@ -374,7 +374,7 @@ def _submit_answer(year, day, part, answer):
                                                               answer)
 
     if not good_answer:
-        m = re.search('Please wait (.*) before trying again', answer_line)
+        m = re.search('[Pp]lease wait (.*) before trying again', answer_line)
         if m is None:
             print('Warning: Cannot detect timeout from answer line. Defaulting to 1 minute.')
             timeout = datetime.timedelta(minutes=1)

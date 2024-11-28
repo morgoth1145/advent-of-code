@@ -1,9 +1,12 @@
 gmpy2
 jsonplus
+matplotlib # Graph plotting
+networkx
 numpy
 parse
 python-dateutil
 requests
+scipy # Graph plotting
 sympy
 z3
 z3-solver

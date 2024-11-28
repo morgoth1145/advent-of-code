@@ -142,6 +142,33 @@ def make_lazy_graph(neighbor_fn):
         return list(neighbor_fn(key))
     return lib.lazy_dict.make_lazy_dict(fn)
 
+def make_compressed_graph(graph, to_keep):
+    if any(isinstance(to_keep, t) for t in (set, list, tuple)):
+        to_keep_set = set(to_keep)
+        to_keep = lambda state: state in to_keep_set
+
+    def neighbor_fn(start):
+        seen = set()
+        queue = [(0, start)]
+        while len(queue) > 0:
+            current_dist, current_node = heapq.heappop(queue)
+            if current_node in seen:
+                continue
+            seen.add(current_node)
+
+            if to_keep(current_node):
+                if current_node != start:
+                    yield current_node, current_dist
+                    continue
+
+            for neighbor_node, neighbor_dist in graph[current_node]:
+                if neighbor_node in seen:
+                    continue
+                heapq.heappush(queue, (current_dist + neighbor_dist,
+                                       neighbor_node))
+
+    return make_lazy_graph(neighbor_fn)
+
 def to_distance_graph(graph):
     '''Some usages more naturally generate graphs without distance information.
     Most utilities in this library expect a distance graph, so a converter

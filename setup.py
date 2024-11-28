@@ -39,7 +39,10 @@ import math
 import parse
 import re
 import sympy # sympy.parse_expr, sympy.solve, sympy.Eq
-import z3 # z3.Solver, z3.Int, solver.add(constraint), solver.check(), solver.model()[variable].as_long()
+import z3 # x = z3.Int('x'); x < 0; (x-1) >= 0
+# z3.If(x >= 0, x, -x); z3.And(); z3.Or(); z3.Not()
+# s = z3.Solver(); solver.add(constraint); s.check(); s.model()[x].as_long()
+# o = z3.Optimize(); o.minimize(x); o.check(); o.model()[x].as_long()
 
 import lib.aoc
 import lib.cyk
