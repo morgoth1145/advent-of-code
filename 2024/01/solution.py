@@ -1,3 +1,5 @@
+import collections
+
 import lib.aoc
 
 def parse_input(s):
@@ -21,7 +23,16 @@ def part1(s):
     lib.aoc.give_answer(2024, 1, 1, answer)
 
 def part2(s):
-    pass
+    a, b = parse_input(s)
+
+    ac = collections.Counter(a)
+    bc = collections.Counter(b)
+
+    answer = sum(v * an * bc[v]
+                 for v, an
+                 in ac.items())
+
+    lib.aoc.give_answer(2024, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2024, 1)
 part1(INPUT)
