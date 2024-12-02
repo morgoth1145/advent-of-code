@@ -1,47 +1,27 @@
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
-        yield tuple(map(int, line.split()))
+def parse_reports(s):
+    for report in s.splitlines():
+        yield tuple(map(int, report.split()))
 
-def test(line):
-    if line[1] > line[0]:
-        for a, b in zip(line, line[1:]):
-            if not (1 <= b-a <= 3):
-                return False
-    else:
-        for a, b in zip(line, line[1:]):
-            if not (1 <= a-b <= 3):
-                return False
+def validate(report):
+    sign = 1 if report[1] > report[0] else -1
+    for l0, l1 in zip(report, report[1:]):
+        if not 1 <= (l1 - l0) * sign <= 3:
+            return False
     return True
 
 def part1(s):
-    data = parse_input(s)
-
-    answer = 0
-
-    for line in data:
-        if test(line):
-            answer += 1
+    answer = sum(map(validate, parse_reports(s)))
 
     lib.aoc.give_answer(2024, 2, 1, answer)
 
-def test2(line):
-    if test(line):
-        return True
-    if any(test(line[:i] + line[i+1:])
-           for i in range(len(line))):
-        return True
-    return False
+def validate_tolerant(report):
+    return validate(report) or any(validate(report[:i] + report[i+1:])
+                                   for i in range(len(report)))
 
 def part2(s):
-    data = parse_input(s)
-
-    answer = 0
-
-    for line in data:
-        if test2(line):
-            answer += 1
+    answer = sum(map(validate_tolerant, parse_reports(s)))
 
     lib.aoc.give_answer(2024, 2, 2, answer)
 
