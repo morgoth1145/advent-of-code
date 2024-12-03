@@ -5,27 +5,25 @@ import lib.aoc
 def part1(s):
     answer = 0
 
-    for group in re.findall('mul\(([0-9][0-9]?[0-9]?),([0-9][0-9]?[0-9]?)\)', s):
-        answer += int(group[0]) * int(group[1])
+    for part in re.findall('mul\((\d{1,3}),(\d{1,3})\)', s):
+        answer += int(part[0]) * int(part[1])
 
     lib.aoc.give_answer(2024, 3, 1, answer)
 
 def part2(s):
     answer = 0
 
-    parts = s.split('don\'t()')
-    parts[0] = 'do()' + parts[0]
+    include = True
 
-    to_handle = ''
-
-    for p in parts:
-        if 'do()' in p:
-            i = p.index('do()')
-            to_handle += p[i:]
-
-    for group in re.findall('mul\(([0-9][0-9]?[0-9]?),([0-9][0-9]?[0-9]?)\)',
-                            to_handle):
-        answer += int(group[0]) * int(group[1])
+    for part in re.findall('mul\(\d{1,3},\d{1,3}\)|do\(\)|don\'t\(\)',
+                           s):
+        if part == 'do()':
+            include = True
+        elif part == 'don\'t()':
+            include = False
+        elif include:
+            a, b = tuple(map(int, part[4:-1].split(',')))
+            answer += a * b
 
     lib.aoc.give_answer(2024, 3, 2, answer)
 
