@@ -26,7 +26,36 @@ def part1(s):
     lib.aoc.give_answer(2024, 4, 1, answer)
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+
+    answer = 0
+
+    for (x, y), c in grid.items():
+        if c != 'A':
+            continue
+        diags = []
+        for dx, dy in [(1, 1), (1, -1), (-1, -1), (-1, 1)]:
+            x1 = x+dx
+            y1 = y+dy
+            if (x1, y1) in grid:
+                diags.append(grid[x1,y1])
+        if len(diags) != 4:
+            continue
+        if set(diags) == {'M'}:
+            continue
+        while diags[-1] == 'M':
+            diags = diags[-1:] + diags[:-1]
+        if 'M' in diags:
+            i = diags.index('M')
+            if diags[(i+1)%4] != 'M':
+                continue
+            if diags[(i+2)%4] != 'S':
+                continue
+            if diags[(i+3)%4] != 'S':
+                continue
+            answer += 1
+
+    lib.aoc.give_answer(2024, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2024, 4)
 part1(INPUT)
