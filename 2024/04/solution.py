@@ -9,19 +9,15 @@ def part1(s):
     for (x, y), c in grid.items():
         if c != 'X':
             continue
-        for dx, dy in [(1, 0), (0, 1), (1, 1),
-                       (-1, 0), (0, -1), (-1, -1),
-                       (1, -1), (-1, 1)]:
-            x1 = x+dx
-            y1 = y+dy
-            x2 = x1+dx
-            y2 = y1+dy
-            x3 = x2+dx
-            y3 = y2+dy
-            if not (x3, y3) in grid:
-                continue
-            if grid[x1,y1] == 'M' and grid[x2,y2] == 'A' and grid[x3,y3] == 'S':
-                answer += 1
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == 0 == dy:
+                    continue
+                if (x+3*dx, y+3*dy) not in grid:
+                    continue
+                if all(grid[x+i*dx, y+i*dy] == c2
+                       for i, c2 in enumerate('MAS', start=1)):
+                    answer += 1
 
     lib.aoc.give_answer(2024, 4, 1, answer)
 
@@ -33,26 +29,18 @@ def part2(s):
     for (x, y), c in grid.items():
         if c != 'A':
             continue
-        diags = []
-        for dx, dy in [(1, 1), (1, -1), (-1, -1), (-1, 1)]:
-            x1 = x+dx
-            y1 = y+dy
-            if (x1, y1) in grid:
-                diags.append(grid[x1,y1])
-        if len(diags) != 4:
-            continue
-        if set(diags) == {'M'}:
-            continue
-        while diags[-1] == 'M':
-            diags = diags[-1:] + diags[:-1]
-        if 'M' in diags:
-            i = diags.index('M')
-            if diags[(i+1)%4] != 'M':
-                continue
-            if diags[(i+2)%4] != 'S':
-                continue
-            if diags[(i+3)%4] != 'S':
-                continue
+        is_xmas = True
+        for dx, dy in [(1, 1), (1, -1)]:
+            n1 = x+dx, y+dy
+            n2 = x-dx, y-dy
+            if n1 not in grid or n2 not in grid:
+                is_xmas = False
+                break
+            # Check if the diagonal makes "MAS"
+            if set(grid[n1] + grid[n2]) != set('MS'):
+                is_xmas = False
+                break
+        if is_xmas:
             answer += 1
 
     lib.aoc.give_answer(2024, 4, 2, answer)
