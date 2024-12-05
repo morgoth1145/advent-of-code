@@ -16,6 +16,11 @@ def topological_sort(graph):
     for key in graph.keys():
         yield from impl(key)
 
+def topological_sort_root_first(graph):
+    '''Outputs graph nodes in topological order, going from the root to the leaf
+    NOTE: THIS DOES NOT WORK FOR CYCLIC GRAPHS!'''
+    return list(topological_sort(graph))[::-1]
+
 def longest_minimal_path_length(graph, start):
     '''Returns the destination and length of the longest minimal path from
     start to somewhere in the graph.

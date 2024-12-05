@@ -1,57 +1,52 @@
+import collections
+
 import lib.aoc
+import lib.graph
 
 def parse_input(s):
     a, b = s.split('\n\n')
 
-    alist = []
+    rules = collections.defaultdict(set)
     for l in a.split('\n'):
-        alist.append(tuple(map(int, l.split('|'))))
+        first, second = tuple(map(int, l.split('|')))
+        rules[first].add(second)
 
     blist = []
     for l in b.split('\n'):
         blist.append(tuple(map(int, l.split(','))))
 
-    return alist, blist
+    return rules, blist
 
 def verify(rules, l):
-    for r0, r1 in rules:
-        if r0 in l and r1 in l:
-            if l.index(r0) > l.index(r1):
-                return False
+    previous = set()
+
+    for item in l:
+        if len(previous & rules[item]) > 0:
+            return False
+        previous.add(item)
+
     return True
 
 def part1(s):
     rules, b = parse_input(s)
 
-    answer = 0
-
-    for l in b:
-        if verify(rules, l):
-            answer += l[len(l)//2]
+    answer = sum(l[len(l)//2]
+                 for l in b
+                 if verify(rules, l))
 
     lib.aoc.give_answer(2024, 5, 1, answer)
 
 def reorder(rules, l):
-    g = {}
-    for a, b in rules:
-        key = tuple(sorted([a, b]))
-        g[key] = (a, b)
+    # Extract the "mini" graph for this line as the larger rule graph is cyclic
+    # and cannot be topo-sorted
+    all_items = set(l)
 
-    new_l = []
+    mini_graph = {
+        item: rules[item] & all_items
+        for item in l
+    }
 
-    for item in l:
-        placed = False
-        for i, other in enumerate(new_l):
-            key = tuple(sorted([item, other]))
-            if key in g:
-                if g[key] == (item, other):
-                    new_l.insert(i, item)
-                    placed = True
-                    break
-        if not placed:
-            new_l.append(item)
-
-    return new_l
+    return lib.graph.topological_sort_root_first(mini_graph)
 
 def part2(s):
     rules, b = parse_input(s)
