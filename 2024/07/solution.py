@@ -1,28 +1,45 @@
 import lib.aoc
 
-def concat_nums(a, b):
-    mult = 1
-    while mult <= b:
-        mult *= 10
-    return a*mult+b
-
 def solve(s, allow_concatenation=False):
-    def is_fixable_equation(target, current_val, parts):
-        if current_val > target:
-            # All operations grow the number, if we've passed the target
-            # it is not fixable!
-            return False
+    # All numbers must be positive for this to work
+    assert('-' not in s)
 
-        if len(parts) == 0:
-            return current_val == target
+    def is_fixable_equation(target, parts):
+        parts = list(parts)
+        potential_targets = {target}
 
-        a = parts[0]
-        parts = parts[1:]
+        while len(parts):
+            n = parts.pop()
 
-        return (is_fixable_equation(target, current_val+a, parts) or
-                is_fixable_equation(target, current_val*a, parts) or
-                (allow_concatenation and
-                 is_fixable_equation(target, concat_nums(current_val, a), parts)))
+            new_potential_targets = set()
+
+            for t in potential_targets:
+                # Addition, only valid if the previous value is nonzero
+                prev = t - n
+                if prev >= 0:
+                    new_potential_targets.add(prev)
+
+                # Multiplication, only valid if t/n is whole and nonzero
+                if t >= n and t % n == 0:
+                    new_potential_targets.add(t // n)
+
+                # Concatenation, only valid if the last digits match
+                if allow_concatenation:
+                    n2 = n
+                    good = True
+                    while n2 > 0:
+                        if n2 % 10 == t % 10:
+                            t //= 10
+                            n2 //= 10
+                        else:
+                            good = False
+                            break
+                    if good:
+                        new_potential_targets.add(t)
+
+            potential_targets = new_potential_targets
+
+        return 0 in potential_targets
 
     answer = 0
 
@@ -32,8 +49,9 @@ def solve(s, allow_concatenation=False):
         target = int(target)
         parts = tuple(map(int, parts.split()))
 
-        if is_fixable_equation(target, parts[0], parts[1:]):
+        if is_fixable_equation(target, parts):
             answer += target
+            continue
 
     return answer
 
