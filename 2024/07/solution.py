@@ -1,67 +1,49 @@
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
-        target, rest = line.split(':')
-        yield int(target), tuple(map(int, rest.split()))
+def concat_nums(a, b):
+    mult = 1
+    while mult <= b:
+        mult *= 10
+    return a*mult+b
 
-def is_solvable(target, parts):
-    def impl(current, rest):
-        if len(rest) == 0:
-            if current == target:
-                return True
+def solve(s, allow_concatenation=False):
+    def is_fixable_equation(target, current_val, parts):
+        if current_val > target:
+            # All operations grow the number, if we've passed the target
+            # it is not fixable!
             return False
 
-        a = rest[0]
-        rest = rest[1:]
+        if len(parts) == 0:
+            return current_val == target
 
-        if impl(current+a, rest):
-            return True
-        if impl(current*a, rest):
-            return True
-        return False
+        a = parts[0]
+        parts = parts[1:]
 
-    return impl(parts[0], parts[1:])
-
-def part1(s):
-    data = parse_input(s)
+        return (is_fixable_equation(target, current_val+a, parts) or
+                is_fixable_equation(target, current_val*a, parts) or
+                (allow_concatenation and
+                 is_fixable_equation(target, concat_nums(current_val, a), parts)))
 
     answer = 0
 
-    for target, parts in data:
-        if is_solvable(target, parts):
+    for line in s.splitlines():
+        target, parts = line.split(':')
+
+        target = int(target)
+        parts = tuple(map(int, parts.split()))
+
+        if is_fixable_equation(target, parts[0], parts[1:]):
             answer += target
+
+    return answer
+
+def part1(s):
+    answer = solve(s)
 
     lib.aoc.give_answer(2024, 7, 1, answer)
 
-def is_solvable2(target, parts):
-    def impl(current, rest):
-        if len(rest) == 0:
-            if current == target:
-                return True
-            return False
-
-        a = rest[0]
-        rest = rest[1:]
-
-        if impl(current+a, rest):
-            return True
-        if impl(current*a, rest):
-            return True
-        if impl(int(str(current)+str(a)), rest):
-            return True
-        return False
-
-    return impl(parts[0], parts[1:])
-
 def part2(s):
-    data = parse_input(s)
-
-    answer = 0
-
-    for target, parts in data:
-        if is_solvable2(target, parts):
-            answer += target
+    answer = solve(s, allow_concatenation=True)
 
     lib.aoc.give_answer(2024, 7, 2, answer)
 
