@@ -7,11 +7,8 @@ import lib.grid
 def solve(s, generate_antinodes):
     grid = lib.grid.FixedGrid.parse(s)
 
-    frequency_to_antennas = collections.defaultdict(list)
-
-    for coord, c in grid.items():
-        if c != '.':
-            frequency_to_antennas[c].append(coord)
+    frequency_to_antennas = grid.coords_by_value()
+    del frequency_to_antennas['.']
 
     antinodes = set()
 

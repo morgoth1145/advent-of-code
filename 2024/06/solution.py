@@ -3,11 +3,9 @@ import lib.grid
 
 def parse_input(s):
     grid = lib.grid.FixedGrid.parse(s)
-
-    for pos, c in grid.items():
-        if c == '^':
-            grid[pos] = '.'
-            return grid, pos
+    start = grid.find('^')
+    grid[start] = '.'
+    return grid, start
 
 def part1(s):
     grid, start = parse_input(s)

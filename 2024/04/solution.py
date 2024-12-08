@@ -1,47 +1,34 @@
+import collections
+
 import lib.aoc
 import lib.grid
 
 def part1(s):
     grid = lib.grid.FixedGrid.parse(s)
 
-    answer = 0
-
-    for (x, y), c in grid.items():
-        if c != 'X':
-            continue
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                if dx == 0 == dy:
-                    continue
-                if (x+3*dx, y+3*dy) not in grid:
-                    continue
-                if all(grid[x+i*dx, y+i*dy] == c2
-                       for i, c2 in enumerate('MAS', start=1)):
-                    answer += 1
+    answer = sum(1
+                 for coord, direct
+                 in grid.find_matches('XMAS',
+                                      include_diagonals=True,
+                                      allow_reverse=True))
 
     lib.aoc.give_answer(2024, 4, 1, answer)
 
 def part2(s):
     grid = lib.grid.FixedGrid.parse(s)
 
-    answer = 0
+    # Count how many times each A is part of a 'MAS' diagonal
+    # If it is part of 2 'MAS' diagonals then it is an X-MAS!
+    a_match_counts = collections.Counter()
+    for (x, y), (dx, dy) in grid.find_matches('MAS',
+                                              include_orthogonals=False,
+                                              include_diagonals=True,
+                                              allow_reverse=True):
+        a_match_counts[x+dx, y+dy] += 1
 
-    for (x, y), c in grid.items():
-        if c != 'A':
-            continue
-        is_xmas = True
-        for dx, dy in [(1, 1), (1, -1)]:
-            n1 = x+dx, y+dy
-            n2 = x-dx, y-dy
-            if n1 not in grid or n2 not in grid:
-                is_xmas = False
-                break
-            # Check if the diagonal makes "MAS"
-            if set(grid[n1] + grid[n2]) != set('MS'):
-                is_xmas = False
-                break
-        if is_xmas:
-            answer += 1
+    answer = sum(1
+                 for v in a_match_counts.values()
+                 if v == 2)
 
     lib.aoc.give_answer(2024, 4, 2, answer)
 

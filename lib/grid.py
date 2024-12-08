@@ -1,3 +1,4 @@
+import collections
 import itertools
 
 # TODO: Should FixedGrid allow offset domains (say -1->4 for x and 3->8 for y)?
@@ -98,6 +99,13 @@ class FixedGrid:
     def col(self, x):
         return self._grid[x][:]
 
+    def find(self, target):
+        for x, col in enumerate(self._grid):
+            for y, val in enumerate(col):
+                if val == target:
+                    return (x, y)
+        return None
+
     def items(self, column_first = False):
         '''Generates all coordinate,value pairs in the grid for iteration.
 
@@ -112,6 +120,14 @@ class FixedGrid:
             for x, col in enumerate(self._grid):
                 for y, val in enumerate(col):
                     yield (x, y), val
+
+    def coords_by_value(self):
+        value_to_coords = collections.defaultdict(list)
+
+        for coord, val in self.items():
+            value_to_coords[val].append(coord)
+
+        return value_to_coords
 
     def neighbors(self, x, y, diagonals=False):
         assert(0 <= x < self._width and 0 <= y < self._height)
@@ -131,6 +147,34 @@ class FixedGrid:
                 yield x, y-1
             if y+1 < self._height:
                 yield x, y+1
+
+    def find_matches(self, pattern,
+                     include_orthogonals=True,
+                     include_diagonals=False,
+                     allow_reverse=False):
+        directions = []
+        if include_orthogonals:
+            directions.extend([(1, 0), (0, 1)])
+            if allow_reverse:
+                directions.extend([(-1, 0), (0, -1)])
+        if include_diagonals:
+            # Treat up and right as "forwards"
+            directions.extend([(1, 1), (1, -1)])
+            if allow_reverse:
+                directions.extend([(-1, 1), (-1, -1)])
+        assert(len(directions) > 0)
+
+        dist_to_check = len(pattern)-1
+
+        for (x, y), item in self.items():
+            if item != pattern[0]:
+                continue
+            for dx, dy in directions:
+                if (x + dist_to_check * dx, y + dist_to_check * dy) not in self:
+                    continue
+                if all(self[x+i*dx, y+i*dy] == item2
+                       for i, item2 in enumerate(pattern[1:], start=1)):
+                    yield (x, y), (dx, dy)
 
     def print(self, line_spacing=' '):
         print(self.as_str(line_spacing))
