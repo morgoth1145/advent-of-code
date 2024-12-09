@@ -1,90 +1,100 @@
+import heapq
+
 import lib.aoc
 
-def part1(s):
-    nums = list(map(int, s))
+class Block:
+    def __init__(self, file_id, pos, length):
+        self.file_id = file_id
+        self.pos = pos
+        self.length = length
 
-    blocks = []
-    free_spots = []
+    @property
+    def heap_num(self):
+        # Treat free blocks longer than 9 as length 9 for the sake of heaps
+        # This works since files are at most length 9
+        return min(self.length, 9)
+
+    def __lt__(self, other):
+        return self.pos < other.pos
+
+def solve(s, split_files_into_single_blocks=False):
+    files = []
+    free_heaps = [[] for _ in range(10)]
 
     is_file = True
-    file_id = 0
+    next_file_id = 0
+    pos = 0
+    last_free_b = None
 
-    for n in nums:
+    for n in map(int, s):
+        file_id = next_file_id if is_file else None
+        block = Block(file_id, pos, n)
         if is_file:
-            for _ in range(n):
-                blocks.append(file_id)
-            file_id += 1
+            next_file_id += 1
+            if n > 0:
+                if split_files_into_single_blocks:
+                    for off in range(n):
+                        files.append((Block(file_id, pos+off, 1)))
+                else:
+                    files.append(block)
+                last_free_b = None # Wipe the last free block to prevent merges!
         else:
-            for _ in range(n):
-                idx = len(blocks)
-                free_spots.append(idx)
-                blocks.append(None)
+            if n > 0:
+                if last_free_b is not None:
+                    free_heaps[last_free_b.heap_num].pop()
+                    last_free_b.length += n
+                    block = last_free_b
+                free_heaps[block.heap_num].append(block)
+                last_free_b = block
+        pos += n
         is_file = not is_file
 
-    for pos in free_spots:
-        if pos > len(blocks):
-            break
-        val = blocks.pop()
-        blocks[pos] = val
-        while blocks[-1] == None:
-            blocks.pop()
+    for h in free_heaps:
+        heapq.heapify(h)
+
+    def find_free_block(target_length):
+        best_length, best_b = None, None
+        for length in range(target_length, 10):
+            if len(free_heaps[length]) == 0:
+                continue
+            free_b = free_heaps[length][0]
+            if best_b is None or free_b < best_b:
+                best_length = length
+                best_b = free_b
+        if best_length is None:
+            return None
+        return heapq.heappop(free_heaps[best_length])
+
+    for f in files[::-1]:
+        free_b = find_free_block(f.length)
+        if free_b is None or free_b.pos > f.pos:
+            # Don't bother replacing free_b if it's not None, if it's past f.pos
+            # then it won't be useful for any future files either
+            continue
+
+        f.pos = free_b.pos
+
+        free_b.pos += f.length
+        free_b.length -= f.length
+        if free_b.length > 0:
+            heapq.heappush(free_heaps[free_b.heap_num], free_b)
+
+    files.sort()
 
     answer = 0
+    for b in files:
+        for i in range(b.length):
+            answer += (b.pos+i) * b.file_id
 
-    for pos, v in enumerate(blocks):
-        answer += pos * v
+    return answer
+
+def part1(s):
+    answer = solve(s, split_files_into_single_blocks=True)
 
     lib.aoc.give_answer(2024, 9, 1, answer)
 
 def part2(s):
-    nums = list(map(int, s))
-
-    blocks = []
-    file_starts = []
-
-    is_file = True
-    file_id = 0
-
-    for n in nums:
-        if is_file:
-            file_starts.append(len(blocks))
-            for _ in range(n):
-                blocks.append(file_id)
-            file_id += 1
-        else:
-            for _ in range(n):
-                blocks.append(None)
-        is_file = not is_file
-
-    def find_first_gap(target_length):
-        for idx, v in enumerate(blocks):
-            if v is None and idx+target_length <= len(blocks):
-                if all(blocks[idx+i] is None
-                       for i in range(target_length)):
-                    return idx
-        return None
-
-    while file_starts:
-        idx = file_starts.pop()
-        file_id = blocks[idx]
-        end = idx
-        while end+1 < len(blocks) and blocks[end+1] == file_id:
-            end += 1
-        length = end - idx + 1
-
-        dest = find_first_gap(length)
-        if dest is None:
-            continue
-        if dest < idx:
-            for i in range(length):
-                blocks[dest+i] = file_id
-                blocks[idx+i] = None
-
-    answer = 0
-
-    for pos, v in enumerate(blocks):
-        if v is not None:
-            answer += pos * v
+    answer = solve(s)
 
     lib.aoc.give_answer(2024, 9, 2, answer)
 
