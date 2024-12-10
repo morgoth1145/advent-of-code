@@ -1,62 +1,32 @@
 import lib.aoc
 import lib.grid
 
-def part1(s):
+def solve(s, bfs_collection_type):
     grid = lib.grid.FixedGrid.parse(s, value_fn=int)
 
-    starts = grid.coords_by_value()[0]
-
-    answer = 0
-
     def score_trailhead(coord):
-        assert(grid[coord] == 0)
-        seen = set()
+        states = bfs_collection_type([coord])
 
-        def impl(coord, v):
-            if coord in seen:
-                return
-            seen.add(coord)
+        # Walk the states from 0 up to 9
+        for target_val in range(1, 10):
+            states = bfs_collection_type(n
+                                         for coord in states
+                                         for n in grid.neighbors(*coord)
+                                         if grid[n] == target_val)
 
-            if v == 9:
-                yield coord
-                return
+        return len(states)
 
-            for n in grid.neighbors(*coord):
-                v2 = grid[n]
-                if v2 == v+1:
-                    yield from impl(n, v2)
+    return sum(map(score_trailhead, grid.coords_by_value()[0]))
 
-        ends = set(impl(coord, 0))
-        return len(ends)
-
-    answer = sum(map(score_trailhead, starts))
+def part1(s):
+    # Count only unique destinations
+    answer = solve(s, set)
 
     lib.aoc.give_answer(2024, 10, 1, answer)
 
 def part2(s):
-    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
-
-    starts = grid.coords_by_value()[0]
-
-    answer = 0
-
-    def score_trailhead(coord):
-        assert(grid[coord] == 0)
-
-        def impl(coord, v):
-            if v == 9:
-                yield coord
-                return
-
-            for n in grid.neighbors(*coord):
-                v2 = grid[n]
-                if v2 == v+1:
-                    yield from impl(n, v2)
-
-        ends = list(impl(coord, 0))
-        return len(ends)
-
-    answer = sum(map(score_trailhead, starts))
+    # Use list to count all paths
+    answer = solve(s, list)
 
     lib.aoc.give_answer(2024, 10, 2, answer)
 
