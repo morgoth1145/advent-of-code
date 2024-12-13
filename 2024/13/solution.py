@@ -1,8 +1,6 @@
-import z3
-
 import lib.aoc
 
-def solve(s, a_cost, b_cost, px_offset=0, py_offset=0, press_limit=None):
+def solve(s, a_cost, b_cost, px_offset=0, py_offset=0):
     answer = 0
 
     for group in s.split('\n\n'):
@@ -16,30 +14,33 @@ def solve(s, a_cost, b_cost, px_offset=0, py_offset=0, press_limit=None):
                                                  line.split(': ')[1]
                                                  .split(',')))
                                         for line in group.splitlines()]
+        px, py = px+px_offset, py+py_offset
 
-        o = z3.Optimize()
-        a = z3.Int('a')
-        b = z3.Int('b')
-        cost = z3.Int('cost')
+        # a*ax + b*bx = px
+        # a*ay + b*by = py
+        
+        # a = (px - b*bx) / ax
+        # ((px - b*bx) / ax) * ay + b*by = py
+        # (px - b*bx) * ay + b*ax*by = py*ax
+        # px*ay - b*bx*ay + b*ax*by = py*ax
+        # b*ax*by - b*bx*ay = py*ax - px*ay
+        # b * (ax*by - bx*ay) = py*ax - px*ay
+        # b = (py*ax - px*ay) / (ax*by - bx*ay)
 
-        o.add([a*ax + b*bx == px+px_offset,
-               a*ay + b*by == py+py_offset,
-               cost == a*a_cost + b*b_cost])
-        if press_limit is not None:
-            o.add([a <= press_limit,
-                   b <= press_limit])
-        o.minimize(cost)
-        o.check()
+        b, brem = divmod(py*ax - px*ay, ax*by - bx*ay)
+        if brem != 0 or b < 0:
+            continue # Not a valid solution
 
-        cost = o.model()[cost]
+        a, arem = divmod(px - b*bx, ax)
+        if arem != 0 or a < 0:
+            continue # Not a valid solution
 
-        if cost is not None:
-            answer += cost.as_long()
+        answer += a*a_cost + b*b_cost
 
     return answer
 
 def part1(s):
-    answer = solve(s, 3, 1, press_limit=100)
+    answer = solve(s, 3, 1)
 
     lib.aoc.give_answer(2024, 13, 1, answer)
 
