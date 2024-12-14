@@ -1,4 +1,8 @@
+import collections
+import math
+
 import lib.aoc
+import lib.math
 
 class Robots:
     def __init__(self, s, width, height):
@@ -46,22 +50,6 @@ class Robots:
     def robot_state_key(self):
         return [p for p, v in self.robots]
 
-    @property
-    def cluster_factor(self):
-        robot_positions = set(p for p, v in self.robots)
-
-        clustering = 0
-
-        for (px, py), _ in self.robots:
-            for dx in (-1, 0, 1):
-                for dy in (-1, 0, 1):
-                    if dx == 0 == dy:
-                        continue
-                    if (px+dx, py+dy) in robot_positions:
-                        clustering += 1
-
-        return clustering
-
 def part1(s):
     robots = Robots(s, 101, 103)
 
@@ -73,23 +61,36 @@ def part1(s):
     lib.aoc.give_answer(2024, 14, 1, answer)
 
 def part2(s):
-    robots = Robots(s, 101, 103)
+    WIDTH = 101
+    HEIGHT = 103
 
-    start_state = robots.robot_state_key
+    assert(math.gcd(WIDTH, HEIGHT) == 1)
 
-    t = 0
+    robots = Robots(s, WIDTH, HEIGHT)
 
-    best = None
+    best_x = None
+    best_y = None
 
-    while t == 0 or start_state != robots.robot_state_key:
-        clustering = robots.cluster_factor
-        if best is None or clustering > best[0]:
-            best = (clustering, t)
+    for iter_n in range(max(WIDTH, HEIGHT)):
+        c_x = collections.Counter(px for px, py in robots.robot_state_key)
+        key_x = sorted(c_x.values(), reverse=True)
+        if best_x is None or key_x > best_x[0]:
+            best_x = (key_x, iter_n)
 
-        t += 1
+        c_y = collections.Counter(py for px, py in robots.robot_state_key)
+        key_y = sorted(c_y.values(), reverse=True)
+        if best_y is None or key_y > best_y[0]:
+            best_y = (key_y, iter_n)
+
         robots.step()
 
-    answer = best[1]
+    x_offset = best_x[1]
+    y_offset = best_y[1]
+
+    # Assume that the tree shows up with the maximum "clustering" in each dimension
+    # This can be computed significantly faster than checking 10k states!
+    answer = lib.math.chinese_remainder([(WIDTH, x_offset),
+                                         (HEIGHT, y_offset)])
 
     lib.aoc.give_answer(2024, 14, 2, answer)
 
