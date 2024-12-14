@@ -1,117 +1,95 @@
-import collections
-import parse
-
 import lib.aoc
 
-def parse_all_ints(s):
-    return list(map(lambda r:r[0], parse.findall('{:d}', s)))
+class Robots:
+    def __init__(self, s, width, height):
+        self.robots = []
+        for line in s.splitlines():
+            p, v = line.split()
+            p = tuple(map(int, p[2:].split(',')))
+            v = tuple(map(int, v[2:].split(',')))
+            self.robots.append([p, v])
 
-def parse_input(s):
-    for line in s.splitlines():
-        px, py, vx, vy = parse_all_ints(line)
-        yield [(px, py), (vx, vy)]
+        self.width = width
+        self.height = height
 
-def step_robot(px, py, vx, vy, width, height):
-    px += vx
-    py += vy
+    def step(self):
+        for robot in self.robots:
+            (px, py), (vx, vy) = robot
+            px = (px + vx) % self.width
+            py = (py + vy) % self.height
+            robot[0] = (px, py)
 
-    if px < 0:
-        px += width
-    if px >= width:
-        px -= width
+    @property
+    def safety_factor(self):
+        quadrants = {(qx, qy): 0
+                     for qx in (0, 1)
+                     for qy in (0, 1)}
 
-    if py < 0:
-        py += height
-    if py >= height:
-        py -= height
+        middle_x = self.width//2
+        middle_y = self.height//2
 
-    return px, py
+        for (px, py), _ in self.robots:
+            if px == middle_x or py == middle_y:
+                continue
 
-def project(robot, width, height, steps):
-    (px, py), (vx, vy) = robot
+            qx = px > middle_x
+            qy = py > middle_y
+            quadrants[qx,qy] += 1
 
-    for _ in range(steps):
-        px, py = step_robot(px, py, vx, vy, width, height)
+        safety = 1
+        for v in quadrants.values():
+            safety *= v
 
-    return px, py
+        return safety
+
+    @property
+    def robot_state_key(self):
+        return [p for p, v in self.robots]
+
+    @property
+    def cluster_factor(self):
+        robot_positions = set(p for p, v in self.robots)
+
+        clustering = 0
+
+        for (px, py), _ in self.robots:
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    if dx == 0 == dy:
+                        continue
+                    if (px+dx, py+dy) in robot_positions:
+                        clustering += 1
+
+        return clustering
 
 def part1(s):
-    data = parse_input(s)
+    robots = Robots(s, 101, 103)
 
-    WIDTH = 101
-    HEIGHT = 103
+    for _ in range(100):
+        robots.step()
 
-    MIDDLE_X = WIDTH//2
-    MIDDLE_Y = HEIGHT//2
-
-    quadrants = collections.Counter()
-
-    for robot in data:
-        px, py = project(robot, 101, 103, 100)
-
-        if px == MIDDLE_X or py == MIDDLE_Y:
-            continue
-
-        qx = px > MIDDLE_X
-        qy = py > MIDDLE_Y
-        quadrants[qx,qy] += 1
-
-    answer = 1
-
-    for v in quadrants.values():
-        answer *= v
+    answer = robots.safety_factor
 
     lib.aoc.give_answer(2024, 14, 1, answer)
 
 def part2(s):
-    robots = list(parse_input(s))
+    robots = Robots(s, 101, 103)
 
-    WIDTH = 101
-    HEIGHT = 103
+    start_state = robots.robot_state_key
 
-    MIDDLE_X = WIDTH//2
-    MIDDLE_Y = HEIGHT//2
+    t = 0
 
-    def maybe_christmas(px, py):
-        x = abs(px - MIDDLE_X)
-        return (py+2)//2 > x
+    best = None
 
-    def tree_score():
-        return sum(maybe_christmas(px, py)
-                   for (px, py), _
-                   in robots)
+    while t == 0 or start_state != robots.robot_state_key:
+        clustering = robots.cluster_factor
+        if best is None or clustering > best[0]:
+            best = (clustering, t)
 
-    def print_state():
-        has_bot = set(p for p, v in robots)
+        t += 1
+        robots.step()
 
-        for y in range(HEIGHT):
-            l = ''
-            for x in range(WIDTH):
-                if maybe_christmas(x, y):
-                    c = 'T' if (x,y) in has_bot else '.'
-                else:
-                    c = '#' if (x,y) in has_bot else ' '
-                l += c
-            print(l)
-
-        print('-'*75)
-        print('-'*75)
-        print('-'*75)
-
-    answer = 0
-    best_score = -1
-
-    for i in range(50000):
-        s = tree_score()
-        if s > best_score:
-            print(i)
-            print_state()
-            answer = i
-            best_score = s
-        for idx, robot in enumerate(robots):
-            (px, py), (vx, vy) = robot
-            px, py = step_robot(px, py, vx, vy, WIDTH, HEIGHT)
-            robot[0] = (px, py)
+    answer = best[1]
 
     lib.aoc.give_answer(2024, 14, 2, answer)
 
