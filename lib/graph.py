@@ -142,6 +142,119 @@ def dijkstra_length(graph, start, end, heuristic=None):
 
     return dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic)
 
+# TODO: Deduplicate with dijkstra_length/dijkstra_length_fuzzy_end
+# TODO: Return the paths as a graph instead?
+def dijkstra_shortest_paths_fuzzy_end(graph, start, end_fn, heuristic=None):
+    '''Yields the shortest paths from start to any end state
+    in the graph.
+    graph[node] must return a list of (neighbor, distance) pairs
+
+    Arguments:
+    start - Either the starting state or a list of starting states
+    end_fn - Function accepting a state. Returns True if this is an end state
+    and False otherwise
+    heuristic - If supplied, provides an estimate of the remaining distance
+    from a given node to the end
+    '''
+    if heuristic is None:
+        heuristic = lambda n: 0
+
+    if not isinstance(start, list):
+        start = [start]
+
+    class PathNode:
+        def __init__(self, state, cost):
+            self.state = state
+            self.cost = cost
+            self.sources = []
+
+        def yield_paths(self):
+            def impl(node, path):
+                path.append(node.state)
+                if len(node.sources) == 0:
+                    yield path[::-1], self.cost
+                else:
+                    for src in node.sources:
+                        yield from impl(src, path)
+                path.pop()
+            yield from impl(self, [])
+
+    state_to_path_node = {}
+    queue = []
+    for s in start:
+        path_node = PathNode(s, 0)
+        state_to_path_node[s] = path_node
+        queue.append((heuristic(s), 0, s, path_node))
+    heapq.heapify(queue)
+    handled = set()
+
+    best_distance = None
+
+    while len(queue) > 0:
+        _, current_dist, current_node, path_node = heapq.heappop(queue)
+
+        if best_distance is not None and current_dist > best_distance:
+            return # No more paths exist
+
+        if end_fn(current_node):
+            best_distance = current_dist
+            yield from path_node.yield_paths()
+            continue
+
+        if current_node in handled:
+            continue
+        handled.add(current_node)
+
+        for neighbor_node, neighbor_dist in graph[current_node]:
+            new_dist = current_dist + neighbor_dist
+
+            neighbor_path_node = state_to_path_node.get(neighbor_node)
+            if neighbor_path_node is not None:
+                # See how this compares to previous paths and handle accordingly
+                if new_dist > neighbor_path_node.cost:
+                    continue # Too expensive! Skip it
+                elif new_dist == neighbor_path_node.cost:
+                    # Same cost, add a new source
+                    neighbor_path_node.sources.append(path_node)
+                    continue
+                # Cheaper! Replace the path node and track in the min heap
+
+            new_dist = current_dist + neighbor_dist
+            neighbor_path_node = PathNode(neighbor_node, new_dist)
+            neighbor_path_node.sources.append(path_node)
+            state_to_path_node[neighbor_node] = neighbor_path_node
+
+            heapq.heappush(queue, (heuristic(neighbor_node) + new_dist,
+                                   new_dist,
+                                   neighbor_node,
+                                   neighbor_path_node))
+
+def dijkstra_shortest_paths(graph, start, end, heuristic=None):
+    '''Yields the shortest paths from start to end in the graph.
+    graph[node] must return a list of (neighbor, distance) pairs
+
+    Arguments:
+    start - Either the starting state or a list of starting states
+    end - Either the ending state or a list of possible ending states
+    heuristic - If supplied, provides an estimate of the remaining distance
+    from a given node to the end
+    '''
+    if not isinstance(end, list):
+        end = [end]
+
+    # Verify that all end states are valid nodes. I ran into dumb bugs once
+    # when refactoring when passing in a list instead of a tuple!
+    for e in end:
+        hash(e)
+        if heuristic is not None:
+            assert(heuristic(e) == 0)
+
+    end_candidates = set(end)
+    def end_fn(state):
+        return state in end_candidates
+
+    return dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic)
+
 def make_lazy_graph(neighbor_fn):
     def fn(key):
         return list(neighbor_fn(key))
