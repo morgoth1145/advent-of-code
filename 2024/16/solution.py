@@ -12,33 +12,31 @@ def solve(s):
 
     def neighbor_fn(state):
         (x, y), (dx, dy) = state
-        n = x+dx, y+dy
-        if grid[n] != '#':
-            yield (n, (dx, dy)), 1
 
-        yield ((x, y), (-dy, dx)), 1000
-        yield ((x, y), (dy, -dx)), 1000
+        # Always move even if a turn is required
+        # This helps keep the state space down and the graph smaller,
+        # optimizing the solution
+        for ndx, ndy, cost in [(dx, dy, 1),
+                               (-dy, dx, 1001),
+                               (dy, -dx, 1001),
+                               (-dy, -dx, 2001)]:
+            n = x+ndx, y+ndy
+            if grid[n] != '#':
+                yield (n, (ndx, ndy)), cost
 
     def end_fn(state):
         return state[0] == end
 
     graph = lib.graph.make_lazy_graph(neighbor_fn)
 
-    tiles_on_best_path = set()
-    num_paths = 0
+    shortest_path_graph, _, minimum_cost, _ = lib.graph.make_shortest_path_graph_fuzzy_end(graph, start_state, end_fn)
 
-    minimum_cost = None
+    # Eliminate duplicates in case some tiles are hit from multiple directions
+    tiles_on_shortest_path = set(pos
+                                 for pos, direct
+                                 in shortest_path_graph.keys())
 
-    for best_path, path_cost in lib.graph.dijkstra_shortest_paths_fuzzy_end(graph, start_state, end_fn):
-        if minimum_cost is None:
-            minimum_cost = path_cost
-        else:
-            assert(minimum_cost == path_cost)
-
-        for coord, direct in best_path:
-            tiles_on_best_path.add(coord)
-
-    return minimum_cost, len(tiles_on_best_path)
+    return minimum_cost, len(tiles_on_shortest_path)
 
 def part1(s):
     answer, _ = solve(s)
