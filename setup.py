@@ -39,6 +39,7 @@ import math
 import parse
 import re
 import sympy # sympy.parse_expr, sympy.solve, sympy.Eq
+import sys # sys.setrecursionlimit(1000000)
 import z3 # x = z3.Int('x'); x < 0; (x-1) >= 0
 # z3.If(x >= 0, x, -x); z3.And(); z3.Or(); z3.Not()
 # s = z3.Solver(); solver.add(constraint); s.check(); s.model()[x].as_long()
