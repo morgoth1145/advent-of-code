@@ -35,8 +35,40 @@ def part1(s):
 
     lib.aoc.give_answer(2024, 18, 1, answer)
 
+def is_solvable(falling_bytes):
+    DIMENSION = 70
+
+    def neighbor_fn(state):
+        x, y = state
+
+        for nx, ny in [(x-1, y),
+                       (x+1, y),
+                       (x, y-1),
+                       (x, y+1)]:
+            if 0 <= nx <= DIMENSION and 0 <= ny <= DIMENSION:
+                if (nx, ny) in falling_bytes:
+                    continue # Failed
+                yield (nx, ny), 1
+
+    graph = lib.graph.make_lazy_graph(neighbor_fn)
+
+    start = (0, 0)
+    end = (DIMENSION, DIMENSION)
+
+    steps = lib.graph.find_shortest_path_length(graph, start, end)
+    return steps != -1
+
 def part2(s):
-    pass
+    data = list(parse_input(s))
+
+    for i, pos in enumerate(data):
+        falling_bytes = set(data[:i+1])
+        if not is_solvable(falling_bytes):
+            x, y = pos
+            answer = f'{x},{y}'
+            break
+
+    lib.aoc.give_answer(2024, 18, 2, answer)
 
 INPUT = lib.aoc.get_input(2024, 18)
 part1(INPUT)
