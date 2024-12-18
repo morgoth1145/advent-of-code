@@ -45,6 +45,7 @@ import z3 # x = z3.Int('x'); x < 0; (x-1) >= 0
 # s = z3.Solver(); solver.add(constraint); s.check(); s.model()[x].as_long()
 # o = z3.Optimize(); o.minimize(x); o.check(); o.model()[x].as_long()
 
+import lib.algorithms
 import lib.aoc
 import lib.cyk
 import lib.graph
