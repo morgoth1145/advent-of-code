@@ -3,51 +3,39 @@ import functools
 import lib.aoc
 
 def parse_input(s):
-    groups = s.split('\n\n')
+    towels, designs = s.split('\n\n')
 
-    a = groups[0].split(', ')
-    return a, groups[1].splitlines()
+    return towels.split(', '), designs.splitlines()
 
 def part1(s):
-    a, b = parse_input(s)
+    towels, designs = parse_input(s)
 
     @functools.cache
     def is_match(remaining):
         if len(remaining) == 0:
             return True
 
-        for prefix in a:
-            if remaining.startswith(prefix):
-                if is_match(remaining[len(prefix):]):
-                    return True
+        return any(is_match(remaining[len(prefix):])
+                   for prefix in towels
+                   if remaining.startswith(prefix))
 
-        return False
-
-    answer = 0
-
-    for design in b:
-        if is_match(design):
-            answer += 1
+    answer = sum(map(is_match, designs))
 
     lib.aoc.give_answer(2024, 19, 1, answer)
 
 def part2(s):
-    a, b = parse_input(s)
+    towels, designs = parse_input(s)
 
     @functools.cache
-    def count_ways(remaining):
+    def count_combos(remaining):
         if len(remaining) == 0:
             return 1
 
-        ways = 0
+        return sum(count_combos(remaining[len(prefix):])
+                   for prefix in towels
+                   if remaining.startswith(prefix))
 
-        for prefix in a:
-            if remaining.startswith(prefix):
-                ways += count_ways(remaining[len(prefix):])
-
-        return ways
-
-    answer = sum(map(count_ways, b))
+    answer = sum(map(count_combos, designs))
 
     lib.aoc.give_answer(2024, 19, 2, answer)
 
