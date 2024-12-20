@@ -1,4 +1,5 @@
 import functools
+import re2 as re
 
 import lib.aoc
 
@@ -10,16 +11,9 @@ def parse_input(s):
 def part1(s):
     towels, designs = parse_input(s)
 
-    @functools.cache
-    def is_match(remaining):
-        if len(remaining) == 0:
-            return True
-
-        return any(is_match(remaining[len(prefix):])
-                   for prefix in towels
-                   if remaining.startswith(prefix))
-
-    answer = sum(map(is_match, designs))
+    r = re.compile('(?:' + '|'.join(towels) + ')*')
+    answer = sum(r.fullmatch(d) is not None
+                 for d in designs)
 
     lib.aoc.give_answer(2024, 19, 1, answer)
 

@@ -37,7 +37,7 @@ import itertools
 import json
 import math
 import parse
-import re
+import re2 as re
 import sympy # sympy.parse_expr, sympy.solve, sympy.Eq
 import sys # sys.setrecursionlimit(1000000)
 import z3 # x = z3.Int('x'); x < 0; (x-1) >= 0
