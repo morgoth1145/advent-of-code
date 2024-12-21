@@ -295,7 +295,7 @@ def find_shortest_paths_fuzzy_end(graph, start, end_fn, heuristic=None):
     heuristic - If supplied, provides an estimate of the remaining distance
     from a given node to the end
     '''
-    shortest_path_graph, start_states = make_shortest_path_graph_fuzzy_end(graph, start, end_fn, heuristic)
+    shortest_path_graph, start_states, _, _ = make_shortest_path_graph_fuzzy_end(graph, start, end_fn, heuristic)
 
     expansion_queue = [(state, 0, []) for state in start_states]
     while expansion_queue:
@@ -336,7 +336,7 @@ def find_shortest_paths(graph, start, end, heuristic=None):
     def end_fn(state):
         return state in end_candidates
 
-    return dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic)
+    return find_shortest_paths_fuzzy_end(graph, start, end_fn, heuristic)
 
 def make_lazy_graph(neighbor_fn):
     def fn(key):
