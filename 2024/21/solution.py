@@ -2,152 +2,76 @@ import functools
 
 import lib.aoc
 import lib.graph
+import lib.grid
 
-POSITIONS = {
-    '7': (0,0),
-    '8': (1,0),
-    '9': (2,0),
-    '4': (0,1),
-    '5': (1,1),
-    '6': (2,1),
-    '1': (0,2),
-    '2': (1,2),
-    '3': (2,2),
-    '0': (1,3),
-    'A': (2,3),
-    }
-POS_TO_KEY = {pos:key
-              for key, pos
-              in POSITIONS.items()}
+def calc_keypad_moves(keypad_grid_str):
+    grid = lib.grid.FixedGrid.parse(keypad_grid_str)
 
-def make_keypad_graph():
-    def neighbor_fn(pos):
-        x, y = pos
+    def neighbor_fn(key):
+        pos = grid.find(key)
 
-        for nx, ny in [(x-1, y),
-                       (x+1, y),
-                       (x, y-1),
-                       (x, y+1)]:
-            if nx < 0 or nx > 3 or ny < 0 or ny > 3:
+        for n in grid.neighbors(*pos):
+            if grid[n] == '#':
                 continue
-            if nx == 0 and ny == 3:
+            yield grid[n], 1
+
+    graph = lib.graph.make_lazy_graph(neighbor_fn)
+
+    keypad_moves = {}
+
+    for _, first in grid.items():
+        if first == '#':
+            continue
+        for _, second in grid.items():
+            if second == '#':
                 continue
-            yield (nx, ny), 1
+            paths = []
+            for p, _ in lib.graph.find_shortest_paths(graph, first, second):
+                path = ''
+                for key1, key2 in zip(p, p[1:]):
+                    x1, y1 = grid.find(key1)
+                    x2, y2 = grid.find(key2)
+                    dx, dy = x2-x1, y2-y1
+                    move = {(-1, 0): '<',
+                            (1, 0): '>',
+                            (0, 1): 'v',
+                            (0, -1): '^'}[dx,dy]
+                    path += move
+                # Make sure to press the button at the end!
+                paths.append(path + 'A')
+            keypad_moves[first,second] = paths
 
-    return lib.graph.make_lazy_graph(neighbor_fn)
-KEYPAD_GRAPH = make_keypad_graph()
+    return keypad_moves
 
-POSITIONS2 = {
-    '^': (1,0),
-    'A': (2,0),
-    '<': (0,1),
-    'v': (1,1),
-    '>': (2,1),
-    }
-POS2_TO_KEY = {pos:key
-              for key, pos
-               in POSITIONS2.items()}
+def solve(s, num_robots):
+    NUM_KEYPAD_MOVES = calc_keypad_moves('''789
+456
+123
+#0A''')
+    DIR_KEYPAD_MOVES = calc_keypad_moves('''#^A
+<v>''')
 
-def make_keypad2_graph():
-    def neighbor_fn(pos):
-        x, y = pos
+    @functools.cache
+    def dir_keypresses_for_dir_seq(seq, num_robots_left):
+        if num_robots_left == 0:
+            return len(seq)
 
-        for nx, ny in [(x-1, y),
-                       (x+1, y),
-                       (x, y-1),
-                       (x, y+1)]:
-            if nx < 0 or nx > 3 or ny < 0 or ny > 1:
-                continue
-            if nx == 0 and ny == 0:
-                continue
-            yield (nx, ny), 1
+        return sum(min(dir_keypresses_for_dir_seq(cand, num_robots_left-1)
+                       for cand
+                       in DIR_KEYPAD_MOVES[src, dest])
+                   for src, dest
+                   in zip('A' + seq, seq))
 
-    return lib.graph.make_lazy_graph(neighbor_fn)
-KEYPAD2_GRAPH = make_keypad2_graph()
+    def dir_keypresses_for_num_seq(seq):
+        return sum(min(dir_keypresses_for_dir_seq(cand, num_robots)
+                       for cand
+                       in NUM_KEYPAD_MOVES[src, dest])
+                   for src, dest
+                   in zip('A' + seq, seq))
 
-def path_to_directions(path):
-    x, y = path[0]
-    for nx, ny in path[1:]:
-        dx, dy = nx-x, ny-y
-        x, y = nx, ny
-        yield {(1, 0): '>',
-               (-1, 0): '<',
-               (0, -1): '^',
-               (0, 1): 'v'}[dx,dy]
-    yield 'A'
-
-@functools.cache
-def all_possible_keypad_move_sequences(start, end):
-    out = []
-    for p, dist in lib.graph.find_shortest_paths(KEYPAD_GRAPH,
-                                                 POSITIONS[start],
-                                                 POSITIONS[end]):
-        out_p = ''.join(path_to_directions(p))
-        out.append(out_p)
-
-    return out
-
-@functools.cache
-def all_possible_keypad2_move_sequences(start, end):
-    out = []
-    for p, dist in lib.graph.find_shortest_paths(KEYPAD2_GRAPH,
-                                                 POSITIONS2[start],
-                                                 POSITIONS2[end]):
-        out_p = ''.join(path_to_directions(p))
-        out.append(out_p)
-
-    return out
-
-@functools.cache
-def count_key2presses_to_achieve(first, second, levels_remaining):
-    best = None
-
-    for seq in all_possible_keypad2_move_sequences(first, second):
-        if levels_remaining == 0:
-            cost = len(seq)
-        else:
-            cost = count_key2presses_for_seq(seq, levels_remaining)
-
-        if best is None or best > cost:
-            best = cost
-
-    return best
-
-@functools.cache
-def count_key2presses_for_seq(seq, num_levels):
-    assert(num_levels > 0)
-    presses = 0
-
-    for a, b in zip('A' + seq, seq):
-        presses += count_key2presses_to_achieve(a, b, num_levels-1)
-
-    return presses
-
-def find_best_seq(toplevel, num_keypad2_levels):
-    all_presses = 0
-
-    for a, b in zip('A' + toplevel, toplevel):
-        best = None
-
-        for seq in all_possible_keypad_move_sequences(a, b):
-            presses = count_key2presses_for_seq(seq, num_keypad2_levels)
-            if best is None or best > presses:
-                best = presses
-
-        all_presses += best
-
-    return all_presses
-
-def solve(s, num_levels):
-    data = s.splitlines()
-
-    answer = 0
-
-    for line in data:
-        presses = find_best_seq(line, num_levels)
-        answer += presses * int(line[:-1])
-
-    return answer
+    return sum(int(line[:-1]) * dir_keypresses_for_num_seq(line)
+               for line
+               in s.splitlines())
 
 def part1(s):
     answer = solve(s, 2)
