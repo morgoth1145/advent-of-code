@@ -189,7 +189,7 @@ def make_shortest_path_graph_fuzzy_end(graph, start, end_fn, heuristic=None):
     state_to_sources = {}
     best_dist = None
     total_num_paths = 0
-    end_states = []
+    end_states = set()
 
     while len(queue) > 0:
         _, current_dist, current_node, src_node = heapq.heappop(queue)
@@ -205,9 +205,11 @@ def make_shortest_path_graph_fuzzy_end(graph, start, end_fn, heuristic=None):
         src_info.add_source(src_node, state_to_sources.get(src_node))
 
         if end_fn(current_node):
-            best_dist = current_dist
-            end_states.append((current_node, current_dist))
-            total_num_paths += src_info.num_src_paths
+            key = (current_node, current_dist)
+            if key not in end_states:
+                best_dist = current_dist
+                end_states.add((current_node, current_dist))
+                total_num_paths += src_info.num_src_paths
             continue
 
         if current_node in handled:
@@ -227,7 +229,7 @@ def make_shortest_path_graph_fuzzy_end(graph, start, end_fn, heuristic=None):
     shortest_path_graph = {}
     start_states = []
 
-    to_handle = end_states[:]
+    to_handle = list(end_states)
 
     while to_handle:
         state, dist = to_handle.pop()
