@@ -63,7 +63,7 @@ def make_keypad2_graph():
             yield (nx, ny), 1
 
     return lib.graph.make_lazy_graph(neighbor_fn)
-KEYPAD2_GRAPH = make_keypad_graph()
+KEYPAD2_GRAPH = make_keypad2_graph()
 
 def path_to_directions(path):
     x, y = path[0]
@@ -77,109 +77,87 @@ def path_to_directions(path):
     yield 'A'
 
 @functools.cache
-def possible_keypad_move_sequences(start, end):
+def all_possible_keypad_move_sequences(start, end):
     out = []
     for p, dist in lib.graph.find_shortest_paths(KEYPAD_GRAPH,
                                                  POSITIONS[start],
                                                  POSITIONS[end]):
         out_p = ''.join(path_to_directions(p))
         out.append(out_p)
-    return out
-
-def calc_repetition(seq):
-    out = 0
-
-    for c, c2 in zip(seq, seq[1:]):
-        if c == c2:
-            out += 1
 
     return out
-
-def shortest_sequences(seq):
-    start = 'A'
-
-    candidates = ['']
-
-    for c in seq:
-        new_cands = set()
-
-        for option in possible_keypad_move_sequences(start, c):
-            for cand in candidates:
-                new_cands.add(cand + option)
-
-        candidates = sorted(new_cands)
-        start = c
-
-    min_len = min(map(len, candidates))
-    candidates = [c for c in candidates if len(c) == min_len]
-
-    best_rep = max(map(calc_repetition, candidates))
-    candidates = [c for c in candidates if calc_repetition(c) == best_rep]
-
-    return candidates
 
 @functools.cache
-def possible_keypad2_move_sequences(start, end):
+def all_possible_keypad2_move_sequences(start, end):
     out = []
     for p, dist in lib.graph.find_shortest_paths(KEYPAD2_GRAPH,
                                                  POSITIONS2[start],
                                                  POSITIONS2[end]):
         out_p = ''.join(path_to_directions(p))
         out.append(out_p)
+
     return out
 
-def shortest_sequences2(seq):
-    start = 'A'
+@functools.cache
+def count_key2presses_to_achieve(first, second, levels_remaining):
+    best = None
 
-    candidates = ['']
+    for seq in all_possible_keypad2_move_sequences(first, second):
+        if levels_remaining == 0:
+            cost = len(seq)
+        else:
+            cost = count_key2presses_for_seq(seq, levels_remaining)
 
-    for c in seq:
-        new_cands = set()
+        if best is None or best > cost:
+            best = cost
 
-        for option in possible_keypad2_move_sequences(start, c):
-            for cand in candidates:
-                new_cands.add(cand + option)
+    return best
 
-        candidates = sorted(new_cands)
-        start = c
+@functools.cache
+def count_key2presses_for_seq(seq, num_levels):
+    assert(num_levels > 0)
+    presses = 0
 
-    min_len = min(map(len, candidates))
-    candidates = [c for c in candidates if len(c) == min_len]
+    for a, b in zip('A' + seq, seq):
+        presses += count_key2presses_to_achieve(a, b, num_levels-1)
 
-    best_rep = max(map(calc_repetition, candidates))
-    candidates = [c for c in candidates if calc_repetition(c) == best_rep]
+    return presses
 
-    return candidates
+def find_best_seq(toplevel, num_keypad2_levels):
+    all_presses = 0
 
-def part1(s):
+    for a, b in zip('A' + toplevel, toplevel):
+        best = None
+
+        for seq in all_possible_keypad_move_sequences(a, b):
+            presses = count_key2presses_for_seq(seq, num_keypad2_levels)
+            if best is None or best > presses:
+                best = presses
+
+        all_presses += best
+
+    return all_presses
+
+def solve(s, num_levels):
     data = s.splitlines()
 
     answer = 0
 
     for line in data:
-        outer_candidates = set()
-        for inner_seq in shortest_sequences(line):
-            for outer_seq in shortest_sequences2(inner_seq):
-                outer_candidates.add(outer_seq)
+        presses = find_best_seq(line, num_levels)
+        answer += presses * int(line[:-1])
 
-        best_outer_len = min(map(len, outer_candidates))
+    return answer
 
-        outer2_candidates = set()
-        for c in sorted(outer_candidates):
-            if len(c) == best_outer_len:
-                for outer2_seq in shortest_sequences2(c):
-                    outer2_candidates.add(outer2_seq)
-
-        best_outer2_len = min(map(len, outer2_candidates))
-
-        answer += best_outer2_len * int(line[:-1])
-
-    answer = answer
+def part1(s):
+    answer = solve(s, 2)
 
     lib.aoc.give_answer(2024, 21, 1, answer)
 
 def part2(s):
-    pass
+    answer = solve(s, 25)
+
+    lib.aoc.give_answer(2024, 21, 2, answer)
 
 INPUT = lib.aoc.get_input(2024, 21)
 part1(INPUT)
