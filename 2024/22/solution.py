@@ -1,66 +1,49 @@
 import collections
+import numpy
 
 import lib.aoc
 
-def generate_random(seed):
-    secret = seed
-    while True:
-        res = secret * 64
-        secret = res ^ secret
-        secret = secret % 16777216
-        res = secret // 32
-        secret = res ^ secret
-        secret = secret % 16777216
-        res = secret * 2048
-        secret = res ^ secret
-        secret = secret % 16777216
-        yield secret
+def generate_rngs(s, num_to_gen, output_mod=16777216):
+    rngs = numpy.array(list(map(int, s.splitlines())),
+                       dtype=numpy.uint32)
 
-def get_nth_num(seq, n):
-    for _ in range(n):
-        val = next(seq)
+    out = numpy.zeros((len(rngs), num_to_gen), dtype=numpy.int64)
 
-    return val
+    for i in range(num_to_gen):
+        rngs = (rngs ^ (rngs << 6)) & 0xffffff
+        rngs = (rngs ^ (rngs >> 5)) & 0xffffff
+        rngs = (rngs ^ (rngs << 11)) & 0xffffff
+
+        out[:,i] = rngs % output_mod
+
+    return out
 
 def part1(s):
-    nums = list(map(int, s.splitlines()))
-
-    answer = sum(get_nth_num(generate_random(seed), 2000)
-                 for seed in nums)
+    answer = numpy.sum(generate_rngs(s, 2000)[:,-1])
 
     lib.aoc.give_answer(2024, 22, 1, answer)
 
-def get_seller_prices(seed):
-    generator = generate_random(seed)
-    prices = []
-    while len(prices) < 2000:
-        prices.append(next(generator) % 10)
-    return prices
+def make_delta_to_price_map(prices, deltas):
+    c = {}
 
-def make_sell_map(prices):
-    c = collections.Counter()
+    delta_sequences = zip(deltas, deltas[1:], deltas[2:], deltas[3:])
+    sell_prices = prices[4:]
 
-    deltas = [b-a for a,b in zip(prices, prices[1:])]
-
-    for i in range(len(prices)):
-        if i+4 >= len(deltas):
-            break
-        key = tuple(deltas[i+dd] for dd in range(4))
-        if key in c:
-            continue
-        c[key] = prices[i+4]
+    for key, price in zip(delta_sequences, sell_prices):
+        if key not in c:
+            c[key] = price
 
     return c
 
 def part2(s):
-    nums = list(map(int, s.splitlines()))
-
-    sellers = list(map(get_seller_prices, nums))
+    seller_arr = generate_rngs(s, 2000, output_mod=10)
+    delta_arr = seller_arr[:,1:] - seller_arr[:,:-1]
 
     c = collections.Counter()
 
-    for prices in sellers:
-        c += make_sell_map(prices)
+    for i in range(seller_arr.shape[0]):
+        c += make_delta_to_price_map(seller_arr[i],
+                                     delta_arr[i])
 
     answer = max(c.values())
 
