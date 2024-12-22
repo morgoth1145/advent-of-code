@@ -2,7 +2,7 @@ import numpy
 
 import lib.aoc
 
-def generate_rngs(s, num_to_gen, output_mod=16777216):
+def generate_rngs(s, num_to_gen, output_mod=16777216, output_dtype=numpy.int64):
     rngs = numpy.array(list(map(int, s.splitlines())),
                        dtype=numpy.uint32)
 
@@ -26,8 +26,8 @@ def part1(s):
 def part2(s):
     NUM_TO_GENERATE = 2000
 
-    seller_arr = generate_rngs(s, NUM_TO_GENERATE, output_mod=10)
-    delta_arr = seller_arr[:,1:] - seller_arr[:,:-1]
+    seller_arr = generate_rngs(s, NUM_TO_GENERATE, output_mod=10, output_dtype=numpy.int8)
+    delta_arr = (seller_arr[:,1:] - seller_arr[:,:-1]).astype(numpy.int8)
 
     num_sellers = seller_arr.shape[0]
 
@@ -35,7 +35,7 @@ def part2(s):
     # Track sell values per-seller initially. Otherwise if two sellers
     # match the same delta string at the same time then they won't both
     # be counted in the totals!
-    sell_values = numpy.zeros((num_sellers,) + (19,)*4, numpy.int64)
+    sell_values = numpy.zeros((num_sellers,) + (19,)*4, numpy.int8)
 
     all_sellers_key = numpy.arange(num_sellers)
 
