@@ -44,8 +44,47 @@ def part1(s):
 
     lib.aoc.give_answer(2024, 23, 1, answer)
 
+def get_fully_connected(graph, first, rest):
+    rest = sorted(rest)
+
+    def impl(group, rest):
+        if len(rest) == 0:
+            yield list(group)
+            return
+        for i, other in enumerate(rest):
+            if len(group) != len(group & graph[other]):
+                continue
+            if any(other not in graph[comp]
+                   for comp in group):
+                continue
+            group.add(other)
+            yield from impl(group, rest[i+1:])
+            group.remove(other)
+        yield list(group)
+
+    best = {first}
+
+    for cand in impl({first}, rest):
+        if len(cand) > len(best):
+            best = cand
+
+    return best
+
 def part2(s):
-    pass
+    graph = parse_input(s)
+
+    best = (-1, None)
+
+    for i, (first, rest) in enumerate(sorted(graph.items(), key=lambda pair:len(pair[1]), reverse=True)):
+        if len(rest) + 1 < best[0]:
+            break
+        group = get_fully_connected(graph, first, rest)
+        if len(group) > best[0]:
+            best = (len(group), group)
+
+    answer = ','.join(sorted(best[1]))
+
+    lib.aoc.give_answer(2024, 23, 2, answer)
 
 INPUT = lib.aoc.get_input(2024, 23)
 part1(INPUT)
