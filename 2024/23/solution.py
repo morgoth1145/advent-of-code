@@ -2,87 +2,66 @@ import collections
 
 import lib.aoc
 
-def parse_input(s):
-    g = collections.defaultdict(set)
+def find_largest_cliques(s, max_clique_size=None):
+    net = collections.defaultdict(set)
 
     for line in s.splitlines():
         a, b = line.split('-')
-        g[a].add(b)
-        g[b].add(a)
+        net[a].add(b)
+        net[b].add(a)
 
-    return g
+    current_size = 0
 
-def find_tri_sets(graph):
-    res = set()
-    for a, connected in graph.items():
-        connected = list(connected)
-        for i, b in enumerate(connected):
-            b_conn = graph[b]
-            if a not in b_conn:
+    def generate_cliques(group, potential_connections):
+        if len(group) + len(potential_connections) < current_size:
+            return
+        if max_clique_size is not None:
+            if len(group) == max_clique_size:
+                yield list(group)
+                return
+            elif len(group) > max_clique_size:
+                return
+        for i, new_comp in enumerate(potential_connections):
+            if (len(group) != len(group & net[new_comp]) or
+                any(new_comp not in net[comp]
+                    for comp in group)):
+                # Not fully connected
                 continue
-            for c in connected[i+1:]:
-                if c not in b_conn:
-                    continue
-                c_conn = graph[c]
-                if a not in c_conn:
-                    continue
-                if b not in c_conn:
-                    continue
-                conn = tuple(sorted([a, b, c]))
-                res.add(conn)
-    return res
+            group.add(new_comp)
+            yield from generate_cliques(group, potential_connections[i+1:])
+            group.remove(new_comp)
+        if len(group) >= current_size:
+            yield list(group)
+
+    handled_starts = set()
+    cliques = []
+
+    for start, connections in net.items():
+        handled_starts.add(start)
+        connections = connections - handled_starts
+        for clique in generate_cliques({start}, list(connections)):
+            if len(clique) > current_size:
+                current_size = len(clique)
+                cliques = []
+            assert(len(clique) == current_size)
+            cliques.append(clique)
+
+    return cliques
 
 def part1(s):
-    graph = parse_input(s)
-
-    answer = 0
-
-    for comp_set in find_tri_sets(graph):
-        if any(comp.startswith('t')
-               for comp in comp_set):
-            answer += 1
+    answer = sum(any(comp[0] == 't'
+                     for comp
+                     in clique)
+                 for clique
+                 in find_largest_cliques(s, max_clique_size=3))
 
     lib.aoc.give_answer(2024, 23, 1, answer)
 
-def get_fully_connected(graph, first, rest):
-    rest = sorted(rest)
-
-    def impl(group, rest):
-        if len(rest) == 0:
-            yield list(group)
-            return
-        for i, other in enumerate(rest):
-            if len(group) != len(group & graph[other]):
-                continue
-            if any(other not in graph[comp]
-                   for comp in group):
-                continue
-            group.add(other)
-            yield from impl(group, rest[i+1:])
-            group.remove(other)
-        yield list(group)
-
-    best = {first}
-
-    for cand in impl({first}, rest):
-        if len(cand) > len(best):
-            best = cand
-
-    return best
-
 def part2(s):
-    graph = parse_input(s)
+    options = list(find_largest_cliques(s))
+    assert(len(options) == 1)
 
-    best = (-1, None)
-
-    for i, (first, rest) in enumerate(sorted(graph.items(), key=lambda pair:len(pair[1]), reverse=True)):
-        if len(rest) + 1 < best[0]:
-            break
-        group = get_fully_connected(graph, first, rest)
-        if len(group) > best[0]:
-            best = (len(group), group)
-
-    answer = ','.join(sorted(best[1]))
+    answer = ','.join(sorted(options[0]))
 
     lib.aoc.give_answer(2024, 23, 2, answer)
 
