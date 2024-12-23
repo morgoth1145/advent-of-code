@@ -12,39 +12,31 @@ def find_largest_cliques(s, max_clique_size=None):
 
     current_size = 0
 
-    def generate_cliques(group, potential_connections):
-        if len(group) + len(potential_connections) < current_size:
+    def generate_cliques(group, candidates):
+        if len(group) + len(candidates) < current_size:
             return
         if max_clique_size is not None:
             if len(group) == max_clique_size:
                 yield list(group)
                 return
-            elif len(group) > max_clique_size:
-                return
-        for i, new_comp in enumerate(potential_connections):
-            if (len(group) != len(group & net[new_comp]) or
-                any(new_comp not in net[comp]
-                    for comp in group)):
-                # Not fully connected
+        for new_comp in list(candidates):
+            candidates.remove(new_comp)
+            connections = net[new_comp]
+            if len(group) != len(group & connections):
                 continue
             group.add(new_comp)
-            yield from generate_cliques(group, potential_connections[i+1:])
+            yield from generate_cliques(group, candidates & connections)
             group.remove(new_comp)
         if len(group) >= current_size:
             yield list(group)
 
-    handled_starts = set()
     cliques = []
 
-    for start, connections in net.items():
-        handled_starts.add(start)
-        connections = connections - handled_starts
-        for clique in generate_cliques({start}, list(connections)):
-            if len(clique) > current_size:
-                current_size = len(clique)
-                cliques = []
-            assert(len(clique) == current_size)
-            cliques.append(clique)
+    for clique in generate_cliques(set(), set(net)):
+        if len(clique) > current_size:
+            current_size = len(clique)
+            cliques = []
+        cliques.append(clique)
 
     return cliques
 
