@@ -1,6 +1,8 @@
+import collections
 import functools
 
 import lib.aoc
+import lib.graph
 
 def parse_input(s):
     a, b = s.split('\n\n')
@@ -66,95 +68,6 @@ def part1(s):
 
     lib.aoc.give_answer(2024, 24, 1, answer)
 
-def dump_gates_pretty(gates):
-    renames = {}
-
-    @functools.cache
-    def check_rename(wire):
-        if wire not in gates:
-            return wire
-        if wire.startswith('z'):
-            return wire
-        left, op, right = gates[wire]
-        if ((left.startswith('x') and right.startswith('y')) or
-            left.startswith('y') and right.startswith('x')):
-            xid = left[1:]
-            yid = right[1:]
-            assert(xid == yid)
-            new_name = wire
-            if op == 'XOR':
-                new_name = 'z'+xid+'_xor'
-            elif op == 'AND':
-                new_name = 'z'+xid+'_and'
-            renames[wire] = new_name
-            return new_name
-        left = check_rename(left)
-        right = check_rename(right)
-        if (((left[3:] == '_and' and right[3:] == '_xor') or
-             (left[3:] == '_xor' and right[3:] == '_and')) and
-            op == 'AND'):
-            assert(left[0] == 'z' == right[0])
-            lid = int(left[1:3])
-            rid = int(right[1:3])
-            assert(abs(lid-rid) == 1)
-            new_name = 'z'+str(max(lid, rid)).zfill(2) + '_carry_and'
-            renames[wire] = new_name
-            return new_name
-        if (((left[3:] == '_carry' and right[3:] == '_xor') or
-             (left[3:] == '_xor' and right[3:] == '_carry')) and
-            op == 'AND'):
-            assert(left[0] == 'z' == right[0])
-            lid = int(left[1:3])
-            rid = int(right[1:3])
-            assert(abs(lid-rid) == 1)
-            new_name = 'z'+str(max(lid, rid)).zfill(2) + '_carry_and'
-            renames[wire] = new_name
-            return new_name
-        if (((left[3:] == '_and' and right[3:] == '_carry_and') or
-             (left[3:] == '_carry_and' and right[3:] == '_and')) and
-            op == 'OR'):
-            assert(left[0] == 'z' == right[0])
-            lid = int(left[1:3])
-            rid = int(right[1:3])
-            assert(lid == rid)
-            new_name = 'z'+str(lid).zfill(2) + '_carry'
-            renames[wire] = new_name
-            return new_name
-        return wire
-
-    for wire in gates:
-        check_rename(wire)
-
-    def pad(wire, target_length=20):
-        while len(wire) < target_length:
-            wire += ' '
-        return wire
-    @functools.cache
-    def dump(wire):
-        if wire not in gates:
-            return wire
-        left, op, right = gates[wire]
-        left = dump(left)
-        right = dump(right)
-        if wire in renames:
-            wire = renames[wire]
-        print(f'{pad(wire)} = {pad(left)} {pad(op, 5)} {pad(right)}')
-        return wire
-
-    num_bits = max(int(s[1:]) for s in gates
-                   if s[0] == 'z')
-
-    for i in range(num_bits+1):
-        s = 'z' + str(i).zfill(2)
-        dump(s)
-
-    print()
-    print()
-    for old, new in renames.items():
-        print(old+'->'+new)
-    print()
-    print()
-
 def validate_fixed_gates(signals, gates):
     x = extract_num('x', signals)
     y = extract_num('y', signals)
@@ -167,10 +80,39 @@ def validate_fixed_gates(signals, gates):
 def part2_manual(s):
     signals, gates = parse_input(s)
 
+    def plot_graph():
+        # Rename wires to include the gate type. This keeps the generated
+        # graph smaller and easier to parse visually.
+        renaming = {}
+        for wire, (_, op, _) in gates.items():
+            renaming[wire] = wire + ': ' + op
+
+        graph = collections.defaultdict(list)
+
+        c = collections.Counter()
+
+        coloring = {}
+
+        for wire, (left, op, right) in gates.items():
+            left = renaming.get(left, left)
+            right = renaming.get(right, right)
+            wire = renaming.get(wire, wire)
+
+            graph[left].append(wire)
+            graph[right].append(wire)
+
+            color = {'XOR': 'blue',
+                     'AND': 'red',
+                     'OR': 'green'}[op]
+            coloring[wire] = color
+
+        lib.graph.plot_graph(graph, distance=False, coloring=coloring)
+
     swaps = []
 
-    while len(swaps) < 8:
-        dump_gates_pretty(gates)
+    for _ in range(4):
+        plot_graph()
+
         print('Please analyze and find a pair of wires to swap.')
         first = input('First wire in the swap: ')
         second = input('Second wire in the swap: ')
@@ -179,6 +121,9 @@ def part2_manual(s):
         swaps.append(second)
 
     validate_fixed_gates(signals, gates)
+
+    print('Plotting fully fixed graph:')
+    plot_graph()
 
     answer = ','.join(sorted(swaps))
 

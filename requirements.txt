@@ -1,5 +1,6 @@
 gmpy2
 google-re2
+gravis
 jsonplus
 matplotlib # Graph plotting
 networkx

@@ -382,6 +382,15 @@ def to_distance_graph(graph):
             yield n, 1
     return make_lazy_graph(neighbor_fn)
 
+def to_simple_graph(graph):
+    '''Some usages more naturally require graphs without distance information.
+    Most utilities in this library expect a distance graph, so a converter
+    makes some usages much easier.'''
+    def neighbor_fn(node):
+        for n, _ in graph[node]:
+            yield n
+    return make_lazy_graph(neighbor_fn)
+
 def node_dist_list_to_nodes(node_dist_list):
     '''Some usages only care about the list of nodes, not the distances.
     A converter from node-distance lists to a list of nodes can simplify such
@@ -389,3 +398,51 @@ def node_dist_list_to_nodes(node_dist_list):
     '''
     for node, dist in node_dist_list:
         yield node
+
+def plot_graph(graph, directed=True, distance=True, start=None,
+               coloring=None):
+    import networkx
+    import gravis
+
+    # Extract the starting states before any graph conversions
+    if start is None:
+        nodes_to_expand = list(graph)
+    elif not isinstance(start, list):
+        nodes_to_expand = [start]
+    else:
+        # Make a copy to avoid corrupting the passed in list
+        nodes_to_expand = list(start)
+
+    # Convert all graphs to simple graphs for simplicity below
+    if distance:
+        graph = to_simple_graph(graph)
+
+    nodes_to_plot = set()
+
+    while nodes_to_expand:
+        node = nodes_to_expand.pop()
+        if node in nodes_to_plot:
+            continue
+        nodes_to_plot.add(node)
+
+        for neighbor in graph[node]:
+            nodes_to_expand.append(neighbor)
+
+    if directed:
+        g = networkx.DiGraph()
+    else:
+        g = networkx.Graph()
+
+    for node in nodes_to_plot:
+        label = str(node)
+
+        color = 'black'
+        if coloring is not None:
+            color = coloring.get(node, color)
+        g.add_node(label, color=color)
+
+        for neighbor in graph[node]:
+            neighbor_label = str(neighbor)
+            g.add_edge(label, neighbor_label)
+
+    gravis.vis(g, graph_height=800).display()
