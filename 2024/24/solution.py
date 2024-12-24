@@ -5,19 +5,19 @@ import lib.aoc
 def parse_input(s):
     a, b = s.split('\n\n')
 
-    m = {}
+    signals = {}
     for line in a.splitlines():
         a0, a1 = line.split(': ')
-        m[a0] = int(a1)
+        signals[a0] = int(a1)
 
-    instructions = {}
+    gates = {}
 
     for line in b.splitlines():
         left, right = line.split(' -> ')
         parts = left.split()
-        instructions[right] = parts
+        gates[right] = parts
 
-    return m, instructions
+    return signals, gates
 
 def extract_num(prefix, d):
     bits = {}
@@ -32,13 +32,13 @@ def extract_num(prefix, d):
 
     return int(out_bits, base=2)
 
-def run_wires(signals, inst):
+def run_wires(signals, gates):
     @functools.cache
     def e(wire):
         if wire in signals:
             return signals[wire]
 
-        left, op, right = inst[wire]
+        left, op, right = gates[wire]
         left = e(left)
         right = e(right)
         if op == 'AND':
@@ -51,7 +51,7 @@ def run_wires(signals, inst):
     try:
         bits = {}
 
-        for wire in inst:
+        for wire in gates:
             if wire.startswith('z'):
                 bits[wire] = e(wire)
 
@@ -60,13 +60,13 @@ def run_wires(signals, inst):
         return None
 
 def part1(s):
-    signals, inst = parse_input(s)
+    signals, gates = parse_input(s)
 
-    answer = run_wires(signals, inst)
+    answer = run_wires(signals, gates)
 
     lib.aoc.give_answer(2024, 24, 1, answer)
 
-def dump_instructions(signals, inst):
+def dump_gates(signals, gates):
     renames = {}
 
     @functools.cache
@@ -75,7 +75,7 @@ def dump_instructions(signals, inst):
             return wire
         if wire.startswith('z'):
             return wire
-        left, op, right = inst[wire]
+        left, op, right = gates[wire]
         if ((left.startswith('x') and right.startswith('y')) or
             left.startswith('y') and right.startswith('x')):
             xid = left[1:]
@@ -120,19 +120,9 @@ def dump_instructions(signals, inst):
             new_name = 'z'+str(lid).zfill(2) + '_carry'
             renames[wire] = new_name
             return new_name
-        if (((left[3:] == '_and' and right[3:] == '_carry_and_alt') or
-             (left[3:] == '_carry_and_alt' and right[3:] == '_and')) and
-            op == 'OR'):
-            assert(left[0] == 'z' == right[0])
-            lid = int(left[1:3])
-            rid = int(right[1:3])
-            assert(lid == rid)
-            new_name = 'z'+str(lid).zfill(2) + '_carry'
-            renames[wire] = new_name
-            return new_name
         return wire
 
-    for wire in inst:
+    for wire in gates:
         check_rename(wire)
 
     def pad(wire, target_length=20):
@@ -143,7 +133,7 @@ def dump_instructions(signals, inst):
     def dump(wire):
         if wire in signals:
             return wire
-        left, op, right = inst[wire]
+        left, op, right = gates[wire]
         left = dump(left)
         right = dump(right)
         if wire in renames:
@@ -165,16 +155,16 @@ def dump_instructions(signals, inst):
     print()
 
 def part2(s):
-    signals, inst = parse_input(s)
+    signals, gates = parse_input(s)
 
     swaps = []
 
     while len(swaps) < 8:
-        dump_instructions(signals, inst)
+        dump_gates(signals, gates)
         print('Please analyze and find a pair of wires to swap.')
         first = input('First wire in the swap: ')
         second = input('Second wire in the swap: ')
-        inst[first], inst[second] = inst[second], inst[first]
+        gates[first], gates[second] = gates[second], gates[first]
         swaps.append(first)
         swaps.append(second)
 
@@ -183,7 +173,7 @@ def part2(s):
 
     target = x+y
 
-    assert(run_wires(signals, inst) == target)
+    assert(run_wires(signals, gates) == target)
     print('Success! The swaps fixed the system and it added the numbers properly!')
 
     answer = ','.join(sorted(swaps))
