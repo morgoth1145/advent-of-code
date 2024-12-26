@@ -17,18 +17,11 @@ def parse_input(s):
 def part1(s):
     locks, keys = parse_input(s)
 
-    answer = 0
-
-    for l in locks:
-        for k in keys:
-            good = True
-            for coord, c in l.items():
-                kc = k[coord]
-                if c == '#' == kc:
-                    good = False
-                    break
-            if good:
-                answer += 1
+    answer = sum(not any(c == '#' == k[coord]
+                         for coord, c
+                         in l.items())
+                 for l in locks
+                 for k in keys)
 
     lib.aoc.give_answer(2024, 25, 1, answer)
 
