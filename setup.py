@@ -75,7 +75,13 @@ intcode = __import__('2019.intcode').intcode'''
     print(f'The answer to part one is {{answer}}')
     lib.aoc.give_answer({year}, {day}, 1, answer)'''
 
-    if day == 25:
+    if year >= 2025 and day == 12:
+        part_2_template = f'''def part2(s):
+    print('Is there a part 2? Unsure until we see it!')
+    lib.aoc.give_answer({year}, {day}, 2, 1) # Allow quick submission in case there's no part 2
+##    print(f'The answer to part two is {{answer}}')
+##    lib.aoc.give_answer({year}, {day}, 2, answer)'''
+    elif day == 25:
         part_2_template = f'''def part2(s):
     print('There is no part two for Christmas!')'''
     else:
@@ -109,6 +115,10 @@ try:
 
         year = 2015
         while True:
+            if day > 12 and year >= 2025:
+                # Starting in 2025 there are only 12 days
+                break
+
             time_to_release = lib.aoc.time_to_release(year, day)
             if time_to_release > datetime.timedelta(days=-1):
                 # This is a future (or current) problem!
@@ -154,8 +164,10 @@ try:
 
         day = int(input('Day: '))
 
-        if day not in range(1, 26):
+        if year < 2025 and day not in range(1, 26):
             error_exit(f'Advent of code runs from December 1st through 25th. Day {day} is invalid')
+        elif day not in range(1, 13):
+            error_exit(f'Advent of code runs from December 1st through 12th starting in 2025. Day {day} is invalid')
 
         time_to_release = lib.aoc.time_to_release(year, day)
         if time_to_release >= datetime.timedelta(days=1):

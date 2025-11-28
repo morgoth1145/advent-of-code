@@ -192,15 +192,18 @@ def _get_puzzle_answers(year, day):
         answers.append(None)
     return answers
 
+def release_time(year, day):
+    # Puzzles release at midnight EST (UTC-5)
+    return datetime.datetime(year=year,
+                             month=12,
+                             day=day,
+                             hour=5,
+                             tzinfo=dateutil.tz.tzutc())
+
 def time_to_release(year, day):
     # Puzzles release at midnight EST (UTC-5)
-    release_time = datetime.datetime(year=year,
-                                     month=12,
-                                     day=day,
-                                     hour=5,
-                                     tzinfo=dateutil.tz.tzutc())
     now = datetime.datetime.now(dateutil.tz.tzutc())
-    return release_time - now
+    return release_time(year, day) - now
 
 def get_input(year, day):
     '''
@@ -277,7 +280,7 @@ def clear_input_cache():
             continue
         shutil.rmtree(child)
 
-def _auto_commit(year, day, part, good_answer_line):
+def _auto_commit(year, day, part, good_answer_msg):
     repo_root = pathlib.Path(__file__).parent.parent
 
     subprocess.check_call(['git', 'stage', '.'],
@@ -286,7 +289,7 @@ def _auto_commit(year, day, part, good_answer_line):
     title = f'{year} Day {day} Part {part}'
     if day == 25 and part == 1:
         title += ' (There is no Part 2)'
-    msg = f'{title}\n\n{good_answer_line}'
+    msg = f'{title}\n\n{good_answer_msg}'
 
     subprocess.check_call(['git', 'commit', '-m', msg],
                           cwd=repo_root)
@@ -410,7 +413,17 @@ def _submit_answer(year, day, part, answer):
         if day != 25 or part != 2:
             if _account_selection is None:
                 # Auto-commit to save the human time!
-                _auto_commit(year, day, part, answer_line)
+                good_answer_msg = answer_line + '\n'
+
+                released = release_time(year, day)
+
+                for answer, submitted_time in tried_answers[str(part)].items():
+                    delta = submitted_time - released
+                    good_answer_msg += f'\nSubmitted {answer} at {delta}'
+
+                good_answer_msg += '\n\nPlease be a good citizen and remove answers from the commit message before pushing!'
+
+                _auto_commit(year, day, part, good_answer_msg)
 
     return good_answer
 
