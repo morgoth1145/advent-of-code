@@ -26,6 +26,7 @@ class Group:
     def take_damage(self, damage):
         units_killed = damage // self.hp
         self.count = max(0, self.count - units_killed)
+        return units_killed
 
 def parse_units(s):
     _, *units = s.splitlines()
@@ -112,6 +113,8 @@ def fight(immune, infection):
 
     attack_order.sort(reverse=True)
 
+    casualties = 0
+
     for _, force_idx, group_idx in attack_order:
         if (force_idx, group_idx) not in targets:
             continue
@@ -125,7 +128,7 @@ def fight(immune, infection):
         enemy_group_idx = targets[force_idx, group_idx]
 
         enemy_group = forces[enemy_force][enemy_group_idx]
-        enemy_group.take_damage(group.computed_dmg(enemy_group))
+        casualties += enemy_group.take_damage(group.computed_dmg(enemy_group)) > 0
 
     immune, infection = forces
     immune = [group for group in immune
@@ -133,7 +136,7 @@ def fight(immune, infection):
     infection = [group for group in infection
                  if group.count > 0]
 
-    return immune, infection
+    return immune, infection, casualties
 
 def fight_to_the_death(s, boost=0):
     immune, infection = s.split('\n\n')
@@ -145,11 +148,8 @@ def fight_to_the_death(s, boost=0):
         group.dmg += boost
 
     while len(immune) > 0 and len(infection) > 0:
-        imm_counts = [g.count for g in immune]
-        inf_counts = [g.count for g in infection]
-        immune, infection = fight(immune, infection)
-        if ([g.count for g in immune] == imm_counts and
-            [g.count for g in infection] == inf_counts):
+        immune, infection, casualties = fight(immune, infection)
+        if casualties == 0:
             # Stalemate
             return None, None
 
@@ -164,20 +164,15 @@ def part1(s):
 
 def part2(s):
     min_boost = 0
+
     while True:
-        min_boost += 1
-
         immune, infection = fight_to_the_death(s, min_boost)
-        if immune is None:
-            continue
-
-        if len(infection) == 0:
+        if immune is not None and len(infection) == 0:
             break
 
-    immune, infection = fight_to_the_death(s, min_boost)
-    assert(len(infection) == 0)
+        min_boost += 1
 
-    answer = sum(group.count for group in immune + infection)
+    answer = sum(group.count for group in immune)
 
     lib.aoc.give_answer(2018, 24, 2, answer)
 
