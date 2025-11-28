@@ -400,7 +400,8 @@ def node_dist_list_to_nodes(node_dist_list):
         yield node
 
 def plot_graph(graph, directed=True, distance=True, start=None,
-               coloring=None):
+               coloring=None,
+               fix_nodes_after_dragging=False):
     import networkx
     import gravis
 
@@ -445,4 +446,4 @@ def plot_graph(graph, directed=True, distance=True, start=None,
             neighbor_label = str(neighbor)
             g.add_edge(label, neighbor_label)
 
-    gravis.vis(g, graph_height=800).display()
+    gravis.d3(g, graph_height=800, node_drag_fix=fix_nodes_after_dragging).display()

@@ -106,7 +106,8 @@ def part2_manual(s):
                      'OR': 'green'}[op]
             coloring[wire] = color
 
-        lib.graph.plot_graph(graph, distance=False, coloring=coloring)
+        lib.graph.plot_graph(graph, distance=False, coloring=coloring,
+                             fix_nodes_after_dragging=True)
 
     swaps = []
 
