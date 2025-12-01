@@ -20,7 +20,6 @@ def part1(s):
             pos -= n
         else:
             assert(False)
-
         pos = pos % 100
 
         if pos == 0:
@@ -29,7 +28,26 @@ def part1(s):
     lib.aoc.give_answer(2025, 1, 1, answer)
 
 def part2(s):
-    pass
+    data = parse_input(s)
+
+    pos = 50
+
+    answer = 0
+
+    for d, n in data:
+        if d == 'R':
+            d = 1
+        elif d == 'L':
+            d = -1
+        else:
+            assert(False)
+
+        for _ in range(n):
+            pos = (pos + d) % 100
+            if pos == 0:
+                answer += 1
+
+    lib.aoc.give_answer(2025, 1, 2, answer)
 
 INPUT = lib.aoc.get_input(2025, 1)
 part1(INPUT)
