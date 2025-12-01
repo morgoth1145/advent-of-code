@@ -1,51 +1,38 @@
 import lib.aoc
 
-def parse_input(s):
-    for line in s.splitlines():
-        c = line[0]
-        n = int(line[1:])
-        yield c, n
-
-def part1(s):
-    data = parse_input(s)
-
-    pos = 50
-
+def solve(s, dial_size, dial_start, per_click):
     answer = 0
 
-    for d, n in data:
-        if d == 'R':
-            pos += n
-        elif d == 'L':
-            pos -= n
+    pos = dial_start
+
+    for line in s.splitlines():
+        if line[0] == 'R':
+            d = 1
+        elif line[0] == 'L':
+            d = -1
         else:
             assert(False)
-        pos = pos % 100
+        n = int(line[1:])
 
-        if pos == 0:
-            answer += 1
+        if per_click:
+            for _ in range(n):
+                pos = (pos + d) % dial_size
+                if pos == 0:
+                    answer += 1
+        else:
+            pos = (pos + d*n) % dial_size
+            if pos == 0:
+                answer += 1
+
+    return answer
+
+def part1(s):
+    answer = solve(s, 100, 50, per_click=False)
 
     lib.aoc.give_answer(2025, 1, 1, answer)
 
 def part2(s):
-    data = parse_input(s)
-
-    pos = 50
-
-    answer = 0
-
-    for d, n in data:
-        if d == 'R':
-            d = 1
-        elif d == 'L':
-            d = -1
-        else:
-            assert(False)
-
-        for _ in range(n):
-            pos = (pos + d) % 100
-            if pos == 0:
-                answer += 1
+    answer = solve(s, 100, 50, per_click=True)
 
     lib.aoc.give_answer(2025, 1, 2, answer)
 
