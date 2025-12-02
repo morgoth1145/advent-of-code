@@ -21,34 +21,6 @@ def topological_sort_root_first(graph):
     NOTE: THIS DOES NOT WORK FOR CYCLIC GRAPHS!'''
     return list(topological_sort(graph))[::-1]
 
-def longest_minimal_path_length(graph, start):
-    '''Returns the destination and length of the longest minimal path from
-    start to somewhere in the graph.
-
-    graph[node] must return a list of (neighbor, distance) pairs
-    '''
-    seen = set()
-    queue = [(0, start)]
-
-    max_dist = 0
-    furthest_node = start
-    while len(queue) > 0:
-        current_dist, current_node = heapq.heappop(queue)
-        if current_node in seen:
-            continue
-
-        seen.add(current_node)
-        if current_dist > max_dist:
-            max_dist = current_dist
-            furthest_node = current_node
-
-        for neighbor_node, neighbor_dist in graph[current_node]:
-            if neighbor_node in seen:
-                continue
-            heapq.heappush(queue, (current_dist + neighbor_dist,
-                                   neighbor_node))
-    return current_node, max_dist
-
 def all_reachable(graph, start, max_dist=None):
     '''Returns (node, distance) pairs of all reachable nodes in the graph.
     graph[node] must return a list of (neighbor, distance) pairs
@@ -73,6 +45,22 @@ def all_reachable(graph, start, max_dist=None):
                 continue
             heapq.heappush(queue, (current_dist + neighbor_dist,
                                    neighbor_node))
+
+def longest_minimal_path_length(graph, start):
+    '''Returns the destination and length of the longest minimal path from
+    start to somewhere in the graph.
+
+    graph[node] must return a list of (neighbor, distance) pairs
+    '''
+    max_dist = 0
+    furthest_node = start
+
+    for node, dist in all_reachable(graph, start):
+        if dist > max_dist:
+            max_dist = dist
+            furthest_node = node
+
+    return furthest_node, max_dist
 
 def dijkstra_length_fuzzy_end(graph, start, end_fn, heuristic=None):
     '''Returns the length of the shortest path from start to any end state
