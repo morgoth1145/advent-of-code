@@ -1,51 +1,30 @@
+import re
+
 import lib.aoc
 
-def part1(s):
-    ranges = s.split(',')
+def solve(s, pattern):
+    r = re.compile(pattern)
 
     answer = 0
 
-    for r in ranges:
-        a, b = r.split('-')
-        a = int(a)
-        b = int(b)
-        r = range(a, b+1)
+    for span in s.split(','):
+        a, b = span.split('-')
 
-        for i in r:
-            istr = str(i)
+        for n in range(int(a), int(b)+1):
+            if r.fullmatch(str(n)):
+                answer += n
 
-            if len(istr) % 2 != 0:
-                continue
-            n = len(istr)
-            fir = istr[:n//2]
-            if fir*2 == istr:
-                answer += i
+    return answer
+
+def part1(s):
+    # Single repetition
+    answer = solve(s, '(\\d+)\\1')
 
     lib.aoc.give_answer(2025, 2, 1, answer)
 
 def part2(s):
-    ranges = s.split(',')
-
-    answer = 0
-
-    for r in ranges:
-        a, b = r.split('-')
-        a = int(a)
-        b = int(b)
-        r = range(a, b+1)
-
-        for i in r:
-            istr = str(i)
-
-            n = len(istr)
-            for j in range(2, n+1):
-                if n % j != 0:
-                    continue
-
-                fir = istr[:n//j]
-                if fir*j == istr:
-                    answer += i
-                    break
+    # 2+ repetitions 
+    answer = solve(s, '(\\d+)\\1+')
 
     lib.aoc.give_answer(2025, 2, 2, answer)
 
