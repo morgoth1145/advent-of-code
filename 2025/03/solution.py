@@ -1,49 +1,37 @@
 import lib.aoc
-import lib.grid
 
-def find_max_as_arr(r, rem_items):
-    if rem_items == 0:
-        return []
+def solve(s, num_batteries):
+    def get_max(nums, to_choose):
+        if to_choose == 0:
+            return 0
 
-    assert(rem_items <= len(r))
+        assert(len(nums) >= to_choose)
 
-    best_i = None
-    best = -1
+        best = -1
+        best_i = None
+        for i in range(len(nums) - to_choose + 1):
+            v = nums[i]
+            if v > best:
+                best = v
+                best_i = i
 
-    for i, v in enumerate(r):
-        if len(r) - i - 1 < rem_items - 1:
-            break
-
-        if v > best:
-            best = v
-            best_i = i
-
-    return [best] + find_max_as_arr(r[best_i+1:], rem_items-1)
-
-def find_max(r, num_items):
-    a = find_max_as_arr(r, num_items)
-    assert(len(a) == num_items)
-    return int(''.join(map(str, a)))
-
-def part1(s):
-    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
+        return best * 10 ** (to_choose - 1) + get_max(nums[best_i+1:],
+                                                      to_choose-1)
 
     answer = 0
 
-    for y in grid.y_range:
-        r = grid.row(y)
-        answer += find_max(r, 2)
+    for row in s.splitlines():
+        answer += get_max(tuple(map(int, row)), num_batteries)
+
+    return answer
+
+def part1(s):
+    answer = solve(s, 2)
 
     lib.aoc.give_answer(2025, 3, 1, answer)
 
 def part2(s):
-    grid = lib.grid.FixedGrid.parse(s, value_fn=int)
-
-    answer = 0
-
-    for i, y in enumerate(grid.y_range):
-        r = grid.row(y)
-        answer += find_max(r, 12)
+    answer = solve(s, 12)
 
     lib.aoc.give_answer(2025, 3, 2, answer)
 
