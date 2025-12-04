@@ -20,7 +20,28 @@ def part1(s):
     lib.aoc.give_answer(2025, 4, 1, answer)
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+
+    answer = 0
+
+    while True:
+        progress = False
+        for pos, c in grid.items():
+            if c != '@':
+                continue
+            adj = 0
+            for n in grid.neighbors(*pos, diagonals=True):
+                if grid[n] == '@':
+                    adj += 1
+
+            if adj < 4:
+                answer += 1
+                grid[pos] = '.'
+                progress = True
+        if not progress:
+            break
+
+    lib.aoc.give_answer(2025, 4, 2, answer)
 
 INPUT = lib.aoc.get_input(2025, 4)
 part1(INPUT)
