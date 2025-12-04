@@ -299,7 +299,8 @@ def _submit_answer_to_web_impl(year, day, part, answer):
 
     # Day 25 Part 2 is allowed to not be rate limited due to being the final star and
     # being immediately "solvable". Every moment counts for the leaderboard!
-    if day != 25 or part != 2:
+    # 2025 update - There are now only 12 days, and part 2 is probably immediately solvable.
+    if not (day == 25 and part == 2) or not (year >= 2025 and day == 12 and part == 2):
         _rate_limit('submit_answer')
 
     url = f'https://adventofcode.com/{year}/day/{day}/answer'
