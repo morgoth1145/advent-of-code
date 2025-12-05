@@ -22,21 +22,20 @@ def part1(s):
 def part2(s):
     ranges, _ = parse_input(s)
 
+    ranges = sorted(ranges, key=lambda r: (r.start, r.stop))
+
     answer = 0
 
-    while ranges:
-        r = ranges.pop()
+    while len(ranges) > 1:
+        r0 = ranges.pop(0)
+        r1 = ranges[0]
 
-        good = True
-        for r2 in ranges:
-            if r2.start < r.stop and r2.stop > r.start:
-                ranges.append(range(r.start, r2.start))
-                ranges.append(range(r2.stop, r.stop))
-                good = False
-                break
+        if r0.stop <= r1.start:
+            answer += len(r0)
+        else:
+            ranges[0] = range(r0.start, max(r0.stop, r1.stop))
 
-        if good:
-            answer += len(r)
+    answer += len(ranges.pop())
 
     lib.aoc.give_answer(2025, 5, 2, answer)
 
