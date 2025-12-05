@@ -166,7 +166,7 @@ try:
 
         if year < 2025 and day not in range(1, 26):
             error_exit(f'Advent of code runs from December 1st through 25th. Day {day} is invalid')
-        elif day not in range(1, 13):
+        elif year >= 2025 and day not in range(1, 13):
             error_exit(f'Advent of code runs from December 1st through 12th starting in 2025. Day {day} is invalid')
 
         time_to_release = lib.aoc.time_to_release(year, day)
