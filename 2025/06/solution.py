@@ -11,18 +11,9 @@ def solve(s, vertical_numbers=False):
     if vertical_numbers:
         # Pivot the table for easier parsing
         grid = lib.grid.FixedGrid.parse(num_section).transpose()
-        num_col_strings = grid.as_str(line_spacing='').splitlines()
-
-        num_columns = []
-        new_col = []
-        for line in num_col_strings:
-            line = line.strip()
-            if line == '': # Boundary between problems
-                num_columns.append(new_col)
-                new_col = []
-                continue
-            new_col.append(int(line))
-        num_columns.append(new_col)
+        num_columns_str = grid.as_str(line_spacing='').replace(' ', '')
+        num_columns = [list(map(int, col.splitlines()))
+                       for col in num_columns_str.split('\n\n')]
     else:
         grid = lib.grid.FixedGrid.parse(num_section,
                                         linesplit_fn=str.split,
