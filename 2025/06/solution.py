@@ -3,85 +3,51 @@ import math
 import lib.aoc
 import lib.grid
 
-def part1(s):
-    grid = lib.grid.FixedGrid.parse(s,
-                                    linesplit_fn=lambda line: line.split(),
-                                    value_fn=str)
+def solve(s, vertical_numbers=False):
+    lines = s.splitlines()
+    num_section = '\n'.join(lines[:-1])
+    op_line = lines[-1]
+
+    if vertical_numbers:
+        # Pivot the table for easier parsing
+        grid = lib.grid.FixedGrid.parse(num_section).transpose()
+        num_col_strings = grid.as_str(line_spacing='').splitlines()
+
+        num_columns = []
+        new_col = []
+        for line in num_col_strings:
+            line = line.strip()
+            if line == '': # Boundary between problems
+                num_columns.append(new_col)
+                new_col = []
+                continue
+            new_col.append(int(line))
+        num_columns.append(new_col)
+    else:
+        grid = lib.grid.FixedGrid.parse(num_section,
+                                        linesplit_fn=str.split,
+                                        value_fn=int)
+        num_columns = [grid.col(x) for x in grid.x_range]
 
     answer = 0
 
-    for x in grid.x_range:
-        col = grid.col(x)
-
-        op = col[-1]
-
-        nums = list(map(int, col[:-1]))
-
+    for nums, op in zip(num_columns, op_line.split()):
         if op == '+':
             answer += sum(nums)
         elif op == '*':
             answer += math.prod(nums)
         else:
             assert(False)
+
+    return answer
+
+def part1(s):
+    answer = solve(s)
 
     lib.aoc.give_answer(2025, 6, 1, answer)
 
 def part2(s):
-    lines = s.splitlines()
-
-    split_indices = []
-
-    for i in range(len(lines[0])):
-        if all(l[i] == ' ' for l in lines):
-            split_indices.append(i)
-
-    def split_line(line):
-        out = []
-        start = 0
-        for i in split_indices:
-            out.append(line[start:i])
-            start = i+1
-        out.append(line[start:])
-        return out
-
-    grid = lib.grid.FixedGrid.parse(s,
-                                    linesplit_fn=lambda line: split_line(line),
-                                    value_fn=str)
-
-    answer = 0
-
-    for x in grid.x_range:
-        col = grid.col(x)
-
-        op = col[-1].strip()
-
-        pre_nums = col[:-1]
-
-        nums2 = []
-
-        i = 0
-        while True:
-            out = ''
-
-            for n in pre_nums:
-                if i >= len(n) or n[i] == ' ':
-                    continue
-                out += n[i]
-
-            if out == '':
-                break
-
-            nums2.append(out)
-            i += 1
-
-        nums = list(map(int, nums2))
-
-        if op == '+':
-            answer += sum(nums)
-        elif op == '*':
-            answer += math.prod(nums)
-        else:
-            assert(False)
+    answer = solve(s, vertical_numbers=True)
 
     lib.aoc.give_answer(2025, 6, 2, answer)
 
