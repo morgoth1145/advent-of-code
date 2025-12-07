@@ -1,47 +1,37 @@
-import functools
+import collections
 
 import lib.aoc
-import lib.grid
+
+def solve(s):
+    lines = s.splitlines()
+
+    start = lines[0].index('S')
+
+    split_points = 0
+    timelines = {start: 1}
+
+    for l in lines[1:]:
+        new_timelines = collections.Counter()
+
+        for x, t in timelines.items():
+            if l[x] == '^':
+                split_points += 1
+                new_timelines[x-1] += t
+                new_timelines[x+1] += t
+            else:
+                new_timelines[x] += t
+
+        timelines = new_timelines
+
+    return split_points, sum(timelines.values())
 
 def part1(s):
-    grid = lib.grid.FixedGrid.parse(s)
-
-    split_points = set()
-
-    @functools.cache
-    def run_splits(x, y):
-        while y < grid.height:
-            c = grid[x,y]
-            if c == '^':
-                split_points.add((x, y))
-                run_splits(x-1, y)
-                run_splits(x+1, y)
-                return
-            y += 1
-        return
-
-    x, y = grid.find('S')
-    run_splits(x, y)
-
-    answer = len(split_points)
+    answer, _ = solve(s)
 
     lib.aoc.give_answer(2025, 7, 1, answer)
 
 def part2(s):
-    grid = lib.grid.FixedGrid.parse(s)
-
-    @functools.cache
-    def count_splits(x, y):
-        while y < grid.height:
-            c = grid[x,y]
-            if c == '^':
-                return 1 + count_splits(x-1, y) + count_splits(x+1, y)
-            y += 1
-        return 0
-
-    x, y = grid.find('S')
-
-    answer = count_splits(x, y) + 1
+    _, answer = solve(s)
 
     lib.aoc.give_answer(2025, 7, 2, answer)
 
