@@ -28,7 +28,22 @@ def part1(s):
     lib.aoc.give_answer(2025, 7, 1, answer)
 
 def part2(s):
-    pass
+    grid = lib.grid.FixedGrid.parse(s)
+
+    @functools.cache
+    def count_splits(x, y):
+        while y < grid.height:
+            c = grid[x,y]
+            if c == '^':
+                return 1 + count_splits(x-1, y) + count_splits(x+1, y)
+            y += 1
+        return 0
+
+    x, y = grid.find('S')
+
+    answer = count_splits(x, y) + 1
+
+    lib.aoc.give_answer(2025, 7, 2, answer)
 
 INPUT = lib.aoc.get_input(2025, 7)
 part1(INPUT)
