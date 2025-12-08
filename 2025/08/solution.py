@@ -8,6 +8,7 @@ class CircuitGraph:
         # https://en.wikipedia.org/wiki/Disjoint-set_data_structure
         # TODO: Implement a proper type for this, it's come up before
         self.__circuits = list(range(len(self.__coords))) # x->x
+        self.__circuit_sizes = [1] * len(self.__coords)
         self.__next_to_connect = []
 
         for i, (x, y, z) in enumerate(self.__coords):
@@ -18,13 +19,20 @@ class CircuitGraph:
         self.__next_to_connect.sort(reverse=True)
 
     def __circuit_find(self, x):
-        if self.__circuits[x] == x:
+        xp = self.__circuits[x]
+        if xp == x:
             return x
-        self.__circuits[x] = ret = self.__circuit_find(self.__circuits[x])
-        return ret
+        xp = self.__circuit_find(xp)
+        self.__circuits[x] = xp
+        return xp
 
     def __circuit_mix(self, x, y):
-        self.__circuits[self.__circuit_find(x)] = self.__circuit_find(y)
+        xp = self.__circuit_find(x)
+        yp = self.__circuit_find(y)
+        if xp != yp:
+            self.__circuits[xp] = yp
+            self.__circuit_sizes[yp] += self.__circuit_sizes[xp]
+            self.__circuit_sizes[xp] = 0
 
     def make_connection(self):
         d, i, j = self.__next_to_connect.pop()
@@ -33,12 +41,10 @@ class CircuitGraph:
         return self.__coords[i], self.__coords[j]
 
     def get_circuit_sizes(self):
-        circuit_sizes = [0] * len(self.__coords)
+        return [s for s in self.__circuit_sizes if s > 0]
 
-        for i in range(len(self.__coords)):
-            circuit_sizes[self.__circuit_find(i)] += 1
-
-        return [s for s in circuit_sizes if s > 0]
+    def is_single_circuit(self):
+        return self.__circuit_sizes[self.__circuit_find(0)] == len(self.__coords)
 
 def part1(s):
     cg = CircuitGraph(s)
@@ -58,7 +64,7 @@ def part2(s):
 
     while True:
         (x, _, _), (x2, _, _) = cg.make_connection()
-        if len(cg.get_circuit_sizes()) == 1:
+        if cg.is_single_circuit():
             answer = x*x2
             break
 
