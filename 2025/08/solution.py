@@ -1,87 +1,64 @@
-import collections
-
 import lib.aoc
 
+class CircuitGraph:
+    def __init__(self, s):
+        self.__coords = list(tuple(map(int, l.split(',')))
+                            for l in s.splitlines())
+        # Disjoint-set data structure
+        # https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+        # TODO: Implement a proper type for this, it's come up before
+        self.__circuits = list(range(len(self.__coords))) # x->x
+        self.__next_to_connect = []
+
+        for i, (x, y, z) in enumerate(self.__coords):
+            for j, (x2, y2, z2) in enumerate(self.__coords[i+1:], start=i+1):
+                d = (x-x2)**2 + (y-y2)**2 + (z-z2)**2
+                self.__next_to_connect.append((d, i, j))
+
+        self.__next_to_connect.sort(reverse=True)
+
+    def __circuit_find(self, x):
+        if self.__circuits[x] == x:
+            return x
+        self.__circuits[x] = ret = self.__circuit_find(self.__circuits[x])
+        return ret
+
+    def __circuit_mix(self, x, y):
+        self.__circuits[self.__circuit_find(x)] = self.__circuit_find(y)
+
+    def make_connection(self):
+        d, i, j = self.__next_to_connect.pop()
+
+        self.__circuit_mix(i, j)
+        return self.__coords[i], self.__coords[j]
+
+    def get_circuit_sizes(self):
+        circuit_sizes = [0] * len(self.__coords)
+
+        for i in range(len(self.__coords)):
+            circuit_sizes[self.__circuit_find(i)] += 1
+
+        return [s for s in circuit_sizes if s > 0]
+
 def part1(s):
-    coords = list(tuple(map(int, l.split(',')))
-                  for l in s.splitlines())
+    cg = CircuitGraph(s)
 
-    graph = collections.defaultdict(set)
+    for _ in range(1000):
+        cg.make_connection()
 
-    distances = []
+    circuit_sizes = cg.get_circuit_sizes()
+    circuit_sizes.sort()
 
-    for i, (x, y, z) in enumerate(coords):
-        for x2, y2, z2 in coords[i+1:]:
-            d = ((x-x2)**2 + (y-y2)**2 + (z-z2)**2)
-            distances.append((d, (x, y, z), (x2, y2, z2)))
-
-    distances.sort()
-
-    for d, (x, y, z), (x2, y2, z2) in distances[:1000]:
-        graph[x,y,z].add((x2, y2, z2))
-        graph[x2,y2,z2].add((x,y,z))
-
-    circuits = []
-
-    handled = set()
-
-    def make_circuit(x, y, z, circuit):
-        circuit.add((x, y, z))
-        if (x, y, z) in handled:
-            return
-        handled.add((x, y, z))
-
-        for x2, y2, z2 in graph[x,y,z]:
-            make_circuit(x2, y2, z2, circuit)
-
-    for x, y, z in coords:
-        if (x, y, z) in handled:
-            continue
-        circuit = set()
-        make_circuit(x, y, z, circuit)
-
-        circuits.append(circuit)
-
-    circuits.sort(key=lambda c: len(c))
-
-    answer = len(circuits[-1]) * len(circuits[-2]) * len(circuits[-3])
+    answer = circuit_sizes[-1] * circuit_sizes[-2] * circuit_sizes[-3]
 
     lib.aoc.give_answer(2025, 8, 1, answer)
 
 def part2(s):
-    coords = list(tuple(map(int, l.split(',')))
-                  for l in s.splitlines())
+    cg = CircuitGraph(s)
 
-    graph = collections.defaultdict(set)
-
-    distances = []
-
-    for i, (x, y, z) in enumerate(coords):
-        for x2, y2, z2 in coords[i+1:]:
-            d = ((x-x2)**2 + (y-y2)**2 + (z-z2)**2)
-            distances.append((d, (x, y, z), (x2, y2, z2)))
-
-    distances.sort()
-
-    def check_fully_connected():
-        handled = set()
-
-        def make_circuit(x, y, z):
-            if (x, y, z) in handled:
-                return
-            handled.add((x, y, z))
-
-            for x2, y2, z2 in graph[x,y,z]:
-                make_circuit(x2, y2, z2)
-
-        make_circuit(*coords[0])
-        return len(handled) == len(coords)
-
-    for i, (d, (x, y, z), (x2, y2, z2)) in enumerate(distances):
-        graph[x,y,z].add((x2, y2, z2))
-        graph[x2,y2,z2].add((x,y,z))
-
-        if check_fully_connected():
+    while True:
+        (x, _, _), (x2, _, _) = cg.make_connection()
+        if len(cg.get_circuit_sizes()) == 1:
             answer = x*x2
             break
 
