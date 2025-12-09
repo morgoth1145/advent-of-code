@@ -1,3 +1,6 @@
+import heapq
+import math
+
 import lib.aoc
 
 class CircuitGraph:
@@ -11,12 +14,11 @@ class CircuitGraph:
         self.__circuit_sizes = [1] * len(self.__coords)
         self.__next_to_connect = []
 
-        for i, (x, y, z) in enumerate(self.__coords):
-            for j, (x2, y2, z2) in enumerate(self.__coords[i+1:], start=i+1):
-                d = (x-x2)**2 + (y-y2)**2 + (z-z2)**2
-                self.__next_to_connect.append((d, i, j))
+        for i, c in enumerate(self.__coords):
+            for j, c2 in enumerate(self.__coords[i+1:], start=i+1):
+                self.__next_to_connect.append((math.dist(c, c2), i, j))
 
-        self.__next_to_connect.sort(reverse=True)
+        heapq.heapify(self.__next_to_connect)
 
     def __circuit_find(self, x):
         xp = self.__circuits[x]
@@ -35,7 +37,7 @@ class CircuitGraph:
             self.__circuit_sizes[xp] = 0
 
     def make_connection(self):
-        d, i, j = self.__next_to_connect.pop()
+        d, i, j = heapq.heappop(self.__next_to_connect)
 
         self.__circuit_mix(i, j)
         return self.__coords[i], self.__coords[j]
