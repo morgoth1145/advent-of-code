@@ -1,7 +1,6 @@
 import z3
 
 import lib.aoc
-import lib.graph
 
 def parse_input(s):
     for line in s.splitlines():
@@ -31,7 +30,6 @@ def part1(s):
     answer = 0
 
     for target, buttons, _ in data:
-        matched = False
         todo = ['.' * len(target)]
         handled = set(todo)
         steps = 0
@@ -50,105 +48,16 @@ def part1(s):
                     for p in b:
                         ns[p] = '.' if ns[p] == '#' else '#'
                     ns = ''.join(ns)
-                    if ns == target:
-                        matched = True
-                        break
                     new_states.add(ns)
-                if matched:
-                    break
 
-            if matched:
+            if target in new_states:
+                answer += steps
                 break
 
             todo = new_states - handled
             handled.update(new_states)
 
-        assert(matched)
-        answer += steps
-
     lib.aoc.give_answer(2025, 10, 1, answer)
-
-def part2_graph_search_nonsense(s):
-    data = list(parse_input(s))
-
-    answer = 0
-
-    for i, (_, buttons, joltage) in enumerate(data):
-        min_button_len = min(map(len, buttons))
-
-        start = (0,) * len(joltage)
-
-        def neighbor_fn(state):
-            if state == joltage:
-                return
-
-            bad_jolt_indices = list(i
-                                    for i, (a, b)
-                                    in enumerate(zip(state, joltage))
-                                    if a < b)
-
-            worst_idx_len = -1
-            worst_idx = None
-            for idx in bad_jolt_indices:
-                idx_len = min(len(b) for b in buttons
-                              if idx in b
-                              if all(joltage[p] >= state[p]
-                                     for p in b))
-
-                if idx_len > worst_idx_len:
-                    worst_idx_len = idx_len
-                    worst_idx = idx
-
-            bad_jolt_idx = worst_idx
-
-            valid_buttons = [b for b in buttons
-                             if bad_jolt_idx in b
-                             if all(joltage[p] >= state[p]
-                                    for p in b)]
-
-            steps_to_take = joltage[bad_jolt_idx] - state[bad_jolt_idx]
-
-            def gen_states(state, rem_buttons, rem_steps):
-                if rem_steps == 0:
-                    yield state
-                    return
-
-                if len(rem_buttons) == 0:
-                    return
-
-                ns = list(state)
-
-                b = rem_buttons[0]
-                for i in range(rem_steps+1):
-                    yield from gen_states(tuple(ns),
-                                          rem_buttons[1:],
-                                          rem_steps-i)
-                    for p in b:
-                        ns[p] += 1
-
-                    if any(a > b for a,b in zip(ns, joltage)):
-                        return
-
-            for s in gen_states(state, valid_buttons, steps_to_take):
-                yield s, steps_to_take
-
-        graph = lib.graph.make_lazy_graph(neighbor_fn)
-
-        def heuristic(state):
-            rem_joltage = sum(b-a for a, b in zip(state, joltage))
-            return (rem_joltage + min_button_len - 1) // min_button_len
-
-        steps = lib.graph.find_shortest_path_length(graph,
-                                                    start,
-                                                    joltage,
-                                                    heuristic
-                                                    )
-
-        assert(steps >= 0)
-
-        answer += steps
-
-    lib.aoc.give_answer(2025, 10, 2, answer)
 
 def part2(s):
     data = list(parse_input(s))
@@ -161,34 +70,27 @@ def part2(s):
         button_vars = []
 
         for b in range(len(buttons)):
-            bv = z3.Int('button' + str(b))
+            bv = z3.Int(f'button{b}')
             button_vars.append(bv)
             o.add(bv >= 0)
 
         for jidx, j in enumerate(joltage):
-            jv = z3.Int('jolt' + str(j))
-            jeq = j
+            jv = z3.Int(f'jolt{j}')
 
-            for b, bv in zip(buttons, button_vars):
-                if jidx in b:
-                    jeq = jeq - bv
+            jeq = sum(bv
+                      for b, bv
+                      in zip(buttons, button_vars)
+                      if jidx in b)
 
-            o.add(jeq == 0)
+            o.add(jeq == j)
 
         steps = z3.Int('steps')
-
-        steps_eq = 0
-
-        for bv in button_vars:
-            steps_eq = steps_eq + bv
-
-        o.add(steps == steps_eq)
+        o.add(steps == sum(button_vars))
 
         o.minimize(steps)
         o.check()
-        steps_val = o.model()[steps].as_long()
 
-        answer += steps_val
+        answer += o.model()[steps].as_long()
 
     lib.aoc.give_answer(2025, 10, 2, answer)
 
