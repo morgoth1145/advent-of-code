@@ -69,12 +69,20 @@ def part1(s):
     lib.aoc.give_answer(2025, 10, 1, answer)
 
 def part2_graph_search_nonsense(s):
+    import time
+
     data = list(parse_input(s))
 
     answer = 0
 
+    start_t = time.perf_counter()
+
     for i, (_, buttons, joltage) in enumerate(data):
+        now = time.perf_counter()
         min_button_len = min(map(len, buttons))
+
+        print(now-start_t,
+              i, len(data), sum(joltage), len(buttons), min_button_len)
 
         start = (0,) * len(joltage)
 
@@ -87,16 +95,16 @@ def part2_graph_search_nonsense(s):
                                     in enumerate(zip(state, joltage))
                                     if a < b)
 
-            worst_idx_len = -1
+            best_num_buttons = len(buttons)*2
             worst_idx = None
             for idx in bad_jolt_indices:
-                idx_len = min(len(b) for b in buttons
-                              if idx in b
-                              if all(joltage[p] >= state[p]
-                                     for p in b))
+                num_buttons = sum(1 for b in buttons
+                                  if idx in b
+                                  if all(joltage[p] >= state[p]
+                                         for p in b))
 
-                if idx_len > worst_idx_len:
-                    worst_idx_len = idx_len
+                if num_buttons < best_num_buttons:
+                    best_num_buttons = num_buttons
                     worst_idx = idx
 
             bad_jolt_idx = worst_idx
@@ -191,6 +199,8 @@ def part2(s):
         answer += steps_val
 
     lib.aoc.give_answer(2025, 10, 2, answer)
+
+part2 = part2_graph_search_nonsense
 
 INPUT = lib.aoc.get_input(2025, 10)
 part1(INPUT)
