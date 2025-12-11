@@ -2,6 +2,25 @@ import heapq
 
 import lib.lazy_dict
 
+def validate_acyclic(graph, distance=False):
+    '''Checks if a graph is acyclic and throws an exception if a cycle is found'''
+    handling = set()
+    leaves = set()
+    def impl(key):
+        if key in handling:
+            if key not in leaves:
+                raise ValueError(f'There is a cycle in the graph involving {key}')
+            return
+        handling.add(key)
+        for n in graph.get(key, []):
+            if distance:
+                n = n[0]
+            impl(n)
+        leaves.add(key)
+
+    for key in graph.keys():
+        impl(key)
+
 def topological_sort(graph):
     '''Outputs graph nodes in topological order, going from the leaf to the root
     NOTE: THIS DOES NOT WORK FOR CYCLIC GRAPHS!'''
